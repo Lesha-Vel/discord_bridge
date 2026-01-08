@@ -3,6 +3,7 @@ local settings = minetest.settings
 
 local host = settings:get('discord.host') or 'localhost'
 local port = settings:get('discord.port') or 8080
+local escape_formatting = settings:get_bool('discord.escape_formatting') or false
 local timeout = 10
 
 discord = {}
@@ -104,9 +105,15 @@ function discord.handle_response(response)
 end
 
 function discord.send(message, id)
+    local content
+    if escape_formatting then
+        content = minetest.strip_colors(message):gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
+    else
+        content = minetest.strip_colors(message)
+    end
     local data = {
         type = 'DISCORD-RELAY-MESSAGE',
-        content = minetest.strip_colors(message):gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
+        content = content
     }
     if id then
         data['context'] = id

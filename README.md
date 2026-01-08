@@ -43,6 +43,7 @@ secure.http_mods = discordmt
 discord.host = localhost
 discord.port = 8080
 discord.text_color = #a7a7a7
+discord.escape_formatting = false
 ```
 *(Side note: The port must be set in both `relay.conf` and `minetest.conf` because users may decide to run the relay in a different location than the mod, or to run multiple relays/servers at once.)*
 
