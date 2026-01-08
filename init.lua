@@ -134,7 +134,7 @@ local ongoing = nil
 minetest.register_globalstep(function(dtime)
     if dtime then
         timer = timer + dtime
-        if timer > 0.9 then
+        if timer > 0.2 then
             if not ongoing then
                 ongoing = http.fetch_async({
                     url = tostring(host)..':'..tostring(port),
