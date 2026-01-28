@@ -11,20 +11,35 @@ discord = {}
 -- Configuration
 discord.text_colorization = settings:get('discord.text_color') or '#ffffff'
 
+discord.send_joins = settings:get_bool('discord.send_joins', true)
+discord.send_last_login = settings:get_bool('discord.send_last_login', false)
+
+discord.send_welcomes = settings:get_bool('discord.send_welcomes', true)
+
 discord.send_server_startup = settings:get_bool('discord.send_server_startup', true)
 discord.send_server_shutdown = settings:get_bool('discord.send_server_shutdown', true)
 
 discord.include_server_status = settings:get_bool('discord.include_server_status', true)
 discord.include_server_status_on_shutdown = settings:get_bool('discord.include_server_status_on_shutdown', true)
 
-
 discord.startup_text = settings:get('discord.startup_text') or '*** Server started!'
 discord.shutdown_text = settings:get('discord.shutdown_text') or '*** Server shutting down...'
+discord.join_text = settings:get('discord.join_text') or '\\*\\*\\* **@1** joined the game'
+discord.last_login_text = settings:get('discord.last_login_text') or '\\*\\*\\* **@1** joined the game. Last login: @2'
+
+discord.welcome_text = settings:get('discord.welcome_text') or '\\*\\*\\* **@1** joined the game for the first time. Welcome!'
+
+discord.use_embeds_on_joins = settings:get_bool('discord.use_embeds_on_joins', true)
+
+discord.use_embeds_on_welcomes = settings:get_bool('discord.use_embeds_on_welcomes', true)
 
 discord.use_embeds_on_server_updates = settings:get_bool('discord.use_embeds_on_server_updates', true)
 
 discord.startup_color = settings:get('discord.startup_color') or '#5865f2'
 discord.shutdown_color = settings:get('discord.shutdown_color') or '#d9d9dc'
+discord.join_color = settings:get('discord.join_color') or '#57f287'
+
+discord.welcome_color = settings:get('discord.welcome_color') or '#57f287'
 
 discord.registered_on_messages = {}
 
@@ -36,6 +51,13 @@ end
 
 discord.chat_send_all = minetest.chat_send_all
 
+-- a part from dcwebhook
+local function replace(str, ...)
+    local arg = {...}
+    return (str:gsub("@(.)", function(matched)
+        return arg[tonumber(matched)]
+    end))
+end
 -- Allow the chat message format to be customised by other mods
 function discord.format_chat_message(name, msg)
     return ('<%s@Discord> %s'):format(name, msg)
@@ -122,15 +144,19 @@ end
 
 function discord.send(message, id, embed_color, embed_description)
     local content
-    if escape_formatting then
-        content = minetest.strip_colors(message):gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
-    else
-        content = minetest.strip_colors(message)
-    end
     local data = {
-        type = 'DISCORD-RELAY-MESSAGE',
-        content = content
+        type = 'DISCORD-RELAY-MESSAGE'
     }
+    if message then
+        if escape_formatting then
+            content = minetest.strip_colors(message):gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
+        else
+            content = minetest.strip_colors(message)
+        end
+        data['content'] = content
+    else
+        data['content'] = nil
+    end
     if id then
         data['context'] = id
     end
@@ -143,16 +169,43 @@ function discord.send(message, id, embed_color, embed_description)
     })
 end
 
-function minetest.chat_send_all(message)
-    discord.chat_send_all(message)
-    discord.send(message)
-end
+-- function minetest.chat_send_all(message)
+--     discord.chat_send_all(message)
+--     discord.send(message)
+-- end
 
 -- Register the chat message callback after other mods load so that anything
 -- that overrides chat will work correctly
 minetest.after(0, minetest.register_on_chat_message, function(name, message)
     discord.send(minetest.format_chat_message(name, message))
 end)
+
+
+if discord.send_joins then
+    minetest.after(0, minetest.register_on_joinplayer, function(player, last_login)
+        local name = player:get_player_name()
+
+        if last_login == nil and discord.send_welcomes then
+            if not discord.use_embeds_on_welcomes then
+                discord.send(replace(discord.welcome_text, name))
+            else
+                discord.send(nil, nil, discord.welcome_color,
+                    replace(discord.welcome_text, name))
+            end
+        else
+            if not discord.use_embeds_on_joins then
+                discord.send(discord.send_last_login and
+                    replace(discord.last_login_text, name, os.date(discord.date, last_login)) or
+                    replace(discord.join_text, name))
+            else
+                discord.send(nil, nil, discord.join_color,
+                    (discord.send_last_login and
+                    replace(discord.last_login_text, name, os.date(discord.date, last_login)) or
+                    replace(discord.join_text, name)))
+            end
+        end
+    end)
+end
 
 local timer = 0
 local ongoing = nil

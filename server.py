@@ -88,21 +88,29 @@ async def handle(request):
     try:
         data = await request.json()
         if data['type'] == 'DISCORD-RELAY-MESSAGE':
-            msg = translation_re.sub('', data['content'])
-            msg = discord.utils.escape_mentions(msg)
-            chunks = [msg[i:i+2000] for i in range(0, len(msg), 2000)]
+            if 'content' in data:
+                msg = translation_re.sub('', data['content'])
+                msg = discord.utils.escape_mentions(msg)
+                chunks = [msg[i:i+2000] for i in range(0, len(msg), 2000)]
+            else:
+                msg = None
+                chunks = []
             if 'embed_color' in data:
                 if 'context' in data:
                     id = int(data['context'])
                     target_channel = bot.get_partial_messageable(id)
-                    for chunk in chunks:
-                        await target_channel.send(embed=Embed(title=chunk, color=Color.from_str(data['embed_color']), 
-                            description=(data['embed_description'] if data['embed_description'] else None)))
+                    # for chunk in chunks:
+                    await target_channel.send(embed=Embed(title=chunks[0], color=Color.from_str(data['embed_color']),
+                        description=(data['embed_description'] if data['embed_description'] else None)))
                 # elif incoming_msgs is None:
                 else:
-                    for chunk in chunks:
-                        await channel.send(embed=Embed(title=chunk, color=Color.from_str(data['embed_color']), 
+                    if len(chunks) > 0:
+                        # for chunk in chunks:
+                        await channel.send(embed=Embed(title=chunks[0], color=Color.from_str(data['embed_color']),
                             description=(data['embed_description'] if 'embed_description' in data else None)))
+                    else:
+                        await channel.send(embed=Embed(color=Color.from_str(data['embed_color']),
+                            description=data['embed_description']))
                 # else:
                 #     for chunk in chunks:
                 #         incoming_msgs.append({'msg': chunk, 'color': Color.from_str(data['embed_color']),

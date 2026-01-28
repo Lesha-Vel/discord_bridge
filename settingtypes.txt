@@ -1,12 +1,23 @@
 discord.port (Port to run the relay on.) int 8080
 discord.text_color (Custom color for relayed messages.) string #ffffff
 discord.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool false
+discord.send_joins (Notification on player join) bool true
+discord.send_last_login (Include last login in notification on player join) bool false
+discord.send_welcomes (Notification on player welcome) bool true
 discord.send_server_startup (Send server startups) bool true
 discord.send_server_shutdown (Send server shutdowns) bool true
 discord.include_server_status (Include server status in startup notification) bool true
 discord.include_server_status_on_shutdown (Include server status on shutdown in startup notification) bool true
 discord.startup_text (Text of notification on server startup) string Server started
 discord.shutdown_text (Text of notification on server shut-down) string Server shut down
+discord.join_text (Text of notification on player join) string
+discord.last_login_text (Text of notification on player join including last login) string
+discord.welcome_text (Text of notification on player welcome) string
+
+discord.use_embeds_on_joins (Use Discord embeds for notifications on player join) bool true
+discord.use_embeds_on_welcomes (Use Discord embeds for notifications on player welcomes) bool true
 discord.use_embeds_on_server_updates (Use Discord embeds for server status notifications) bool true
 discord.startup_color (Startup Discord embed color) string #5865f2
 discord.shutdown_color (Shut down Discord embed color) string
+discord.join_color (Join Discord embed color) string #57f287
+discord.welcome_color (Welcome Discord embed color) string #57f287
