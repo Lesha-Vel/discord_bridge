@@ -13,7 +13,7 @@ discord.text_colorization = settings:get('discord.text_color') or '#ffffff'
 
 discord.send_joins = settings:get_bool('discord.send_joins', true)
 discord.send_last_login = settings:get_bool('discord.send_last_login', false)
-
+discord.send_leaves = settings:get_bool('discord.send_leaves', true)
 discord.send_welcomes = settings:get_bool('discord.send_welcomes', true)
 
 discord.send_server_startup = settings:get_bool('discord.send_server_startup', true)
@@ -26,11 +26,11 @@ discord.startup_text = settings:get('discord.startup_text') or '*** Server start
 discord.shutdown_text = settings:get('discord.shutdown_text') or '*** Server shutting down...'
 discord.join_text = settings:get('discord.join_text') or '\\*\\*\\* **@1** joined the game'
 discord.last_login_text = settings:get('discord.last_login_text') or '\\*\\*\\* **@1** joined the game. Last login: @2'
-
+discord.leave_text = settings:get('discord.leave_text') or '\\*\\*\\* **@1** left the game'
 discord.welcome_text = settings:get('discord.welcome_text') or '\\*\\*\\* **@1** joined the game for the first time. Welcome!'
 
 discord.use_embeds_on_joins = settings:get_bool('discord.use_embeds_on_joins', true)
-
+discord.use_embeds_on_leaves = settings:get_bool('discord.use_embeds_on_leaves', true)
 discord.use_embeds_on_welcomes = settings:get_bool('discord.use_embeds_on_welcomes', true)
 
 discord.use_embeds_on_server_updates = settings:get_bool('discord.use_embeds_on_server_updates', true)
@@ -38,7 +38,7 @@ discord.use_embeds_on_server_updates = settings:get_bool('discord.use_embeds_on_
 discord.startup_color = settings:get('discord.startup_color') or '#5865f2'
 discord.shutdown_color = settings:get('discord.shutdown_color') or '#d9d9dc'
 discord.join_color = settings:get('discord.join_color') or '#57f287'
-
+discord.leave_color = settings:get('discord.leave_color') or '#ed4245'
 discord.welcome_color = settings:get('discord.welcome_color') or '#57f287'
 
 discord.registered_on_messages = {}
@@ -204,6 +204,21 @@ if discord.send_joins then
                     replace(discord.join_text, name)))
             end
         end
+    end)
+end
+
+if discord.send_leaves then
+    minetest.register_on_leaveplayer(function(player)
+        local name = player:get_player_name()
+
+        local data = {}
+
+        if not discord.use_embeds_on_leaves then
+            discord.send(replace(discord.leave_text, name))
+        else
+            discord.send(nil, nil, discord.leave_color, replace(discord.leave_text, name))
+        end
+
     end)
 end
 
