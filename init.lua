@@ -3,7 +3,7 @@ local settings = minetest.settings
 
 local host = settings:get('discord.host') or 'localhost'
 local port = settings:get('discord.port') or 8080
-local escape_formatting = settings:get_bool('discord.escape_formatting') or false
+local escape_formatting = settings:get_bool('discord.escape_formatting', false)
 local timeout = 10
 
 discord = {}
@@ -37,6 +37,8 @@ discord.use_embeds_on_leaves = settings:get_bool('discord.use_embeds_on_leaves',
 discord.use_embeds_on_welcomes = settings:get_bool('discord.use_embeds_on_welcomes', true)
 discord.use_embeds_on_deaths = settings:get_bool('discord.use_embeds_on_deaths', true)
 discord.use_embeds_on_server_updates = settings:get_bool('discord.use_embeds_on_server_updates', true)
+discord.use_embeds_on_cmd_chat_send_player = settings:get_bool('discord.use_embeds_on_cmd_chat_send_player', false)
+discord.use_embeds_on_cmd_ret_value = settings:get_bool('discord.use_embeds_on_cmd_ret_value', false)
 
 discord.startup_color = settings:get('discord.startup_color') or '#5865f2'
 discord.shutdown_color = settings:get('discord.shutdown_color') or 'NOT_SET'
@@ -44,6 +46,8 @@ discord.join_color = settings:get('discord.join_color') or '#57f287'
 discord.leave_color = settings:get('discord.leave_color') or '#ed4245'
 discord.welcome_color = settings:get('discord.welcome_color') or '#57f287'
 discord.death_color = settings:get('discord.death_color') or 'NOT_SET'
+discord.cmd_chat_send_player_color = settings:get('discord.cmd_chat_send_player_color') or 'NOT_SET'
+discord.cmd_ret_value_color = settings:get('discord.cmd_ret_value_color') or 'NOT_SET'
 
 discord.registered_on_messages = {}
 
@@ -110,19 +114,25 @@ function discord.handle_response(response)
                 minetest.chat_send_player = function(name, message)
                     old_chat_send_player(name, message)
                     if name == v.name then
-                        if not escape_formatting then
+                        if escape_formatting then
+                            message = message:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
+                        end
+                        if not discord.use_embeds_on_cmd_chat_send_player then
                             discord.send(message, v.context or nil)
                         else
-                            discord.send(message:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"), v.context or nil)
+                            discord.send(nil, v.context or nil, discord.cmd_chat_send_player_color, message)
                         end
                     end
                 end
                 local success, ret_val = commands[v.command].func(v.name, v.params or '')
                 if ret_val then
-                    if not escape_formatting then
+                    if escape_formatting then
+                        ret_val = ret_val:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
+                    end
+                    if not discord.use_embeds_on_cmd_ret_value then
                         discord.send(ret_val, v.context or nil)
                     else
-                        discord.send(ret_val:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"), v.context or nil)
+                        discord.send(nil, v.context or nil, discord.cmd_ret_value_color, ret_val)
                     end
                 end
                 minetest.chat_send_player = old_chat_send_player

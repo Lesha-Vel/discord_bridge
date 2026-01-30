@@ -95,26 +95,38 @@ async def handle(request):
             else:
                 msg = None
                 chunks = []
+            if 'embed_description' in data:
+                embed_description = translation_re.sub('', data['embed_description'])
+                embed_description = discord.utils.escape_mentions(embed_description)
+            else:
+                embed_description = None
             if 'embed_color' in data:
                 if not data['embed_color'] == 'NOT_SET':
                     color = Color.from_str(data['embed_color'])
                 else:
                     color = None
                 if 'context' in data:
-                    id = int(data['context'])
-                    target_channel = bot.get_partial_messageable(id)
-                    # for chunk in chunks:
-                    await target_channel.send(embed=Embed(title=chunks[0], color=color,
-                        description=(data['embed_description'] if 'embed_description' in data else None)))
+                    if len(chunks) > 0:
+                        id = int(data['context'])
+                        target_channel = bot.get_partial_messageable(id)
+                        # for chunk in chunks:
+                        await target_channel.send(embed=Embed(title=chunks[0], color=color,
+                            description=embed_description))
+                    else:
+                        id = int(data['context'])
+                        target_channel = bot.get_partial_messageable(id)
+                        # for chunk in chunks:
+                        await target_channel.send(embed=Embed(color=color,
+                            description=embed_description))
                 # elif incoming_msgs is None:
                 else:
                     if len(chunks) > 0:
                         # for chunk in chunks:
                         await channel.send(embed=Embed(title=chunks[0], color=color,
-                            description=(data['embed_description'] if 'embed_description' in data else None)))
+                            description=embed_description))
                     else:
                         await channel.send(embed=Embed(color=color,
-                            description=data['embed_description']))
+                            description=embed_description))
                 # else:
                 #     for chunk in chunks:
                 #         incoming_msgs.append({'msg': chunk, 'color': Color.from_str(data['embed_color']),
