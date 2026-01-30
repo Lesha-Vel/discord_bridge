@@ -13,19 +13,17 @@ discord.text_colorization = settings:get('discord.text_color') or '#ffffff'
 
 discord.date = settings:get('discord.date') or '%d.%m.%Y %H:%M'
 
+discord.send_server_startup = settings:get_bool('discord.send_server_startup', true)
+discord.send_server_shutdown = settings:get_bool('discord.send_server_shutdown', true)
+discord.include_server_status_on_startup = settings:get_bool('discord.include_server_status_on_startup', true)
+discord.include_server_status_on_shutdown = settings:get_bool('discord.include_server_status_on_shutdown', true)
 discord.send_joins = settings:get_bool('discord.send_joins', true)
 discord.send_last_login = settings:get_bool('discord.send_last_login', false)
 discord.send_leaves = settings:get_bool('discord.send_leaves', true)
 discord.send_welcomes = settings:get_bool('discord.send_welcomes', true)
 discord.send_deaths = settings:get_bool('discord.send_deaths', true)
 
-discord.send_server_startup = settings:get_bool('discord.send_server_startup', true)
-discord.send_server_shutdown = settings:get_bool('discord.send_server_shutdown', true)
-
 discord.name_wrapper = settings:get('discord.name_wrapper') or '<**@1**>  '
-discord.include_server_status_on_startup = settings:get_bool('discord.include_server_status_on_startup', true)
-discord.include_server_status_on_shutdown = settings:get_bool('discord.include_server_status_on_shutdown', true)
-
 discord.startup_text = settings:get('discord.startup_text') or '*** Server started!'
 discord.shutdown_text = settings:get('discord.shutdown_text') or '*** Server shutting down...'
 discord.join_text = settings:get('discord.join_text') or '\\*\\*\\* **@1** joined the game'
@@ -33,6 +31,7 @@ discord.last_login_text = settings:get('discord.last_login_text') or '\\*\\*\\* 
 discord.leave_text = settings:get('discord.leave_text') or '\\*\\*\\* **@1** left the game'
 discord.welcome_text = settings:get('discord.welcome_text') or '\\*\\*\\* **@1** joined the game for the first time. Welcome!'
 discord.death_text = settings:get('discord.death_text') or '\\*\\*\\* **@1** died'
+
 discord.use_embeds_on_joins = settings:get_bool('discord.use_embeds_on_joins', true)
 discord.use_embeds_on_leaves = settings:get_bool('discord.use_embeds_on_leaves', true)
 discord.use_embeds_on_welcomes = settings:get_bool('discord.use_embeds_on_welcomes', true)

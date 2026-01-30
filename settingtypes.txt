@@ -4,26 +4,24 @@ discord.escape_formatting (escape special symbols like backslash, asterisk, hash
 
 discord.date (Date format string) string %d.%m.%Y %H:%M
 
+discord.send_server_startup (Send server startups) bool true
+discord.send_server_shutdown (Send server shutdowns) bool true
+discord.include_server_status_on_startup (Include server status in startup notification) bool true
+discord.include_server_status_on_shutdown (Include server status in shutdown notification) bool true
 discord.send_joins (Notification on player join) bool true
 discord.send_last_login (Include last login in notification on player join) bool false
 discord.send_leaves (Notification on player leave) bool true
 discord.send_welcomes (Notification on player welcome) bool true
 discord.send_deaths (Notification on player death) bool true
 
-discord.send_server_startup (Send server startups) bool true
-discord.send_server_shutdown (Send server shutdowns) bool true
-
 discord.name_wrapper (Name wrapper, 2 spaces at the end are important) string <**@1**>  
-discord.include_server_status_on_startup (Include server status in startup notification) bool true
-discord.include_server_status_on_shutdown (Include server status in shutdown notification) bool true
-
-discord.startup_text (Text of notification on server startup) string Server started
-discord.shutdown_text (Text of notification on server shut-down) string Server shut down
-discord.join_text (Text of notification on player join) string
-discord.last_login_text (Text of notification on player join including last login) string
-discord.leave_text (Text of notification on player leave) string
-discord.welcome_text (Text of notification on player welcome) string
-discord.death_text (Text of notification on player death) string
+discord.startup_text (Text of notification on server startup) string *** Server started!
+discord.shutdown_text (Text of notification on server shut-down) string *** Server shutting down...
+discord.join_text (Text of notification on player join) string \\*\\*\\* **@1** joined the game
+discord.last_login_text (Text of notification on player join including last login) string \\*\\*\\* **@1** joined the game. Last login: @2
+discord.leave_text (Text of notification on player leave) string \\*\\*\\* **@1** left the game
+discord.welcome_text (Text of notification on player welcome) string \\*\\*\\* **@1** joined the game for the first time. Welcome!
+discord.death_text (Text of notification on player death) string \\*\\*\\* **@1** died
 
 discord.use_embeds_on_joins (Use Discord embeds for notifications on player join) bool true
 discord.use_embeds_on_leaves (Use Discord embeds for notifications on player leave) bool true
@@ -36,4 +34,4 @@ discord.shutdown_color (Shut down Discord embed color) string
 discord.join_color (Join Discord embed color) string #57f287
 discord.leave_color (Leave Discord embed color) string #ed4245
 discord.welcome_color (Welcome Discord embed color) string #57f287
-discord.death_color (Death Discord embed color) string #d9d9dc
+discord.death_color (Death Discord embed color) string
