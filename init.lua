@@ -166,7 +166,7 @@ function discord.handle_response(response)
                 result = minetest.check_password_entry(v.username, authdata.password, v.password)
             end
             local request = {
-                type = 'DISCORD_LOGIN_RESULT',
+                type = 'DISCORD-LOGIN-RESULT',
                 user_id = v.user_id,
                 username = v.username,
                 success = result
