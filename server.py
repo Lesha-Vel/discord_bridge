@@ -64,6 +64,12 @@ logins_allowed = config['RELAY'].getboolean('allow_logins')
 remote_allowed = config['RELAY'].getboolean('allow_remote')
 do_clean_invites = config['RELAY'].getboolean('clean_invites')
 do_use_nicknames = config['RELAY'].getboolean('use_nicknames')
+do_use_embeds = config['RELAY'].getboolean('use_embeds')
+login_sucess_color = config['RELAY']['login_sucess_color']
+login_fail_color = config['RELAY']['login_fail_color']
+server_down_color = config['RELAY']['server_down_color']
+not_loged_in_color = config['RELAY']['not_loged_in_color']
+password_leak_color = config['RELAY']['password_leak_color']
 # if config['RELAY'].getboolean('send_every_3s'):
 #     incoming_msgs = collections.deque()
 # else:
@@ -155,9 +161,15 @@ async def handle(request):
 
             if data['success']:
                 authenticated_users[user_id] = data['username']
-                await user.send('Login successful.')
+                if not do_use_embeds:
+                    await user.send('Login successful.')
+                else:
+                    await user.send(embed = Embed(title = 'Login successful.', color = Color.from_str(login_sucess_color)))
             else:
-                await user.send('Login failed.')
+                if not do_use_embeds:
+                    await user.send('Login failed.')
+                else:
+                    await user.send(embed = Embed(title = 'Login failed.', color = Color.from_str(login_fail_color)))
     except Exception:
         traceback.print_exc()
 
@@ -196,13 +208,19 @@ async def on_message(message):
 @bot.command(help='Runs an ingame command from Discord.')
 async def cmd(ctx, command, *, args=''):
     if not check_timeout():
-        await ctx.send("The server currently appears to be down.")
+        if not do_use_embeds:
+            await ctx.send("The server currently appears to be down.")
+        else:
+            await ctx.send(embed = Embed(title = 'The server currently appears to be down.', color = Color.from_str(server_down_color)))
         return
     if ((ctx.channel.id != channel_id and ctx.guild is not None) or
             not logins_allowed):
         return
     if ctx.author.id not in authenticated_users.keys():
-        await ctx.send('Not logged in.')
+        if not do_use_embeds:
+            await ctx.send('Not logged in.')
+        else:
+            await ctx.send(embed = Embed(title = 'Not logged in.', color = Color.from_str(not_loged_in_color)))
         return
     command = {
         'name': authenticated_users[ctx.author.id],
@@ -221,11 +239,18 @@ async def login(ctx, username, password=''):
     if not logins_allowed:
         return
     if ctx.guild is not None:
-        await ctx.send(ctx.author.mention + ' You\'ve quite possibly just '
-                       'leaked your password by using this command outside of '
-                       'DMs; it is advised that you change it at once.\n*This '
-                       'message will be automatically deleted.*',
-                       delete_after=10)
+        if not do_use_embeds:
+            await ctx.send(ctx.author.mention + ' You\'ve quite possibly just '
+                           'leaked your password by using this command outside of '
+                           'DMs; it is advised that you change it at once.\n*This '
+                           'message will be automatically deleted.*',
+                           delete_after=10)
+        else:
+            await ctx.send(embed = Embed(title = ctx.author.mention + ' You\'ve quite possibly just '
+                           'leaked your password by using this command outside of '
+                           'DMs; it is advised that you change it at once.\n*This '
+                           'message will be automatically deleted.*', color = Color.from_str(password_leak_color)),
+                           delete_after=10)
         try:
             await ctx.message.delete()
         except discord.errors.Forbidden:
@@ -238,15 +263,24 @@ async def login(ctx, username, password=''):
         'user_id': str(ctx.author.id)
     })
     if not check_timeout():
-        await ctx.send("The server currently appears to be down, but your "
+        if not do_use_embeds:
+            await ctx.send("The server currently appears to be down, but your "
                        "login attempt has been added to the queue and will be "
                        "executed as soon as the server returns.")
+        else:
+            await ctx.send(embed = Embed(title = "The server currently appears to be down, but your "
+                       "login attempt has been added to the queue and will be "
+                       "executed as soon as the server returns.",
+                       color = Color.from_str(server_down_color)))
 
 
 @bot.command(help='Lists connected players and server information.')
 async def status(ctx, *, args=None):
     if not check_timeout():
-        await ctx.send("The server currently appears to be down.")
+        if not do_use_embeds:
+            await ctx.send("The server currently appears to be down.")
+        else:
+            await ctx.send(embed = Embed(title = "The server currently appears to be down.", color = Color.from_str(server_down_color)))
         return
     if ctx.channel.id != channel_id and ctx.guild is not None:
         return
