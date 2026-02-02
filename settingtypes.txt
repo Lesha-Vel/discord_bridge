@@ -1,9 +1,9 @@
+[bridge settings]
 discord.port (Port to run the relay on.) int 8080
-discord.text_color (Custom color for relayed messages.) string #ffffff
+discord.text_color (Custom color for messages relayed from Discord.) string #ffffff
 discord.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool false
-
+[Options]
 discord.date (Date format string) string %d.%m.%Y %H:%M
-
 discord.send_server_startup (Send server startups) bool true
 discord.send_server_shutdown (Send server shutdowns) bool true
 discord.include_server_status_on_startup (Include server status in startup notification) bool true
@@ -13,7 +13,7 @@ discord.send_last_login (Include last login in notification on player join) bool
 discord.send_leaves (Notification on player leave) bool true
 discord.send_welcomes (Notification on player welcome) bool true
 discord.send_deaths (Notification on player death) bool true
-
+[Texts]
 discord.name_wrapper (Name wrapper, 2 spaces at the end are important) string <**@1**>  
 discord.startup_text (Text of notification on server startup) string *** Server started!
 discord.shutdown_text (Text of notification on server shut-down) string *** Server shutting down...
@@ -22,7 +22,7 @@ discord.last_login_text (Text of notification on player join including last logi
 discord.leave_text (Text of notification on player leave) string \\*\\*\\* **@1** left the game
 discord.welcome_text (Text of notification on player welcome) string \\*\\*\\* **@1** joined the game for the first time. Welcome!
 discord.death_text (Text of notification on player death) string \\*\\*\\* **@1** died
-
+[Discord embeds]
 discord.use_embeds_on_joins (Use Discord embeds for notifications on player join) bool true
 discord.use_embeds_on_leaves (Use Discord embeds for notifications on player leave) bool true
 discord.use_embeds_on_welcomes (Use Discord embeds for notifications on player welcomes) bool true
@@ -31,7 +31,7 @@ discord.use_embeds_on_server_updates (Use Discord embeds for server status notif
 discord.use_embeds_on_cmd_chat_send_player (Use Discord embeds for DM command chat_send_player) bool false
 discord.use_embeds_on_cmd_ret_value (Use Discord embeds for DM command return value) bool false
 discord.use_embeds_on_svc_dms (Use Discord embeds for service DMS) bool false
-
+[Colors]
 discord.startup_color (Startup Discord embed color) string #5865f2
 discord.shutdown_color (Shut down Discord embed color) string NOT_SET
 discord.join_color (Join Discord embed color) string #57f287
