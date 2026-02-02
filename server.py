@@ -92,8 +92,10 @@ async def handle(request):
     global last_request
     last_request = time.time()
     try:
-        data = await request.json()
-        if data['type'] == 'DISCORD-RELAY-MESSAGE':
+        data = {}
+        if request.method == 'POST':
+            data = await request.json()
+        if request.method == 'POST' and data['type'] == 'DISCORD-RELAY-MESSAGE':
             if 'content' in data:
                 msg = translation_re.sub('', data['content'])
                 msg = discord.utils.escape_mentions(msg)
@@ -153,7 +155,7 @@ async def handle(request):
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
-        if data['type'] == 'DISCORD_LOGIN_RESULT':
+        if request.method == 'POST' and data['type'] == 'DISCORD_LOGIN_RESULT':
             user_id = int(data['user_id'])
             user = bot.get_user(user_id)
             if user is None:

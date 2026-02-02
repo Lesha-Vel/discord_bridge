@@ -283,9 +283,6 @@ minetest.register_globalstep(function(dtime)
                 ongoing = http.fetch_async({
                     url = tostring(host)..':'..tostring(port),
                     timeout = timeout,
-                    post_data = minetest.write_json({
-                        type = 'DISCORD-REQUEST-DATA'
-                    })
                 })
             else
                 local res = http.fetch_async_get(ongoing)
@@ -295,9 +292,6 @@ minetest.register_globalstep(function(dtime)
                     ongoing = http.fetch_async({
                         url = tostring(host)..':'..tostring(port),
                         timeout = timeout,
-                        post_data = minetest.write_json({
-                            type = 'DISCORD-REQUEST-DATA'
-                        })
                     })
                 end
             end
