@@ -1,6 +1,6 @@
-## Minetest-Discord Relay `[discordmt]`
+## Luanti-Discord Relay `[discord_bridge]`
 
-A feature-filled Discord relay for Minetest, supporting:
+A feature-filled Discord relay for Luanti, supporting:
 
 - Relaying server chat to Discord, and Discord chat to the server
 - Allowing anyone to get the server status via a command
@@ -10,7 +10,7 @@ A feature-filled Discord relay for Minetest, supporting:
 
 ## Great! How do I use it?
 
-Easy! `discordmt` works by running a Python program which converses with a serverside mod using HTTP requests.
+Easy! `discord_bridge` works by running a Python program which converses with a serverside mod using HTTP requests.
 
 Python 3.8+, `aiohttp` 3.7.4+ and `discord.py` 2.0.0+ are required.
 
@@ -39,7 +39,7 @@ use_nicknames = true
 Example `minetest.conf` excerpt:
 ```
 secure.enable_security = true
-secure.http_mods = discordmt
+secure.http_mods = discord_bridge
 discord.host = localhost
 discord.port = 8080
 discord.text_color = #a7a7a7
@@ -47,7 +47,7 @@ discord.escape_formatting = false
 ```
 *(Side note: The port must be set in both `relay.conf` and `minetest.conf` because users may decide to run the relay in a different location than the mod, or to run multiple relays/servers at once.)*
 
-5. Run the relay and, when you're ready, the Minetest server. The relay may be left up even when the server goes down, or may run continuously between several server restarts, for maximum convenience.
+5. Run the relay and, when you're ready, the Luanti server. The relay may be left up even when the server goes down, or may run continuously between several server restarts, for maximum convenience.
 
 ## Frequently Asked Questions
 
@@ -65,7 +65,7 @@ discord.escape_formatting = false
 
 **Q: Why is an external program required at all? And why use HTTP polling?**
 
-*A: Discord's API uses websockets, which require a continuous connection. Minetest's Lua API is not set up to handle these, so running a Discord relay entirely within Minetest is infeasible. HTTP polling is used because it avoids additional dependencies (such as luasocket).*
+*A: Discord's API uses websockets, which require a continuous connection. Luanti's Lua API is not set up to handle these, so running a Discord relay entirely within Luanti is infeasible. HTTP polling is used because it avoids additional dependencies (such as luasocket).*
 
 
 
