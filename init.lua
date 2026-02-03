@@ -12,6 +12,7 @@ discord = {}
 -- Configuration
 discord_bridge.text_colorization = settings:get('discord.text_color') or '#ffffff'
 
+discord_bridge.clean_invites = settings:get_bool('discord.clean_invites', true)
 discord_bridge.date = settings:get('discord.date') or '%d.%m.%Y %H:%M'
 
 discord_bridge.send_server_startup = settings:get_bool('discord.send_server_startup', true)
@@ -93,6 +94,9 @@ function discord_bridge.handle_response(response)
         for _, message in pairs(data.messages) do
             for _, func in pairs(discord_bridge.registered_on_messages) do
                 func(message.author, message.content)
+            end
+            if discord_bridge.clean_invites then
+                message.content = message.content:gsub("%S*discord%.gg%S*", ""):gsub("%S*discordapp%.com/invite%S*", "")
             end
             local msg = discord_bridge.format_chat_message(message.author, message.content)
             discord_bridge.chat_send_all(minetest.colorize(discord_bridge.text_colorization, msg))

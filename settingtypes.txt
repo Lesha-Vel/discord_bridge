@@ -3,6 +3,7 @@ discord.port (Port to run the relay on.) int 8080
 discord.text_color (Custom color for messages relayed from Discord.) string #ffffff
 discord.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool false
 [Options]
+discord.clean_invites (Clean Discord invites) bool true
 discord.date (Date format string) string %d.%m.%Y %H:%M
 discord.send_server_startup (Send server startups) bool true
 discord.send_server_shutdown (Send server shutdowns) bool true

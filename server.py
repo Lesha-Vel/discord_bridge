@@ -39,12 +39,6 @@ class Queue:
         return len(self.queue) == 0
 
 
-def clean_invites(string):
-    return ' '.join(word for word in string.split()
-                    if 'discord.gg' not in word and
-                    'discordapp.com/invite' not in word)
-
-
 outgoing_msgs = Queue()
 command_queue = Queue()
 login_queue = Queue()
@@ -62,7 +56,6 @@ port = int(config['RELAY']['port'])
 token = config['BOT']['token']
 logins_allowed = config['RELAY'].getboolean('allow_logins')
 remote_allowed = config['RELAY'].getboolean('allow_remote')
-do_clean_invites = config['RELAY'].getboolean('clean_invites')
 do_use_nicknames = config['RELAY'].getboolean('use_nicknames')
 do_use_embeds = config['RELAY'].getboolean('use_embeds')
 server_down_color = config['RELAY']['server_down_color']
@@ -188,8 +181,6 @@ async def on_message(message):
                            if do_use_nicknames else message.author.name),
                 'content': message.content.replace('\n', '/')
             }
-            if do_clean_invites:
-                msg['content'] = clean_invites(msg['content'])
             if msg['content'] != '':
                 outgoing_msgs.add(msg)
 
