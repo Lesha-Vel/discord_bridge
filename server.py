@@ -65,8 +65,6 @@ remote_allowed = config['RELAY'].getboolean('allow_remote')
 do_clean_invites = config['RELAY'].getboolean('clean_invites')
 do_use_nicknames = config['RELAY'].getboolean('use_nicknames')
 do_use_embeds = config['RELAY'].getboolean('use_embeds')
-login_sucess_color = config['RELAY']['login_sucess_color']
-login_fail_color = config['RELAY']['login_fail_color']
 server_down_color = config['RELAY']['server_down_color']
 not_logged_in_color = config['RELAY']['not_logged_in_color']
 password_leak_color = config['RELAY']['password_leak_color']
@@ -163,15 +161,6 @@ async def handle(request):
 
             if data['success']:
                 authenticated_users[user_id] = data['username']
-                if not do_use_embeds:
-                    await user.send('Login successful.')
-                else:
-                    await user.send(embed = Embed(title = 'Login successful.', color = Color.from_str(login_sucess_color)))
-            else:
-                if not do_use_embeds:
-                    await user.send('Login failed.')
-                else:
-                    await user.send(embed = Embed(title = 'Login failed.', color = Color.from_str(login_fail_color)))
     except Exception:
         traceback.print_exc()
 
@@ -262,7 +251,8 @@ async def login(ctx, username, password=''):
     login_queue.add({
         'username': username,
         'password': password,
-        'user_id': str(ctx.author.id)
+        'user_id': str(ctx.author.id),
+        'context': str(ctx.channel.id)
     })
     if not check_timeout():
         if not do_use_embeds:

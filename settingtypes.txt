@@ -43,3 +43,5 @@ discord.cmd_ret_value_color (Discord DM command return value color) string NOT_S
 discord.svc_dms_banned_color (You cannot run commands because you are banned color) string #ed4245
 discord.svc_dms_privs_color (Insufficient privileges color) string #ede442
 discord.svc_dms_cnf_color (Command not found color) string #ed9d42
+discord.login_success_color (success login color) string #57f287
+discord.login_fail_color (failed login color) string #ed4245

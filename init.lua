@@ -52,6 +52,8 @@ discord.cmd_ret_value_color = settings:get('discord.cmd_ret_value_color') or 'NO
 discord.svc_dms_banned_color = settings:get('discord.svc_dms_banned_color') or '#ed4245'
 discord.svc_dms_privs_color = settings:get('discord.svc_dms_privs_color') or '#ede442'
 discord.svc_dms_cnf_color = settings:get('discord.svc_dms_cnf_color') or '#ed9d42'
+discord.login_success_color = settings:get('discord.login_success_color') or '#57f287'
+discord.login_fail_color = settings:get('discord.login_fail_color') or '#ed4245'
 
 discord.registered_on_messages = {}
 
@@ -176,6 +178,19 @@ function discord.handle_response(response)
                 timeout = timeout,
                 post_data = minetest.write_json(request)
             }, discord.handle_response)
+            if result then
+                if not discord.use_embeds_on_svc_dms then
+                    discord.send('Login successful.', v.context or nil)
+                else
+                    discord.send('Login successful.', v.context or nil, discord.login_success_color)
+                end
+            else
+                if not discord.use_embeds_on_svc_dms then
+                    discord.send('Login failed.', v.context or nil)
+                else
+                    discord.send('Login failed.', v.context or nil, discord.login_fail_color)
+                end
+            end
         end
     end
 end
