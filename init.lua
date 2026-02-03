@@ -6,63 +6,66 @@ local port = settings:get('discord.port') or 8080
 local escape_formatting = settings:get_bool('discord.escape_formatting', false)
 local timeout = 10
 
+local discord_bridge = {}
 discord = {}
 
 -- Configuration
-discord.text_colorization = settings:get('discord.text_color') or '#ffffff'
+discord_bridge.text_colorization = settings:get('discord.text_color') or '#ffffff'
 
-discord.date = settings:get('discord.date') or '%d.%m.%Y %H:%M'
+discord_bridge.date = settings:get('discord.date') or '%d.%m.%Y %H:%M'
 
-discord.send_server_startup = settings:get_bool('discord.send_server_startup', true)
-discord.send_server_shutdown = settings:get_bool('discord.send_server_shutdown', true)
-discord.include_server_status_on_startup = settings:get_bool('discord.include_server_status_on_startup', true)
-discord.include_server_status_on_shutdown = settings:get_bool('discord.include_server_status_on_shutdown', true)
-discord.send_joins = settings:get_bool('discord.send_joins', true)
-discord.send_last_login = settings:get_bool('discord.send_last_login', false)
-discord.send_leaves = settings:get_bool('discord.send_leaves', true)
-discord.send_welcomes = settings:get_bool('discord.send_welcomes', true)
-discord.send_deaths = settings:get_bool('discord.send_deaths', true)
+discord_bridge.send_server_startup = settings:get_bool('discord.send_server_startup', true)
+discord_bridge.send_server_shutdown = settings:get_bool('discord.send_server_shutdown', true)
+discord_bridge.include_server_status_on_startup = settings:get_bool('discord.include_server_status_on_startup', true)
+discord_bridge.include_server_status_on_shutdown = settings:get_bool('discord.include_server_status_on_shutdown', true)
+discord_bridge.send_joins = settings:get_bool('discord.send_joins', true)
+discord_bridge.send_last_login = settings:get_bool('discord.send_last_login', false)
+discord_bridge.send_leaves = settings:get_bool('discord.send_leaves', true)
+discord_bridge.send_welcomes = settings:get_bool('discord.send_welcomes', true)
+discord_bridge.send_deaths = settings:get_bool('discord.send_deaths', true)
 
-discord.name_wrapper = settings:get('discord.name_wrapper') or '<**@1**>  '
-discord.startup_text = settings:get('discord.startup_text') or '*** Server started!'
-discord.shutdown_text = settings:get('discord.shutdown_text') or '*** Server shutting down...'
-discord.join_text = settings:get('discord.join_text') or '\\*\\*\\* **@1** joined the game'
-discord.last_login_text = settings:get('discord.last_login_text') or '\\*\\*\\* **@1** joined the game. Last login: @2'
-discord.leave_text = settings:get('discord.leave_text') or '\\*\\*\\* **@1** left the game'
-discord.welcome_text = settings:get('discord.welcome_text') or '\\*\\*\\* **@1** joined the game for the first time. Welcome!'
-discord.death_text = settings:get('discord.death_text') or '\\*\\*\\* **@1** died'
+discord_bridge.name_wrapper = settings:get('discord.name_wrapper') or '<**@1**>  '
+discord_bridge.startup_text = settings:get('discord.startup_text') or '*** Server started!'
+discord_bridge.shutdown_text = settings:get('discord.shutdown_text') or '*** Server shutting down...'
+discord_bridge.join_text = settings:get('discord.join_text') or '\\*\\*\\* **@1** joined the game'
+discord_bridge.last_login_text = settings:get('discord.last_login_text') or '\\*\\*\\* **@1** joined the game. Last login: @2'
+discord_bridge.leave_text = settings:get('discord.leave_text') or '\\*\\*\\* **@1** left the game'
+discord_bridge.welcome_text = settings:get('discord.welcome_text') or '\\*\\*\\* **@1** joined the game for the first time. Welcome!'
+discord_bridge.death_text = settings:get('discord.death_text') or '\\*\\*\\* **@1** died'
 
-discord.use_embeds_on_joins = settings:get_bool('discord.use_embeds_on_joins', true)
-discord.use_embeds_on_leaves = settings:get_bool('discord.use_embeds_on_leaves', true)
-discord.use_embeds_on_welcomes = settings:get_bool('discord.use_embeds_on_welcomes', true)
-discord.use_embeds_on_deaths = settings:get_bool('discord.use_embeds_on_deaths', true)
-discord.use_embeds_on_server_updates = settings:get_bool('discord.use_embeds_on_server_updates', true)
-discord.use_embeds_on_cmd_chat_send_player = settings:get_bool('discord.use_embeds_on_cmd_chat_send_player', false)
-discord.use_embeds_on_cmd_ret_value = settings:get_bool('discord.use_embeds_on_cmd_ret_value', false)
-discord.use_embeds_on_svc_dms = settings:get_bool('discord.use_embeds_on_svc_dms', false)
+discord_bridge.use_embeds_on_joins = settings:get_bool('discord.use_embeds_on_joins', true)
+discord_bridge.use_embeds_on_leaves = settings:get_bool('discord.use_embeds_on_leaves', true)
+discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord.use_embeds_on_welcomes', true)
+discord_bridge.use_embeds_on_deaths = settings:get_bool('discord.use_embeds_on_deaths', true)
+discord_bridge.use_embeds_on_server_updates = settings:get_bool('discord.use_embeds_on_server_updates', true)
+discord_bridge.use_embeds_on_cmd_chat_send_player = settings:get_bool('discord.use_embeds_on_cmd_chat_send_player', false)
+discord_bridge.use_embeds_on_cmd_ret_value = settings:get_bool('discord.use_embeds_on_cmd_ret_value', false)
+discord_bridge.use_embeds_on_svc_dms = settings:get_bool('discord.use_embeds_on_svc_dms', false)
 
-discord.startup_color = settings:get('discord.startup_color') or '#5865f2'
-discord.shutdown_color = settings:get('discord.shutdown_color') or 'NOT_SET'
-discord.join_color = settings:get('discord.join_color') or '#57f287'
-discord.leave_color = settings:get('discord.leave_color') or '#ed4245'
-discord.welcome_color = settings:get('discord.welcome_color') or '#57f287'
-discord.death_color = settings:get('discord.death_color') or 'NOT_SET'
-discord.cmd_chat_send_player_color = settings:get('discord.cmd_chat_send_player_color') or 'NOT_SET'
-discord.cmd_ret_value_color = settings:get('discord.cmd_ret_value_color') or 'NOT_SET'
-discord.svc_dms_banned_color = settings:get('discord.svc_dms_banned_color') or '#ed4245'
-discord.svc_dms_privs_color = settings:get('discord.svc_dms_privs_color') or '#ede442'
-discord.svc_dms_cnf_color = settings:get('discord.svc_dms_cnf_color') or '#ed9d42'
-discord.login_success_color = settings:get('discord.login_success_color') or '#57f287'
-discord.login_fail_color = settings:get('discord.login_fail_color') or '#ed4245'
+discord_bridge.startup_color = settings:get('discord.startup_color') or '#5865f2'
+discord_bridge.shutdown_color = settings:get('discord.shutdown_color') or 'NOT_SET'
+discord_bridge.join_color = settings:get('discord.join_color') or '#57f287'
+discord_bridge.leave_color = settings:get('discord.leave_color') or '#ed4245'
+discord_bridge.welcome_color = settings:get('discord.welcome_color') or '#57f287'
+discord_bridge.death_color = settings:get('discord.death_color') or 'NOT_SET'
+discord_bridge.cmd_chat_send_player_color = settings:get('discord.cmd_chat_send_player_color') or 'NOT_SET'
+discord_bridge.cmd_ret_value_color = settings:get('discord.cmd_ret_value_color') or 'NOT_SET'
+discord_bridge.svc_dms_banned_color = settings:get('discord.svc_dms_banned_color') or '#ed4245'
+discord_bridge.svc_dms_privs_color = settings:get('discord.svc_dms_privs_color') or '#ede442'
+discord_bridge.svc_dms_cnf_color = settings:get('discord.svc_dms_cnf_color') or '#ed9d42'
+discord_bridge.login_success_color = settings:get('discord.login_success_color') or '#57f287'
+discord_bridge.login_fail_color = settings:get('discord.login_fail_color') or '#ed4245'
 
-discord.registered_on_messages = {}
+discord_bridge.registered_on_messages = {}
 
 local irc_enabled = minetest.get_modpath("irc")
 
-function discord.register_on_message(func)
-    table.insert(discord.registered_on_messages, func)
+function discord_bridge.register_on_message(func)
+    table.insert(discord_bridge.registered_on_messages, func)
 end
+discord.register_on_message = discord_bridge.register_on_message
 
+discord_bridge.chat_send_all = minetest.chat_send_all
 discord.chat_send_all = minetest.chat_send_all
 
 -- a part from dcwebhook
@@ -73,11 +76,11 @@ local function replace(str, ...)
     end))
 end
 -- Allow the chat message format to be customised by other mods
-function discord.format_chat_message(name, msg)
+function discord_bridge.format_chat_message(name, msg)
     return ('<%s@Discord> %s'):format(name, msg)
 end
 
-function discord.handle_response(response)
+function discord_bridge.handle_response(response)
     local data = response.data
     if data == '' or data == nil then
         return
@@ -88,11 +91,11 @@ function discord.handle_response(response)
     end
     if data.messages then
         for _, message in pairs(data.messages) do
-            for _, func in pairs(discord.registered_on_messages) do
+            for _, func in pairs(discord_bridge.registered_on_messages) do
                 func(message.author, message.content)
             end
-            local msg = discord.format_chat_message(message.author, message.content)
-            discord.chat_send_all(minetest.colorize(discord.text_colorization, msg))
+            local msg = discord_bridge.format_chat_message(message.author, message.content)
+            discord_bridge.chat_send_all(minetest.colorize(discord_bridge.text_colorization, msg))
             if irc_enabled then
                 irc.say(msg)
             end
@@ -103,10 +106,10 @@ function discord.handle_response(response)
         local commands = minetest.registered_chatcommands
         for _, v in pairs(data.commands) do
             if minetest.get_ban_description(v.name) ~= '' then
-                if not discord.use_embeds_on_svc_dms then
-                    discord.send('You cannot run commands because you are banned.', v.context or nil)
+                if not discord_bridge.use_embeds_on_svc_dms then
+                    discord_bridge.send('You cannot run commands because you are banned.', v.context or nil)
                 else
-                    discord.send('You cannot run commands because you are banned.', v.context or nil, discord.svc_dms_banned_color)
+                    discord_bridge.send('You cannot run commands because you are banned.', v.context or nil, discord_bridge.svc_dms_banned_color)
                 end
                 return
             end
@@ -116,10 +119,10 @@ function discord.handle_response(response)
                 local player_privs = minetest.get_player_privs(v.name)
                 for priv, value in pairs(required_privs) do
                     if player_privs[priv] ~= value then
-                        if not discord.use_embeds_on_svc_dms then
-                            discord.send('Insufficient privileges.', v.context or nil)
+                        if not discord_bridge.use_embeds_on_svc_dms then
+                            discord_bridge.send('Insufficient privileges.', v.context or nil)
                         else
-                            discord.send('Insufficient privileges.', v.context or nil, discord.svc_dms_privs_color)
+                            discord_bridge.send('Insufficient privileges.', v.context or nil, discord_bridge.svc_dms_privs_color)
                         end
                         return
                     end
@@ -131,10 +134,10 @@ function discord.handle_response(response)
                         if escape_formatting then
                             message = message:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
                         end
-                        if not discord.use_embeds_on_cmd_chat_send_player then
-                            discord.send(message, v.context or nil)
+                        if not discord_bridge.use_embeds_on_cmd_chat_send_player then
+                            discord_bridge.send(message, v.context or nil)
                         else
-                            discord.send(nil, v.context or nil, discord.cmd_chat_send_player_color, message)
+                            discord_bridge.send(nil, v.context or nil, discord_bridge.cmd_chat_send_player_color, message)
                         end
                     end
                 end
@@ -143,18 +146,18 @@ function discord.handle_response(response)
                     if escape_formatting then
                         ret_val = ret_val:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
                     end
-                    if not discord.use_embeds_on_cmd_ret_value then
-                        discord.send(ret_val, v.context or nil)
+                    if not discord_bridge.use_embeds_on_cmd_ret_value then
+                        discord_bridge.send(ret_val, v.context or nil)
                     else
-                        discord.send(nil, v.context or nil, discord.cmd_ret_value_color, ret_val)
+                        discord_bridge.send(nil, v.context or nil, discord_bridge.cmd_ret_value_color, ret_val)
                     end
                 end
                 minetest.chat_send_player = old_chat_send_player
             else
-                if not discord.use_embeds_on_svc_dms then
-                    discord.send(('Command not found: `%s`'):format(v.command), v.context or nil)
+                if not discord_bridge.use_embeds_on_svc_dms then
+                    discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil)
                 else
-                    discord.send(('Command not found: `%s`'):format(v.command), v.context or nil, discord.svc_dms_cnf_color)
+                    discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil, discord_bridge.svc_dms_cnf_color)
                 end
             end
         end
@@ -177,25 +180,25 @@ function discord.handle_response(response)
                 url = tostring(host)..':'..tostring(port),
                 timeout = timeout,
                 post_data = minetest.write_json(request)
-            }, discord.handle_response)
+            }, discord_bridge.handle_response)
             if result then
-                if not discord.use_embeds_on_svc_dms then
-                    discord.send('Login successful.', v.context or nil)
+                if not discord_bridge.use_embeds_on_svc_dms then
+                    discord_bridge.send('Login successful.', v.context or nil)
                 else
-                    discord.send('Login successful.', v.context or nil, discord.login_success_color)
+                    discord_bridge.send('Login successful.', v.context or nil, discord_bridge.login_success_color)
                 end
             else
-                if not discord.use_embeds_on_svc_dms then
-                    discord.send('Login failed.', v.context or nil)
+                if not discord_bridge.use_embeds_on_svc_dms then
+                    discord_bridge.send('Login failed.', v.context or nil)
                 else
-                    discord.send('Login failed.', v.context or nil, discord.login_fail_color)
+                    discord_bridge.send('Login failed.', v.context or nil, discord_bridge.login_fail_color)
                 end
             end
         end
     end
 end
 
-function discord.send(message, id, embed_color, embed_description)
+function discord_bridge.send(message, id, embed_color, embed_description)
     local content
     local data = {
         type = 'DISCORD-RELAY-MESSAGE'
@@ -219,70 +222,71 @@ function discord.send(message, id, embed_color, embed_description)
         post_data = minetest.write_json(data)
     })
 end
+discord.send = discord_bridge.send
 
 -- function minetest.chat_send_all(message)
---     discord.chat_send_all(message)
---     discord.send(message)
+--     discord_bridge.chat_send_all(message)
+--     discord_bridge.send(message)
 -- end
 
 -- Register the chat message callback after other mods load so that anything
 -- that overrides chat will work correctly
 minetest.after(0, minetest.register_on_chat_message, function(name, message)
     if not escape_formatting then
-        discord.send(replace(discord.name_wrapper, name) .. message)
+        discord_bridge.send(replace(discord_bridge.name_wrapper, name) .. message)
     else
-        discord.send(replace(discord.name_wrapper, name) .. message:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
+        discord_bridge.send(replace(discord_bridge.name_wrapper, name) .. message:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
     end
 end)
 
 
-if discord.send_joins then
+if discord_bridge.send_joins then
     minetest.after(0, minetest.register_on_joinplayer, function(player, last_login)
         local name = player:get_player_name()
 
-        if last_login == nil and discord.send_welcomes then
-            if not discord.use_embeds_on_welcomes then
-                discord.send(replace(discord.welcome_text, name))
+        if last_login == nil and discord_bridge.send_welcomes then
+            if not discord_bridge.use_embeds_on_welcomes then
+                discord_bridge.send(replace(discord_bridge.welcome_text, name))
             else
-                discord.send(nil, nil, discord.welcome_color,
-                    replace(discord.welcome_text, name))
+                discord_bridge.send(nil, nil, discord_bridge.welcome_color,
+                    replace(discord_bridge.welcome_text, name))
             end
         else
-            if not discord.use_embeds_on_joins then
-                discord.send(discord.send_last_login and
-                    replace(discord.last_login_text, name, os.date(discord.date, last_login)) or
-                    replace(discord.join_text, name))
+            if not discord_bridge.use_embeds_on_joins then
+                discord_bridge.send(discord_bridge.send_last_login and
+                    replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
+                    replace(discord_bridge.join_text, name))
             else
-                discord.send(nil, nil, discord.join_color,
-                    (discord.send_last_login and
-                    replace(discord.last_login_text, name, os.date(discord.date, last_login)) or
-                    replace(discord.join_text, name)))
+                discord_bridge.send(nil, nil, discord_bridge.join_color,
+                    (discord_bridge.send_last_login and
+                    replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
+                    replace(discord_bridge.join_text, name)))
             end
         end
     end)
 end
 
-if discord.send_leaves then
+if discord_bridge.send_leaves then
     minetest.register_on_leaveplayer(function(player)
         local name = player:get_player_name()
 
-        if not discord.use_embeds_on_leaves then
-            discord.send(replace(discord.leave_text, name))
+        if not discord_bridge.use_embeds_on_leaves then
+            discord_bridge.send(replace(discord_bridge.leave_text, name))
         else
-            discord.send(nil, nil, discord.leave_color, replace(discord.leave_text, name))
+            discord_bridge.send(nil, nil, discord_bridge.leave_color, replace(discord_bridge.leave_text, name))
         end
 
     end)
 end
 
-if discord.send_deaths then
+if discord_bridge.send_deaths then
     minetest.register_on_dieplayer(function(player)
         local name = player:get_player_name()
 
-        if not discord.use_embeds_on_deaths then
-            discord.send(replace(discord.death_text, name))
+        if not discord_bridge.use_embeds_on_deaths then
+            discord_bridge.send(replace(discord_bridge.death_text, name))
         else
-            discord.send(nil, nil, discord.death_color, replace(discord.death_text, name))
+            discord_bridge.send(nil, nil, discord_bridge.death_color, replace(discord_bridge.death_text, name))
         end
 
     end)
@@ -303,7 +307,7 @@ minetest.register_globalstep(function(dtime)
                 local res = http.fetch_async_get(ongoing)
 
                 if res.completed == true then
-                    discord.handle_response(res)
+                    discord_bridge.handle_response(res)
                     ongoing = http.fetch_async({
                         url = tostring(host)..':'..tostring(port),
                         timeout = timeout,
@@ -317,36 +321,36 @@ minetest.register_globalstep(function(dtime)
 end)
 
 minetest.register_on_shutdown(function()
-    if discord.send_server_shutdown then
-        if discord.use_embeds_on_server_updates then
-            discord.send(discord.shutdown_text, nil, discord.shutdown_color,
-                (discord.include_server_status_on_shutdown and minetest.get_server_status():gsub("^#", "\\#") or nil))
+    if discord_bridge.send_server_shutdown then
+        if discord_bridge.use_embeds_on_server_updates then
+            discord_bridge.send(discord_bridge.shutdown_text, nil, discord_bridge.shutdown_color,
+                (discord_bridge.include_server_status_on_shutdown and minetest.get_server_status():gsub("^#", "\\#") or nil))
         else
-            discord.send(discord.shutdown_text ..
-                (discord.include_server_status_on_shutdown and " - " .. minetest.get_server_status() or ""))
+            discord_bridge.send(discord_bridge.shutdown_text ..
+                (discord_bridge.include_server_status_on_shutdown and " - " .. minetest.get_server_status() or ""))
         end
     end
 end)
 
 if irc_enabled then
-    discord.old_irc_sendLocal = irc.sendLocal
+    discord_bridge.old_irc_sendLocal = irc.sendLocal
     function irc.sendLocal(msg)
-        discord.old_irc_sendLocal(msg)
+        discord_bridge.old_irc_sendLocal(msg)
         if not escape_formatting then
-            discord.send(msg)
+            discord_bridge.send(msg)
         else
-            discord.send(msg:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
+            discord_bridge.send(msg:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
         end
     end
 end
 
-if discord.send_server_startup then
-    if discord.use_embeds_on_server_updates then
-        discord.send(discord.startup_text, nil, discord.startup_color,
-            (discord.include_server_status_on_startup and minetest.get_server_status():gsub("^#", "\\#") or nil))
+if discord_bridge.send_server_startup then
+    if discord_bridge.use_embeds_on_server_updates then
+        discord_bridge.send(discord_bridge.startup_text, nil, discord_bridge.startup_color,
+            (discord_bridge.include_server_status_on_startup and minetest.get_server_status():gsub("^#", "\\#") or nil))
         -- core.log('error', minetest.get_server_status())
     else
-        discord.send(discord.startup_text ..
-            (discord.include_server_status_on_startup and " - " .. minetest.get_server_status() or ""))
+        discord_bridge.send(discord_bridge.startup_text ..
+            (discord_bridge.include_server_status_on_startup and " - " .. minetest.get_server_status() or ""))
     end
 end
