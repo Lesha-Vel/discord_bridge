@@ -68,7 +68,7 @@ do_use_embeds = config['RELAY'].getboolean('use_embeds')
 login_sucess_color = config['RELAY']['login_sucess_color']
 login_fail_color = config['RELAY']['login_fail_color']
 server_down_color = config['RELAY']['server_down_color']
-not_loged_in_color = config['RELAY']['not_loged_in_color']
+not_logged_in_color = config['RELAY']['not_logged_in_color']
 password_leak_color = config['RELAY']['password_leak_color']
 # if config['RELAY'].getboolean('send_every_3s'):
 #     incoming_msgs = collections.deque()
@@ -222,7 +222,7 @@ async def cmd(ctx, command, *, args=''):
         if not do_use_embeds:
             await ctx.send('Not logged in.')
         else:
-            await ctx.send(embed = Embed(title = 'Not logged in.', color = Color.from_str(not_loged_in_color)))
+            await ctx.send(embed = Embed(title = 'Not logged in.', color = Color.from_str(not_logged_in_color)))
         return
     command = {
         'name': authenticated_users[ctx.author.id],
