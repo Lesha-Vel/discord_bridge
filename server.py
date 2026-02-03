@@ -105,26 +105,15 @@ async def handle(request):
                 else:
                     color = None
                 if 'context' in data:
-                    if len(chunks) > 0:
-                        id = int(data['context'])
-                        target_channel = bot.get_partial_messageable(id)
-                        # for chunk in chunks:
-                        await target_channel.send(embed=Embed(title=chunks[0], color=color,
-                            description=embed_description))
-                    else:
-                        id = int(data['context'])
-                        target_channel = bot.get_partial_messageable(id)
-                        # for chunk in chunks:
-                        await target_channel.send(embed=Embed(color=color,
+                    id = int(data['context'])
+                    target_channel = bot.get_partial_messageable(id)
+                    # for chunk in chunks:
+                    await target_channel.send(embed=Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
                             description=embed_description))
                 # elif incoming_msgs is None:
                 else:
-                    if len(chunks) > 0:
-                        # for chunk in chunks:
-                        await channel.send(embed=Embed(title=chunks[0], color=color,
-                            description=embed_description))
-                    else:
-                        await channel.send(embed=Embed(color=color,
+                    # for chunk in chunks:
+                    await channel.send(embed=Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
                             description=embed_description))
                 # else:
                 #     for chunk in chunks:

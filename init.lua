@@ -216,7 +216,9 @@ function discord_bridge.send(message, id, embed_color, embed_description)
     if id then
         data['context'] = id
     end
-    data['embed_color'] = embed_color
+    if embed_color then
+        data['embed_color'] = embed_color
+    end
     if embed_description then
         data['embed_description'] = embed_description
     end
@@ -352,7 +354,6 @@ if discord_bridge.send_server_startup then
     if discord_bridge.use_embeds_on_server_updates then
         discord_bridge.send(discord_bridge.startup_text, nil, discord_bridge.startup_color,
             (discord_bridge.include_server_status_on_startup and minetest.get_server_status():gsub("^#", "\\#") or nil))
-        -- core.log('error', minetest.get_server_status())
     else
         discord_bridge.send(discord_bridge.startup_text ..
             (discord_bridge.include_server_status_on_startup and " - " .. minetest.get_server_status() or ""))
