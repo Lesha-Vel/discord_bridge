@@ -15,6 +15,3 @@ Adds a function to `discord.registered_on_messages`, which are called every time
 
 ### `discord.chat_send_all(message)`
 Sends a message to all ingame (Minetest) players. This function does **not** relay to Discord. It may, however, trigger other mods which have overridden `minetest.chat_send_all`, dependent only on the capricous nature of Minetest's mod loading.
-
-### `discord.send_noirc(message)`
-Sends a message to Discord, but does **not** relay said message to IRC. This function is *only* available if the IRC mod is enabled.
