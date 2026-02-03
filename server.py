@@ -41,7 +41,7 @@ class Queue:
 
 def clean_invites(string):
     return ' '.join(word for word in string.split()
-                    if not ('discord.gg' in word) and
+                    if 'discord.gg' not in word and
                     'discordapp.com/invite' not in word)
 
 
