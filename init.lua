@@ -34,13 +34,11 @@ discord_bridge.leave_text = settings:get('discord.leave_text') or '\\*\\*\\* **@
 discord_bridge.welcome_text = settings:get('discord.welcome_text') or '\\*\\*\\* **@1** joined the game for the first time. Welcome!'
 discord_bridge.death_text = settings:get('discord.death_text') or '\\*\\*\\* **@1** died'
 
-discord_bridge.use_embeds_on_joins = settings:get_bool('discord.use_embeds_on_joins', true)
-discord_bridge.use_embeds_on_leaves = settings:get_bool('discord.use_embeds_on_leaves', true)
+discord_bridge.use_embeds_on_joins_and_leaves = settings:get_bool('discord.use_embeds_on_joins_and_leaves', true)
 discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord.use_embeds_on_welcomes', true)
 discord_bridge.use_embeds_on_deaths = settings:get_bool('discord.use_embeds_on_deaths', true)
 discord_bridge.use_embeds_on_server_updates = settings:get_bool('discord.use_embeds_on_server_updates', true)
-discord_bridge.use_embeds_on_cmd_chat_send_player = settings:get_bool('discord.use_embeds_on_cmd_chat_send_player', false)
-discord_bridge.use_embeds_on_cmd_ret_value = settings:get_bool('discord.use_embeds_on_cmd_ret_value', false)
+discord_bridge.use_embeds_on_dm_cmd = settings:get_bool('discord.use_embeds_on_dm_cmd', false)
 discord_bridge.use_embeds_on_svc_dms = settings:get_bool('discord.use_embeds_on_svc_dms', false)
 
 discord_bridge.startup_color = settings:get('discord.startup_color') or '#5865f2'
@@ -138,7 +136,7 @@ function discord_bridge.handle_response(response)
                         if escape_formatting then
                             message = message:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
                         end
-                        if not discord_bridge.use_embeds_on_cmd_chat_send_player then
+                        if not discord_bridge.use_embeds_on_dm_cmd then
                             discord_bridge.send(message, v.context or nil)
                         else
                             discord_bridge.send(nil, v.context or nil, discord_bridge.cmd_chat_send_player_color, message)
@@ -150,7 +148,7 @@ function discord_bridge.handle_response(response)
                     if escape_formatting then
                         ret_val = ret_val:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
                     end
-                    if not discord_bridge.use_embeds_on_cmd_ret_value then
+                    if not discord_bridge.use_embeds_on_dm_cmd then
                         discord_bridge.send(ret_val, v.context or nil)
                     else
                         discord_bridge.send(nil, v.context or nil, discord_bridge.cmd_ret_value_color, ret_val)
@@ -273,7 +271,7 @@ if discord_bridge.send_joins then
                     replace(discord_bridge.welcome_text, name))
             end
         else
-            if not discord_bridge.use_embeds_on_joins then
+            if not discord_bridge.use_embeds_on_joins_and_leaves then
                 discord_bridge.send(discord_bridge.send_last_login and
                     replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
                     replace(discord_bridge.join_text, name))
@@ -291,7 +289,7 @@ if discord_bridge.send_leaves then
     minetest.register_on_leaveplayer(function(player)
         local name = player:get_player_name()
 
-        if not discord_bridge.use_embeds_on_leaves then
+        if not discord_bridge.use_embeds_on_joins_and_leaves then
             discord_bridge.send(replace(discord_bridge.leave_text, name))
         else
             discord_bridge.send(nil, nil, discord_bridge.leave_color, replace(discord_bridge.leave_text, name))
