@@ -3,8 +3,6 @@
 from aiohttp import web
 # import aiohttp
 import discord
-from discord.colour import Color
-from discord.embeds import Embed
 from discord.ext import commands
 import asyncio
 # import collections
@@ -101,23 +99,23 @@ async def handle(request):
                 embed_description = None
             if 'embed_color' in data:
                 if not data['embed_color'] == 'NOT_SET':
-                    color = Color.from_str(data['embed_color'])
+                    color = discord.Color.from_str(data['embed_color'])
                 else:
                     color = None
                 if 'context' in data:
                     id = int(data['context'])
                     target_channel = bot.get_partial_messageable(id)
                     # for chunk in chunks:
-                    await target_channel.send(embed=Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
+                    await target_channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
                             description=embed_description))
                 # elif incoming_msgs is None:
                 else:
                     # for chunk in chunks:
-                    await channel.send(embed=Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
+                    await channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
                             description=embed_description))
                 # else:
                 #     for chunk in chunks:
-                #         incoming_msgs.append({'msg': chunk, 'color': Color.from_str(data['embed_color']),
+                #         incoming_msgs.append({'msg': chunk, 'color': discord.Color.from_str(data['embed_color']),
                 #             'description': (data['embed_description'] if data['embed_description'] else None)})
             else:
                 if 'context' in data:
@@ -182,7 +180,7 @@ async def cmd(ctx, command, *, args=''):
         if not do_use_embeds:
             await ctx.send("The server currently appears to be down.")
         else:
-            await ctx.send(embed = Embed(title = 'The server currently appears to be down.', color = Color.from_str(server_down_color)))
+            await ctx.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
         return
     if ((ctx.channel.id != channel_id and ctx.guild is not None) or
             not logins_allowed):
@@ -191,7 +189,7 @@ async def cmd(ctx, command, *, args=''):
         if not do_use_embeds:
             await ctx.send('Not logged in.')
         else:
-            await ctx.send(embed = Embed(title = 'Not logged in.', color = Color.from_str(not_logged_in_color)))
+            await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
         return
     command = {
         'name': authenticated_users[ctx.author.id],
@@ -217,10 +215,10 @@ async def login(ctx, username, password=''):
                            'message will be automatically deleted.*',
                            delete_after=10)
         else:
-            await ctx.send(embed = Embed(title = ctx.author.mention + ' You\'ve quite possibly just '
+            await ctx.send(embed = discord.Embed(title = ctx.author.mention + ' You\'ve quite possibly just '
                            'leaked your password by using this command outside of '
                            'DMs; it is advised that you change it at once.\n*This '
-                           'message will be automatically deleted.*', color = Color.from_str(password_leak_color)),
+                           'message will be automatically deleted.*', color = discord.Color.from_str(password_leak_color)),
                            delete_after=10)
         try:
             await ctx.message.delete()
@@ -240,10 +238,10 @@ async def login(ctx, username, password=''):
                        "login attempt has been added to the queue and will be "
                        "executed as soon as the server returns.")
         else:
-            await ctx.send(embed = Embed(title = "The server currently appears to be down, but your "
+            await ctx.send(embed = discord.Embed(title = "The server currently appears to be down, but your "
                        "login attempt has been added to the queue and will be "
                        "executed as soon as the server returns.",
-                       color = Color.from_str(server_down_color)))
+                       color = discord.Color.from_str(server_down_color)))
 
 
 @bot.command(help='Lists connected players and server information.')
@@ -252,7 +250,7 @@ async def status(ctx, *, args=None):
         if not do_use_embeds:
             await ctx.send("The server currently appears to be down.")
         else:
-            await ctx.send(embed = Embed(title = "The server currently appears to be down.", color = Color.from_str(server_down_color)))
+            await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
         return
     if ctx.channel.id != channel_id and ctx.guild is not None:
         return
