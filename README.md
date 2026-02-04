@@ -1,5 +1,7 @@
 ## Luanti-Discord Relay `[discord_bridge]`
 
+# THIS README FILE IS DEPRECATED, and it's just here because it was in original mod, will be fixed soon
+
 A feature-filled Discord relay for Luanti, supporting:
 
 - Relaying server chat to Discord, and Discord chat to the server
