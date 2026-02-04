@@ -33,6 +33,7 @@ class Queue:
 outgoing_msgs = Queue()
 command_queue = Queue()
 login_queue = Queue()
+status_queue = Queue()
 
 prefix = config['BOT']['command_prefix']
 
@@ -140,7 +141,8 @@ async def handle(request):
     response = json.dumps({
         'messages': outgoing_msgs.get_all(),
         'commands': command_queue.get_all(),
-        'logins': login_queue.get_all()
+        'logins': login_queue.get_all(),
+        'status_requests': status_queue.get_all()
     })
     return web.Response(text=response)
 
@@ -247,14 +249,10 @@ async def status(ctx, *, args=None):
         return
     if ctx.channel.id != channel_id and ctx.guild is not None:
         return
-    data = {
-        'name': 'discord_relay',
-        'command': 'status',
-        'params': '',
-    }
+    data = {}
     if ctx.guild is None:
         data['context'] = str(ctx.channel.id)
-    command_queue.add(data)
+    status_queue.add(data)
 
 
 # async def send_messages():
