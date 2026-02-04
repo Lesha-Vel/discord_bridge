@@ -24,17 +24,10 @@ class Queue:
     def add(self, item):
         self.queue.append(item)
 
-    def get(self):
-        if len(self.queue) >= 1:
-            return self.queue.pop(0)
-
     def get_all(self):
         items = self.queue
         self.queue = []
         return items
-
-    def isEmpty(self):
-        return len(self.queue) == 0
 
 
 outgoing_msgs = Queue()
