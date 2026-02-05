@@ -1,47 +1,48 @@
 [bridge settings]
-discord.port (Port to run the relay on.) int 8080
-discord.text_color (Custom color for messages relayed from Discord.) string #ffffff
-discord.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool false
+discord_bridge.host (Address of server.py) string localhost
+discord_bridge.port (Port to run the relay on.) int 8080
+discord_bridge.text_color (Custom color for messages relayed from Discord.) string #ffffff
+discord_bridge.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool false
 [Options]
-discord.clean_invites (Clean Discord invites) bool true
-discord.date (Date format string) string %d.%m.%Y %H:%M
-discord.send_server_startup (Send server startups) bool true
-discord.send_server_shutdown (Send server shutdowns) bool true
-discord.include_server_status_on_startup (Include server status in startup notification) bool true
-discord.include_server_status_on_shutdown (Include server status in shutdown notification) bool true
-discord.send_joins (Notification on player join) bool true
-discord.send_last_login (Include last login in notification on player join) bool false
-discord.send_leaves (Notification on player leave) bool true
-discord.send_welcomes (Notification on player welcome) bool true
-discord.send_deaths (Notification on player death) bool true
+discord_bridge.clean_invites (Clean Discord invites) bool true
+discord_bridge.date (Date format string) string %d.%m.%Y %H:%M
+discord_bridge.send_server_startup (Send server startups) bool true
+discord_bridge.send_server_shutdown (Send server shutdowns) bool true
+discord_bridge.include_server_status_on_startup (Include server status in startup notification) bool true
+discord_bridge.include_server_status_on_shutdown (Include server status in shutdown notification) bool true
+discord_bridge.send_joins (Notification on player join) bool true
+discord_bridge.send_last_login (Include last login in notification on player join) bool false
+discord_bridge.send_leaves (Notification on player leave) bool true
+discord_bridge.send_welcomes (Notification on player welcome) bool true
+discord_bridge.send_deaths (Notification on player death) bool true
 [Texts]
-discord.name_wrapper (Name wrapper, 2 spaces at the end are important) string <**@1**>  
-discord.startup_text (Text of notification on server startup) string *** Server started!
-discord.shutdown_text (Text of notification on server shut-down) string *** Server shutting down...
-discord.join_text (Text of notification on player join) string \\*\\*\\* **@1** joined the game
-discord.last_login_text (Text of notification on player join including last login) string \\*\\*\\* **@1** joined the game. Last login: @2
-discord.leave_text (Text of notification on player leave) string \\*\\*\\* **@1** left the game
-discord.welcome_text (Text of notification on player welcome) string \\*\\*\\* **@1** joined the game for the first time. Welcome!
-discord.death_text (Text of notification on player death) string \\*\\*\\* **@1** died
-discord.chat_message_format (Format of the messages from discord) string <%s@Discord> %s
+discord_bridge.name_wrapper (Name wrapper, 2 spaces at the end are important) string <**@1**>
+discord_bridge.startup_text (Text of notification on server startup) string *** Server started!
+discord_bridge.shutdown_text (Text of notification on server shut-down) string *** Server shutting down...
+discord_bridge.join_text (Text of notification on player join) string \\*\\*\\* **@1** joined the game
+discord_bridge.last_login_text (Text of notification on player join including last login) string \\*\\*\\* **@1** joined the game. Last login: @2
+discord_bridge.leave_text (Text of notification on player leave) string \\*\\*\\* **@1** left the game
+discord_bridge.welcome_text (Text of notification on player welcome) string \\*\\*\\* **@1** joined the game for the first time. Welcome!
+discord_bridge.death_text (Text of notification on player death) string \\*\\*\\* **@1** died
+discord_bridge.chat_message_format (Format of the messages from discord) string <%s@Discord> %s
 [Discord embeds]
-discord.use_embeds_on_joins_and_leaves (Use Discord embeds for notifications on player join and leave) bool true
-discord.use_embeds_on_welcomes (Use Discord embeds for notifications on player welcomes) bool true
-discord.use_embeds_on_deaths (Use Discord embeds for notifications on player death) bool true
-discord.use_embeds_on_server_updates (Use Discord embeds for server status notifications) bool true
-discord.use_embeds_on_dm_cmd (Use Discord embeds for DM command answer) bool false
-discord.use_embeds_on_svc_dms (Use Discord embeds for service DMS) bool false
+discord_bridge.use_embeds_on_joins_and_leaves (Use Discord embeds for notifications on player join and leave) bool true
+discord_bridge.use_embeds_on_welcomes (Use Discord embeds for notifications on player welcomes) bool true
+discord_bridge.use_embeds_on_deaths (Use Discord embeds for notifications on player death) bool true
+discord_bridge.use_embeds_on_server_updates (Use Discord embeds for server status notifications) bool true
+discord_bridge.use_embeds_on_dm_cmd (Use Discord embeds for DM command answer) bool false
+discord_bridge.use_embeds_on_svc_dms (Use Discord embeds for service DMS) bool false
 [Colors]
-discord.startup_color (Startup Discord embed color) string #5865f2
-discord.shutdown_color (Shut down Discord embed color) string NOT_SET
-discord.join_color (Join Discord embed color) string #57f287
-discord.leave_color (Leave Discord embed color) string #ed4245
-discord.welcome_color (Welcome Discord embed color) string #57f287
-discord.death_color (Death Discord embed color) string NOT_SET
-discord.cmd_chat_send_player_color (Discord DM command chat_send_player color) string NOT_SET
-discord.cmd_ret_value_color (Discord DM command return value color) string NOT_SET
-discord.svc_dms_banned_color (You cannot run commands because you are banned color) string #ed4245
-discord.svc_dms_privs_color (Insufficient privileges color) string #ede442
-discord.svc_dms_cnf_color (Command not found color) string #ed9d42
-discord.login_success_color (success login color) string #57f287
-discord.login_fail_color (failed login color) string #ed4245
+discord_bridge.startup_color (Startup Discord embed color) string #5865f2
+discord_bridge.shutdown_color (Shut down Discord embed color) string NOT_SET
+discord_bridge.join_color (Join Discord embed color) string #57f287
+discord_bridge.leave_color (Leave Discord embed color) string #ed4245
+discord_bridge.welcome_color (Welcome Discord embed color) string #57f287
+discord_bridge.death_color (Death Discord embed color) string NOT_SET
+discord_bridge.cmd_chat_send_player_color (Discord DM command chat_send_player color) string NOT_SET
+discord_bridge.cmd_ret_value_color (Discord DM command return value color) string NOT_SET
+discord_bridge.svc_dms_banned_color (You cannot run commands because you are banned color) string #ed4245
+discord_bridge.svc_dms_privs_color (Insufficient privileges color) string #ede442
+discord_bridge.svc_dms_cnf_color (Command not found color) string #ed9d42
+discord_bridge.login_success_color (success login color) string #57f287
+discord_bridge.login_fail_color (failed login color) string #ed4245
