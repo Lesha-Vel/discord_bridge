@@ -46,6 +46,7 @@ channel_id = int(config['RELAY']['channel_id'])
 
 port = int(config['RELAY']['port'])
 token = config['BOT']['token']
+commands_allowed = config['RELAY'].getboolean('allow_commands')
 logins_allowed = config['RELAY'].getboolean('allow_logins')
 remote_allowed = config['RELAY'].getboolean('allow_remote')
 do_use_nicknames = config['RELAY'].getboolean('use_nicknames')
@@ -169,90 +170,91 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-@bot.command(help='Runs an ingame command from Discord.')
-async def cmd(ctx, command, *, args=''):
-    if not check_timeout():
-        if not do_use_embeds:
-            await ctx.send("The server currently appears to be down.")
-        else:
-            await ctx.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
-        return
-    if ((ctx.channel.id != channel_id and ctx.guild is not None) or
-            not logins_allowed):
-        return
-    if ctx.author.id not in authenticated_users.keys():
-        if not do_use_embeds:
-            await ctx.send('Not logged in.')
-        else:
-            await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
-        return
-    command = {
-        'name': authenticated_users[ctx.author.id],
-        'command': command,
-        'params': args.replace('\n', '')
-    }
-    if ctx.guild is None:
-        command['context'] = str(ctx.channel.id)
-    command_queue.add(command)
+if commands_allowed:
+    @bot.command(help='Runs an ingame command from Discord.')
+    async def cmd(ctx, command, *, args=''):
+        if not check_timeout():
+            if not do_use_embeds:
+                await ctx.send("The server currently appears to be down.")
+            else:
+                await ctx.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
+            return
+        if ((ctx.channel.id != channel_id and ctx.guild is not None) or
+                not logins_allowed):
+            return
+        if ctx.author.id not in authenticated_users.keys():
+            if not do_use_embeds:
+                await ctx.send('Not logged in.')
+            else:
+                await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
+            return
+        command = {
+            'name': authenticated_users[ctx.author.id],
+            'command': command,
+            'params': args.replace('\n', '')
+        }
+        if ctx.guild is None:
+            command['context'] = str(ctx.channel.id)
+        command_queue.add(command)
 
 
-@bot.command(help='Logs into your ingame account from Discord so you can run '
-                  'commands. You should only run this command in DMs with the '
-                  'bot.')
-async def login(ctx, username, password=''):
-    if not logins_allowed:
-        return
-    if ctx.guild is not None:
-        if not do_use_embeds:
-            await ctx.send(ctx.author.mention + ' You\'ve quite possibly just '
-                           'leaked your password by using this command outside of '
-                           'DMs; it is advised that you change it at once.\n*This '
-                           'message will be automatically deleted.*',
-                           delete_after=10)
-        else:
-            await ctx.send(embed = discord.Embed(title = ctx.author.mention + ' You\'ve quite possibly just '
-                           'leaked your password by using this command outside of '
-                           'DMs; it is advised that you change it at once.\n*This '
-                           'message will be automatically deleted.*', color = discord.Color.from_str(password_leak_color)),
-                           delete_after=10)
-        try:
-            await ctx.message.delete()
-        except discord.errors.Forbidden:
-            print(f"Unable to delete possible password leak by user ID "
-                  f"{ctx.author.id} due to insufficient permissions.")
-        return
-    login_queue.add({
-        'username': username,
-        'password': password,
-        'user_id': str(ctx.author.id),
-        'context': str(ctx.channel.id)
-    })
-    if not check_timeout():
-        if not do_use_embeds:
-            await ctx.send("The server currently appears to be down, but your "
-                       "login attempt has been added to the queue and will be "
-                       "executed as soon as the server returns.")
-        else:
-            await ctx.send(embed = discord.Embed(title = "The server currently appears to be down, but your "
-                       "login attempt has been added to the queue and will be "
-                       "executed as soon as the server returns.",
-                       color = discord.Color.from_str(server_down_color)))
+    @bot.command(help='Logs into your ingame account from Discord so you can run '
+                      'commands. You should only run this command in DMs with the '
+                      'bot.')
+    async def login(ctx, username, password=''):
+        if not logins_allowed:
+            return
+        if ctx.guild is not None:
+            if not do_use_embeds:
+                await ctx.send(ctx.author.mention + ' You\'ve quite possibly just '
+                               'leaked your password by using this command outside of '
+                               'DMs; it is advised that you change it at once.\n*This '
+                               'message will be automatically deleted.*',
+                               delete_after=10)
+            else:
+                await ctx.send(embed = discord.Embed(title = ctx.author.mention + ' You\'ve quite possibly just '
+                               'leaked your password by using this command outside of '
+                               'DMs; it is advised that you change it at once.\n*This '
+                               'message will be automatically deleted.*', color = discord.Color.from_str(password_leak_color)),
+                               delete_after=10)
+            try:
+                await ctx.message.delete()
+            except discord.errors.Forbidden:
+                print(f"Unable to delete possible password leak by user ID "
+                      f"{ctx.author.id} due to insufficient permissions.")
+            return
+        login_queue.add({
+            'username': username,
+            'password': password,
+            'user_id': str(ctx.author.id),
+            'context': str(ctx.channel.id)
+        })
+        if not check_timeout():
+            if not do_use_embeds:
+                await ctx.send("The server currently appears to be down, but your "
+                           "login attempt has been added to the queue and will be "
+                           "executed as soon as the server returns.")
+            else:
+                await ctx.send(embed = discord.Embed(title = "The server currently appears to be down, but your "
+                           "login attempt has been added to the queue and will be "
+                           "executed as soon as the server returns.",
+                           color = discord.Color.from_str(server_down_color)))
 
 
-@bot.command(help='Lists connected players and server information.')
-async def status(ctx, *, args=None):
-    if not check_timeout():
-        if not do_use_embeds:
-            await ctx.send("The server currently appears to be down.")
-        else:
-            await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
-        return
-    if ctx.channel.id != channel_id and ctx.guild is not None:
-        return
-    data = {}
-    if ctx.guild is None:
-        data['context'] = str(ctx.channel.id)
-    status_queue.add(data)
+    @bot.command(help='Lists connected players and server information.')
+    async def status(ctx, *, args=None):
+        if not check_timeout():
+            if not do_use_embeds:
+                await ctx.send("The server currently appears to be down.")
+            else:
+                await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
+            return
+        if ctx.channel.id != channel_id and ctx.guild is not None:
+            return
+        data = {}
+        if ctx.guild is None:
+            data['context'] = str(ctx.channel.id)
+        status_queue.add(data)
 
 
 # async def send_messages():
