@@ -59,6 +59,7 @@ discord_bridge.login_fail_color = settings:get('discord_bridge.login_fail_color'
 discord_bridge.registered_on_messages = {}
 
 local irc_enabled = minetest.get_modpath("irc")
+local xban2_enabled = minetest.get_modpath("xban2")
 
 function discord_bridge.register_on_message(func)
     table.insert(discord_bridge.registered_on_messages, func)
@@ -108,7 +109,12 @@ function discord_bridge.handle_response(response)
     if data.commands then
         local commands = minetest.registered_chatcommands
         for _, v in pairs(data.commands) do
-            if minetest.get_ban_description(v.name) ~= '' then
+            local xban2_banned = false
+            if xban2_enabled then
+                local names, banned, record = xban.get_info(v.name)
+                xban2_banned = (banned and record) or false
+            end
+            if minetest.get_ban_description(v.name) ~= '' or xban2_banned then
                 if not discord_bridge.use_embeds_on_svc_dms then
                     discord_bridge.send('You cannot run commands because you are banned.', v.context or nil)
                 else
