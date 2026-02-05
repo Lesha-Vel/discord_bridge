@@ -33,6 +33,7 @@ discord_bridge.last_login_text = settings:get('discord.last_login_text') or '\\*
 discord_bridge.leave_text = settings:get('discord.leave_text') or '\\*\\*\\* **@1** left the game'
 discord_bridge.welcome_text = settings:get('discord.welcome_text') or '\\*\\*\\* **@1** joined the game for the first time. Welcome!'
 discord_bridge.death_text = settings:get('discord.death_text') or '\\*\\*\\* **@1** died'
+discord_bridge.chat_message_format = settings:get('discord.chat_message_format') or '<%s@Discord> %s'
 
 discord_bridge.use_embeds_on_joins_and_leaves = settings:get_bool('discord.use_embeds_on_joins_and_leaves', true)
 discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord.use_embeds_on_welcomes', true)
@@ -76,7 +77,7 @@ local function replace(str, ...)
 end
 -- Allow the chat message format to be customised by other mods
 function discord_bridge.format_chat_message(name, msg)
-    return ('<%s@Discord> %s'):format(name, msg)
+    return (discord_bridge.chat_message_format):format(name, msg)
 end
 
 function discord_bridge.handle_response(response)

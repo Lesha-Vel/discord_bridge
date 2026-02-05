@@ -23,6 +23,7 @@ discord.last_login_text (Text of notification on player join including last logi
 discord.leave_text (Text of notification on player leave) string \\*\\*\\* **@1** left the game
 discord.welcome_text (Text of notification on player welcome) string \\*\\*\\* **@1** joined the game for the first time. Welcome!
 discord.death_text (Text of notification on player death) string \\*\\*\\* **@1** died
+discord.chat_message_format (Format of the messages from discord) string <%s@Discord> %s
 [Discord embeds]
 discord.use_embeds_on_joins_and_leaves (Use Discord embeds for notifications on player join and leave) bool true
 discord.use_embeds_on_welcomes (Use Discord embeds for notifications on player welcomes) bool true
