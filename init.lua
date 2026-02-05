@@ -13,7 +13,7 @@ discord = {}
 discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or '#ffffff'
 
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
-discord_bridge.date = settings:get('discord_bridge.date') or '%d.%m.%Y %H:%M'
+discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
 
 discord_bridge.send_server_startup = settings:get_bool('discord_bridge.send_server_startup', true)
 discord_bridge.send_server_shutdown = settings:get_bool('discord_bridge.send_server_shutdown', true)

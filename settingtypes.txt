@@ -5,7 +5,7 @@ discord_bridge.text_color (Custom color for messages relayed from Discord.) stri
 discord_bridge.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool false
 [Options]
 discord_bridge.clean_invites (Clean Discord invites) bool true
-discord_bridge.date (Date format string) string %d.%m.%Y %H:%M
+discord_bridge.date (Date format string) string %m/%d/%Y %I:%M%p
 discord_bridge.send_server_startup (Send server startups) bool true
 discord_bridge.send_server_shutdown (Send server shutdowns) bool true
 discord_bridge.include_server_status_on_startup (Include server status in startup notification) bool true
