@@ -57,6 +57,38 @@ discord_bridge.login_success_color = settings:get('discord_bridge.login_success_
 discord_bridge.login_fail_color = settings:get('discord_bridge.login_fail_color') or '#ed4245'
 
 discord_bridge.registered_on_messages = {}
+discord_bridge.authenticated_users = {}
+
+discord_bridge.old_msg_func = minetest.registered_chatcommands['msg'].func
+minetest.override_chatcommand('msg', {
+    func = function(name, param)
+        local target_player, message = param:match('^(%S+) (.+)$')
+        if discord_bridge.authenticated_users[target_player] then
+            minetest.log('action', 'DM from ' .. name .. ' to a discord user ' .. target_player .. ': ' .. message)
+            if not target_player then
+                return false, "Invalid usage, see /help msg."
+            end
+            discord_bridge.send_dm_to_discord(target_player, message)
+            if not minetest.get_player_by_name(target_player) then
+                return true, 'DM sent to a discord user ' .. target_player .. ': ' .. message
+            end
+        end
+	    return discord_bridge.old_msg_func(name, param)
+    end
+})
+
+core.register_privilege('discord_bridge', 'allows to run list_discord_users')
+minetest.register_chatcommand("list_discord_users", {
+    description = "get list of users logged-in in discord",
+    privs = {discord_bridge = true},
+    func = function(name, param)
+        local users = 'logged in users: '
+        for username, _ in pairs(discord_bridge.authenticated_users) do
+            users = users .. username .. ', '
+        end
+        minetest.chat_send_player(name, users)
+    end
+})
 
 local irc_enabled = minetest.get_modpath("irc")
 local xban2_enabled = minetest.get_modpath("xban2")
@@ -206,6 +238,7 @@ function discord_bridge.handle_response(response)
                 post_data = minetest.write_json(request)
             }, discord_bridge.handle_response)
             if result then
+                discord_bridge.authenticated_users[v.username] = os.time()
                 if not discord_bridge.use_embeds_on_svc_dms then
                     discord_bridge.send('Login successful.', v.context or nil)
                 else
@@ -249,6 +282,21 @@ function discord_bridge.send(message, id, embed_color, embed_description)
     })
 end
 discord.send = discord_bridge.send
+
+function discord_bridge.send_dm_to_discord(playername, message)
+    local content
+    local data = {
+        type = 'DISCORD-DIRECT-MESSAGE',
+        playername = playername
+    }
+    content = minetest.strip_colors(message)
+    data['content'] = content
+    http.fetch_async({
+        url = tostring(host) .. ':' .. tostring(port),
+        timeout = timeout,
+        post_data = minetest.write_json(data)
+    })
+end
 
 -- function minetest.chat_send_all(message)
 --     discord_bridge.chat_send_all(message)

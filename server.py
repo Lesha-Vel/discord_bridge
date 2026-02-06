@@ -63,6 +63,7 @@ last_request = 0
 
 channel = bot.get_partial_messageable(channel_id)
 authenticated_users = {}
+authenticated_users_ids = {}
 
 
 def check_timeout():
@@ -128,6 +129,19 @@ async def handle(request):
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
+            
+        if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
+            msg = translation_re.sub('', data['content'])
+            msg = discord.utils.escape_mentions(msg)
+            id = authenticated_users_ids[data['playername']]
+            user = bot.get_user(id)
+            if user is None:
+                user = await bot.fetch_user(id)
+            await user.send(msg)
+
+            # discord.send should NOT block extensively on the Lua side
+            return web.Response(text='Acknowledged')
+            
         if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-RESULT':
             user_id = int(data['user_id'])
             user = bot.get_user(user_id)
@@ -136,6 +150,7 @@ async def handle(request):
 
             if data['success']:
                 authenticated_users[user_id] = data['username']
+                authenticated_users_ids[data['username']] = user_id
     except Exception:
         traceback.print_exc()
 
