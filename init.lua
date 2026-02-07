@@ -108,7 +108,6 @@ discord.register_on_message = discord_bridge.register_on_message
 discord_bridge.chat_send_all = minetest.chat_send_all
 discord.chat_send_all = minetest.chat_send_all
 
--- a part from dcwebhook
 local function replace(str, ...)
     local arg = {...}
     return (str:gsub("@(.)", function(matched)
@@ -329,11 +328,6 @@ function discord_bridge.send_dm_to_discord(playername, message)
         post_data = minetest.write_json(data)
     })
 end
-
--- function minetest.chat_send_all(message)
---     discord_bridge.chat_send_all(message)
---     discord_bridge.send(message)
--- end
 
 -- Register the chat message callback after other mods load so that anything
 -- that overrides chat will work correctly

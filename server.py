@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
-# import sys
 from aiohttp import web
-# import aiohttp
 import discord
 from discord.ext import commands
 import asyncio
-# import collections
 import json
 import time
 import configparser
@@ -15,7 +12,6 @@ import traceback
 config = configparser.ConfigParser()
 
 config.read('relay.conf')
-
 
 class Queue:
     def __init__(self):
@@ -28,7 +24,6 @@ class Queue:
         items = self.queue
         self.queue = []
         return items
-
 
 outgoing_msgs = Queue()
 command_queue = Queue()
@@ -72,13 +67,10 @@ authenticated_users_ids = {}
 
 announce_loguot = False
 
-
 def check_timeout():
     return time.time() - last_request <= 1
 
-
 translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
-
 
 async def handle(request):
     global last_request, announce_loguot
@@ -181,11 +173,9 @@ async def handle(request):
     response = json.dumps(responseObject)
     return web.Response(text=response)
 
-
 app = web.Application()
 app.add_routes([web.get('/', handle),
                 web.post('/', handle)])
-
 
 @bot.event
 async def on_message(message):
@@ -202,7 +192,6 @@ async def on_message(message):
                 outgoing_msgs.add(msg)
 
     await bot.process_commands(message)
-
 
 if commands_allowed:
     @bot.command(help='Runs an ingame command from Discord.')
@@ -230,7 +219,6 @@ if commands_allowed:
         if ctx.guild is None:
             command['context'] = str(ctx.channel.id)
         command_queue.add(command)
-
 
     @bot.command(help='Logs into your ingame account from Discord so you can run '
                       'commands and receive direct messages if allowed. You '
@@ -274,7 +262,6 @@ if commands_allowed:
                            "executed as soon as the server returns.",
                            color = discord.Color.from_str(server_down_color)))
 
-
     @bot.command(help='Logs out your ingame account from Discord so you no more appear ingame.')
     async def logout(ctx):
         global announce_loguot
@@ -285,7 +272,6 @@ if commands_allowed:
         if ctx.author.id in authenticated_users:
             del authenticated_users[ctx.author.id]
 
-
     @bot.command(help='Get ingame player name you\'re now logged in.')
     async def myname(ctx):
         if ctx.author.id in authenticated_users:
@@ -293,7 +279,6 @@ if commands_allowed:
                 await ctx.send('your ingame name is: ' + authenticated_users[ctx.author.id])
             else:
                 await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + authenticated_users[ctx.author.id]))
-
 
     @bot.command(help='Lists connected players and server information.')
     async def status(ctx, *, args=None):
@@ -328,7 +313,6 @@ if commands_allowed:
                 data['context'] = str(ctx.channel.id)
             coords_queue.add(data)
 
-
 # async def send_messages():
 #     while True:
 #         await asyncio.sleep(3)
@@ -349,15 +333,12 @@ if commands_allowed:
 #         except Exception:
 #             traceback.print_exc()
 
-
 async def on_startup(app):
     asyncio.create_task(bot.start(token))
     # if incoming_msgs is not None:
     #     asyncio.create_task(send_messages())
 
-
 app.on_startup.append(on_startup)
-
 
 if __name__ == '__main__':
     try:
