@@ -172,7 +172,7 @@ async def handle(request):
         'messages': outgoing_msgs.get_all(),
         'commands': command_queue.get_all(),
         'logins': login_queue.get_all(),
-        'status_requests': status_queue.get_all(),
+        'statuses': status_queue.get_all(),
         'coords': coords_queue.get_all()
     }
     if send_user_list or announce_loguot:

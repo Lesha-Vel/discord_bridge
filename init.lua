@@ -210,10 +210,10 @@ function discord_bridge.handle_response(response)
             end
         end
     end
-    if data.status_requests then
+    if data.statuses then
         local admin = minetest.settings:get('name')
         if admin == '' then admin = 'discord_relay' end
-        for _, v in pairs(data.status_requests) do
+        for _, v in pairs(data.statuses) do
             local success, ret_val = minetest.registered_chatcommands['status'].func(admin, '')
             if ret_val then
                 ret_val = ret_val:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
