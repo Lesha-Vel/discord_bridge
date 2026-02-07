@@ -132,7 +132,6 @@ async def handle(request):
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
-
         if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-RESULT':
             user_id = int(data['user_id'])
             user = bot.get_user(user_id)
@@ -145,7 +144,6 @@ async def handle(request):
                     del authenticated_users_ids[authenticated_users[user_id]]
                 authenticated_users[user_id] = data['username']
                 authenticated_users_ids[data['username']] = user_id
-
         if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
             if data['playername'] in authenticated_users_ids:
                 msg = translation_re.sub('', data['content'])

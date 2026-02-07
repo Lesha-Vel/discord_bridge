@@ -62,7 +62,7 @@ discord_bridge.authenticated_users = {}
 discord_bridge.old_msg_func = minetest.registered_chatcommands['msg'].func
 minetest.override_chatcommand('msg', {
     func = function(name, param)
-        local target_player, message = param:match('^(%S+) (.+)$')
+        local target_player, message = param:match('^(%S+)%s(.+)$')
         if discord_bridge.authenticated_users[target_player] then
             minetest.log('action', 'DM from ' .. name .. ' to a discord user ' .. target_player .. ': ' .. message)
             if not target_player then
@@ -81,6 +81,9 @@ discord_bridge.old_status_func = minetest.registered_chatcommands['status'].func
 minetest.override_chatcommand('status', {
     func = function(name, param)
         local success, res = discord_bridge.old_status_func(name, param)
+        if not success then
+            return false, res
+        end
         i = 0
         for _, v in pairs(discord_bridge.authenticated_users) do
             if i == 0 then
@@ -89,7 +92,7 @@ minetest.override_chatcommand('status', {
             res = res .. (i > 0 and ', ' or '') .. _
             i = i + 1
         end
-        return success, res
+        return true, res
     end
 })
 
