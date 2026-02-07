@@ -147,13 +147,14 @@ async def handle(request):
                 authenticated_users_ids[data['username']] = user_id
 
         if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
-            msg = translation_re.sub('', data['content'])
-            msg = discord.utils.escape_mentions(msg)
-            id = authenticated_users_ids[data['playername']]
-            user = bot.get_user(id)
-            if user is None:
-                user = await bot.fetch_user(id)
-            await user.send(msg)
+            if data['playername'] in authenticated_users_ids:
+                msg = translation_re.sub('', data['content'])
+                msg = discord.utils.escape_mentions(msg)
+                id = authenticated_users_ids[data['playername']]
+                user = bot.get_user(id)
+                if user is None:
+                    user = await bot.fetch_user(id)
+                await user.send(msg)
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
