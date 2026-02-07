@@ -55,6 +55,7 @@ discord_bridge.svc_dms_privs_color = settings:get('discord_bridge.svc_dms_privs_
 discord_bridge.svc_dms_cnf_color = settings:get('discord_bridge.svc_dms_cnf_color') or '#ed9d42'
 discord_bridge.login_success_color = settings:get('discord_bridge.login_success_color') or '#57f287'
 discord_bridge.login_fail_color = settings:get('discord_bridge.login_fail_color') or '#ed4245'
+discord_bridge.coords_color = settings:get('discord_bridge.coords_color') or 'NOT_SET'
 
 discord_bridge.registered_on_messages = {}
 discord_bridge.authenticated_users = {}
@@ -254,6 +255,26 @@ function discord_bridge.handle_response(response)
                     discord_bridge.send('Login failed.', v.context or nil)
                 else
                     discord_bridge.send('Login failed.', v.context or nil, discord_bridge.login_fail_color)
+                end
+            end
+        end
+    end
+    if data.coords then
+        for _, v in pairs(data.coords) do
+            local player = minetest.get_player_by_name(v.player)
+            if player then
+                local pos = player:get_pos()
+                local posStr = 'player ' .. v.player .. ' is located at: ' .. math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
+                if not discord_bridge.use_embeds_on_svc_dms then
+                    discord_bridge.send(posStr, v.context or nil)
+                else
+                    discord_bridge.send(posStr, v.context or nil, discord_bridge.coords_color)
+                end
+            else
+                if not discord_bridge.use_embeds_on_svc_dms then
+                    discord_bridge.send('Player ' .. v.player .. ' is not online.', v.context or nil)
+                else
+                    discord_bridge.send('Player ' .. v.player .. ' is not online.', v.context or nil, discord_bridge.coords_color)
                 end
             end
         end

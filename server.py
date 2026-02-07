@@ -34,6 +34,7 @@ outgoing_msgs = Queue()
 command_queue = Queue()
 login_queue = Queue()
 status_queue = Queue()
+coords_queue = Queue()
 
 prefix = config['BOT']['command_prefix']
 
@@ -168,7 +169,8 @@ async def handle(request):
         'messages': outgoing_msgs.get_all(),
         'commands': command_queue.get_all(),
         'logins': login_queue.get_all(),
-        'status_requests': status_queue.get_all()
+        'status_requests': status_queue.get_all(),
+        'coords': coords_queue.get_all()
     }
     if send_user_list or announce_loguot:
         announce_loguot = False
@@ -294,6 +296,23 @@ if commands_allowed:
         if ctx.guild is None:
             data['context'] = str(ctx.channel.id)
         status_queue.add(data)
+
+    @bot.command(help='Get player coordinates.')
+    async def whereis(ctx, player):
+        if not check_timeout():
+            if not do_use_embeds:
+                await ctx.send("The server currently appears to be down.")
+            else:
+                await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
+            return
+        if ctx.channel.id != channel_id and ctx.guild is not None:
+            return
+        data = {
+            'player': player,
+        }
+        if ctx.guild is None:
+            data['context'] = str(ctx.channel.id)
+        coords_queue.add(data)
 
 
 # async def send_messages():

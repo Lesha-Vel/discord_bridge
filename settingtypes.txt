@@ -46,3 +46,4 @@ discord_bridge.svc_dms_privs_color (Insufficient privileges color) string #ede44
 discord_bridge.svc_dms_cnf_color (Command not found color) string #ed9d42
 discord_bridge.login_success_color (success login color) string #57f287
 discord_bridge.login_fail_color (failed login color) string #ed4245
+discord_bridge.coords_color (coordinates request color) string NOT_SET
