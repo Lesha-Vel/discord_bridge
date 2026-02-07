@@ -286,6 +286,14 @@ if commands_allowed:
             del authenticated_users[ctx.author.id]
 
 
+    @bot.command(help='Get ingame player name you\'re now logged in.')
+    async def myname(ctx):
+        if not do_use_embeds:
+            await ctx.send('your ingame name is: ' + authenticated_users[ctx.author.id])
+        else:
+            await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + authenticated_users[ctx.author.id]))
+
+
     @bot.command(help='Lists connected players and server information.')
     async def status(ctx, *, args=None):
         if not check_timeout():
