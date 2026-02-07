@@ -378,10 +378,20 @@ if discord_bridge.send_deaths then
 end
 
 local timer = 0
+local login_request_timer = 0
 local ongoing = nil
 minetest.register_globalstep(function(dtime)
     if dtime then
         timer = timer + dtime
+        login_request_timer = login_request_timer + dtime
+        if login_request_timer > 15 then
+            http.fetch({
+                url = tostring(host)..':'..tostring(port),
+                timeout = timeout,
+                post_data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
+            }, discord_bridge.handle_response)
+            login_request_timer = 0
+        end
         if timer > 0.2 then
             if not ongoing then
                 ongoing = http.fetch_async({
