@@ -67,6 +67,8 @@ authenticated_users = {}
 # playername -> user id
 authenticated_users_ids = {}
 
+announce_loguot = False
+
 
 def check_timeout():
     return time.time() - last_request <= 1
@@ -76,7 +78,7 @@ translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
 
 
 async def handle(request):
-    global last_request
+    global last_request, announce_loguot
     last_request = time.time()
     send_user_list = False
     try:
@@ -168,7 +170,8 @@ async def handle(request):
         'logins': login_queue.get_all(),
         'status_requests': status_queue.get_all()
     }
-    if send_user_list:
+    if send_user_list or announce_loguot:
+        announce_loguot = False
         responseObject['logged_in_users'] = list(authenticated_users_ids.keys())
     response = json.dumps(responseObject)
     return web.Response(text=response)
@@ -225,8 +228,8 @@ if commands_allowed:
 
 
     @bot.command(help='Logs into your ingame account from Discord so you can run '
-                      'commands. You should only run this command in DMs with the '
-                      'bot.')
+                      'commands and receive direct messages. You should only run '
+                      'this command in DMs with the bot.')
     async def login(ctx, username, password=''):
         if not logins_allowed:
             return
@@ -265,6 +268,16 @@ if commands_allowed:
                            "login attempt has been added to the queue and will be "
                            "executed as soon as the server returns.",
                            color = discord.Color.from_str(server_down_color)))
+
+
+    @bot.command(help='Logs out your ingame account from Discord so you no more appear ingame.')
+    async def logout(ctx):
+        global announce_loguot
+        announce_loguot = True
+        if authenticated_users[ctx.author.id] in authenticated_users_ids:
+            del authenticated_users_ids[authenticated_users[ctx.author.id]]
+        if ctx.author.id in authenticated_users:
+            del authenticated_users[ctx.author.id]
 
 
     @bot.command(help='Lists connected players and server information.')
