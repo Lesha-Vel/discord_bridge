@@ -55,6 +55,8 @@ do_use_embeds = config['RELAY'].getboolean('use_embeds')
 server_down_color = config['RELAY']['server_down_color']
 not_logged_in_color = config['RELAY']['not_logged_in_color']
 password_leak_color = config['RELAY']['password_leak_color']
+send_to_offline_players_allowed = config['RELAY'].getboolean('allow_send_to_offline_players')
+whereis_allowed = config['RELAY'].getboolean('allow_whereis')
 # if config['RELAY'].getboolean('send_every_3s'):
 #     incoming_msgs = collections.deque()
 # else:
@@ -142,12 +144,13 @@ async def handle(request):
                 user = await bot.fetch_user(user_id)
 
             if data['success']:
-                send_user_list = True
-                if user_id in authenticated_users:
-                    del authenticated_users_ids[authenticated_users[user_id]]
+                if send_to_offline_players_allowed:
+                    send_user_list = True
+                    if user_id in authenticated_users:
+                        del authenticated_users_ids[authenticated_users[user_id]]
+                    authenticated_users_ids[data['username']] = user_id
                 authenticated_users[user_id] = data['username']
-                authenticated_users_ids[data['username']] = user_id
-        if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
+        if send_to_offline_players_allowed and request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
             if data['playername'] in authenticated_users_ids:
                 msg = translation_re.sub('', data['content'])
                 msg = discord.utils.escape_mentions(msg)
@@ -160,7 +163,7 @@ async def handle(request):
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
 
-        if request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
+        if send_to_offline_players_allowed and request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
             send_user_list = True
     except Exception:
         traceback.print_exc()
@@ -230,8 +233,8 @@ if commands_allowed:
 
 
     @bot.command(help='Logs into your ingame account from Discord so you can run '
-                      'commands and receive direct messages. You should only run '
-                      'this command in DMs with the bot.')
+                      'commands and receive direct messages if allowed. You '
+                      'should only run this command in DMs with the bot.')
     async def login(ctx, username, password=''):
         if not logins_allowed:
             return
@@ -275,9 +278,10 @@ if commands_allowed:
     @bot.command(help='Logs out your ingame account from Discord so you no more appear ingame.')
     async def logout(ctx):
         global announce_loguot
-        announce_loguot = True
-        if authenticated_users[ctx.author.id] in authenticated_users_ids:
-            del authenticated_users_ids[authenticated_users[ctx.author.id]]
+        if send_to_offline_players_allowed:
+            announce_loguot = True
+            if authenticated_users[ctx.author.id] in authenticated_users_ids:
+                del authenticated_users_ids[authenticated_users[ctx.author.id]]
         if ctx.author.id in authenticated_users:
             del authenticated_users[ctx.author.id]
 
@@ -297,22 +301,24 @@ if commands_allowed:
             data['context'] = str(ctx.channel.id)
         status_queue.add(data)
 
-    @bot.command(help='Get player coordinates.')
-    async def whereis(ctx, player):
-        if not check_timeout():
-            if not do_use_embeds:
-                await ctx.send("The server currently appears to be down.")
-            else:
-                await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
-            return
-        if ctx.channel.id != channel_id and ctx.guild is not None:
-            return
-        data = {
-            'player': player,
-        }
-        if ctx.guild is None:
-            data['context'] = str(ctx.channel.id)
-        coords_queue.add(data)
+    if whereis_allowed:
+        print('ha?!')
+        @bot.command(help='Get player coordinates.')
+        async def whereis(ctx, player):
+            if not check_timeout():
+                if not do_use_embeds:
+                    await ctx.send("The server currently appears to be down.")
+                else:
+                    await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
+                return
+            if ctx.channel.id != channel_id and ctx.guild is not None:
+                return
+            data = {
+                'player': player,
+            }
+            if ctx.guild is None:
+                data['context'] = str(ctx.channel.id)
+            coords_queue.add(data)
 
 
 # async def send_messages():
