@@ -238,7 +238,6 @@ function discord_bridge.handle_response(response)
                 post_data = minetest.write_json(request)
             }, discord_bridge.handle_response)
             if result then
-                discord_bridge.authenticated_users[v.username] = os.time()
                 if not discord_bridge.use_embeds_on_svc_dms then
                     discord_bridge.send('Login successful.', v.context or nil)
                 else
@@ -251,6 +250,12 @@ function discord_bridge.handle_response(response)
                     discord_bridge.send('Login failed.', v.context or nil, discord_bridge.login_fail_color)
                 end
             end
+        end
+    end
+    if data.logged_in_users then
+        discord_bridge.authenticated_users = {}
+        for _, v in ipairs(data.logged_in_users) do
+            discord_bridge.authenticated_users[v] = true
         end
     end
 end
@@ -427,3 +432,9 @@ if discord_bridge.send_server_startup then
             (discord_bridge.include_server_status_on_startup and " - " .. minetest.get_server_status() or ""))
     end
 end
+
+http.fetch({
+    url = tostring(host)..':'..tostring(port),
+    timeout = timeout,
+    post_data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
+}, discord_bridge.handle_response)

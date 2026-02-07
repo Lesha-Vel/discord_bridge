@@ -62,7 +62,9 @@ password_leak_color = config['RELAY']['password_leak_color']
 last_request = 0
 
 channel = bot.get_partial_messageable(channel_id)
+# user id -> playername
 authenticated_users = {}
+# playername -> user id
 authenticated_users_ids = {}
 
 
@@ -76,6 +78,7 @@ translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
 async def handle(request):
     global last_request
     last_request = time.time()
+    send_user_list = False
     try:
         data = {}
         if request.method == 'POST':
@@ -129,7 +132,20 @@ async def handle(request):
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
-            
+
+        if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-RESULT':
+            user_id = int(data['user_id'])
+            user = bot.get_user(user_id)
+            if user is None:
+                user = await bot.fetch_user(user_id)
+
+            if data['success']:
+                send_user_list = True
+                if user_id in authenticated_users:
+                    del authenticated_users_ids[authenticated_users[user_id]]
+                authenticated_users[user_id] = data['username']
+                authenticated_users_ids[data['username']] = user_id
+
         if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
             msg = translation_re.sub('', data['content'])
             msg = discord.utils.escape_mentions(msg)
@@ -141,25 +157,21 @@ async def handle(request):
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
-            
-        if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-RESULT':
-            user_id = int(data['user_id'])
-            user = bot.get_user(user_id)
-            if user is None:
-                user = await bot.fetch_user(user_id)
 
-            if data['success']:
-                authenticated_users[user_id] = data['username']
-                authenticated_users_ids[data['username']] = user_id
+        if request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
+            send_user_list = True
     except Exception:
         traceback.print_exc()
 
-    response = json.dumps({
+    responseObject = {
         'messages': outgoing_msgs.get_all(),
         'commands': command_queue.get_all(),
         'logins': login_queue.get_all(),
         'status_requests': status_queue.get_all()
-    })
+    }
+    if send_user_list:
+        responseObject['logged_in_users'] = list(authenticated_users_ids.keys())
+    response = json.dumps(responseObject)
     return web.Response(text=response)
 
 
