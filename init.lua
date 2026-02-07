@@ -77,16 +77,19 @@ minetest.override_chatcommand('msg', {
     end
 })
 
-core.register_privilege('discord_bridge', 'allows to run list_discord_users')
-minetest.register_chatcommand("list_discord_users", {
-    description = "get list of users logged-in in discord",
-    privs = {discord_bridge = true},
+discord_bridge.old_status_func = minetest.registered_chatcommands['status'].func
+minetest.override_chatcommand('status', {
     func = function(name, param)
-        local users = 'logged in users: '
-        for username, _ in pairs(discord_bridge.authenticated_users) do
-            users = users .. username .. ', '
+        local success, res = discord_bridge.old_status_func(name, param)
+        i = 0
+        for _, v in pairs(discord_bridge.authenticated_users) do
+            if i == 0 then
+                res = res .. ' | discord: '
+            end
+            res = res .. (i > 0 and ', ' or '') .. _
+            i = i + 1
         end
-        minetest.chat_send_player(name, users)
+        return success, res
     end
 })
 
