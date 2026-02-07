@@ -311,7 +311,6 @@ if commands_allowed:
         status_queue.add(data)
 
     if whereis_allowed:
-        print('ha?!')
         @bot.command(help='Get player coordinates.')
         async def whereis(ctx, player):
             if not check_timeout():
