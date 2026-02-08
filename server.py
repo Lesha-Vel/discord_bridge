@@ -273,12 +273,17 @@ if commands_allowed:
             del authenticated_users[ctx.author.id]
 
     @bot.command(help='Get ingame player name you\'re now logged in.')
-    async def myname(ctx):
+    async def whoami(ctx):
         if ctx.author.id in authenticated_users:
             if not do_use_embeds:
                 await ctx.send('your ingame name is: ' + authenticated_users[ctx.author.id])
             else:
                 await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + authenticated_users[ctx.author.id]))
+        else:
+            if not do_use_embeds:
+                await ctx.send('Not logged in.')
+            else:
+                await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
 
     @bot.command(help='Lists connected players and server information.')
     async def status(ctx, *, args=None):
