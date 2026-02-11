@@ -242,7 +242,7 @@ async def on_message(message):
 
 if commands_allowed:
     @bot.command(help='Runs an ingame command from Discord.')
-    async def cmd(ctx, command, *, args=''):
+    async def cmd(ctx, command=commands.parameter(description='in-game command without leading /, if command is for example //help it become /help'), *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
         if not check_timeout():
             if not do_use_embeds:
                 await ctx.send("The server currently appears to be down.")
@@ -270,7 +270,7 @@ if commands_allowed:
     @bot.command(help='Logs into your ingame account from Discord so you can run '
                       'commands and receive direct messages if allowed. You '
                       'should only run this command in DMs with the bot.')
-    async def login(ctx, username, password=''):
+    async def login(ctx, username=commands.parameter(description='in-game player name'), password=commands.parameter(description='in-game password', default='')):
         if not logins_allowed:
             return
         if ctx.guild is not None:
@@ -333,7 +333,7 @@ if commands_allowed:
                 await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
 
     @bot.command(help='Lists connected players and server information.')
-    async def status(ctx, *, args=None):
+    async def status(ctx):
         if not check_timeout():
             if not do_use_embeds:
                 await ctx.send("The server currently appears to be down.")
@@ -349,7 +349,7 @@ if commands_allowed:
 
     if whereis_allowed:
         @bot.command(help='Get player coordinates.')
-        async def whereis(ctx, player):
+        async def whereis(ctx, player=commands.parameter(description='player name in-game')):
             if not check_timeout():
                 if not do_use_embeds:
                     await ctx.send("The server currently appears to be down.")
