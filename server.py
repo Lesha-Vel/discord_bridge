@@ -5,13 +5,39 @@ from discord.ext import commands
 import asyncio
 import json
 import time
-import configparser
 import re
 import traceback
+import argparse
 
-config = configparser.ConfigParser()
+parser = argparse.ArgumentParser(usage = '%(prog)s [-h] [<token> <channel_id>\n'
+                '[-p,--port PORT] [--command_prefix PREFIX]\n'
+                '[--no_allow_command] [--no_allow_logins]\n'
+                '[--allow_remote] [--no_use_nicknames]\n'
+                '[--no_use_embeds] [--no_allow_send_to_offline_players]\n'
+                '[--no_allow_whereis] [--server_down_color COLOR]\n'
+                '[--not_logged_in_color COLOR] [--password_leak_color COLOR]]')
 
-config.read('relay.conf')
+parser.add_argument('token_and_channel_id', nargs='*', default=['', ''], metavar='<token> <channel_id>', help='token and channel id, if '
+    'omitted then any other arguments will be ignored, the program will use relay.conf instead')
+parser.add_argument('--command_prefix', default='!', metavar='PREFIX', help='prefix Discord commands should have to be considered command, '
+    'e.g. if this set to ! (the default) user will need to type !login to run login command.')
+parser.add_argument('-p', '--port', type=int, default=8080, help='Port server.py listens on, default: 8080')
+
+parser.add_argument('--allow_remote', action='store_true', help='Allow clients not running locally to connect, e.g. not from localhost')
+parser.add_argument('--no_allow_command', action='store_true', help='Disables user\'s ability to run any Discord commands')
+parser.add_argument('--no_allow_logins', action='store_true', help='Disables user\'s ability to use login command')
+parser.add_argument('--no_allow_send_to_offline_players', action='store_true', help='Disables user\'s ability to login in-game from Discord')
+parser.add_argument('--no_allow_whereis', action='store_true', help='Disables user\'s ability to know players position')
+parser.add_argument('--no_use_nicknames', action='store_true', help='Discord messages nick format, use discord username if set, nickname otherwise')
+parser.add_argument('--no_use_embeds', action='store_true', help='Use embeds when reasonable if not set')
+
+parser.add_argument('--server_down_color', default='#ede442', metavar='COLOR', help='Color of the messages informing that luanti server is not running, color format is: #RRGGBB')
+parser.add_argument('--not_logged_in_color', default='#46e8e8', metavar='COLOR', help='Color of the messages informing that user is not logged in, color format is: #RRGGBB')
+parser.add_argument('--password_leak_color', default='#ed9d42', metavar='COLOR', help='Color of the messages informing that login was attempted in a public channel, color format is: #RRGGBB')
+args = parser.parse_args()
+
+if len(args.token_and_channel_id) != 2:
+    parser.error('You have to provide both token and channel id')
 
 class Queue:
     def __init__(self):
@@ -31,31 +57,52 @@ login_queue = Queue()
 status_queue = Queue()
 coords_queue = Queue()
 
-prefix = config['BOT']['command_prefix']
+if len(args.token_and_channel_id[0]) and len(args.token_and_channel_id[1]):
+    token = args.token_and_channel_id[0]
+    channel_id = args.token_and_channel_id[1]
+    port = args.port
+    prefix = args.command_prefix
+
+    commands_allowed = not args.no_allow_command
+    logins_allowed = not args.no_allow_logins
+    remote_allowed = args.allow_remote
+    do_use_nicknames = not args.no_use_nicknames
+    do_use_embeds = not args.no_use_embeds
+    send_to_offline_players_allowed = not args.no_allow_send_to_offline_players
+    whereis_allowed = not args.no_allow_whereis
+    server_down_color = args.server_down_color
+    not_logged_in_color = args.not_logged_in_color
+    password_leak_color = args.password_leak_color
+else:
+    import configparser
+
+    config = configparser.ConfigParser()
+    config.read('relay.conf')
+
+    token = config['BOT']['token']
+    channel_id = int(config['RELAY']['channel_id'])
+    port = int(config['RELAY']['port'])
+    prefix = config['BOT']['command_prefix']
+
+    commands_allowed = config['RELAY'].getboolean('allow_commands')
+    logins_allowed = config['RELAY'].getboolean('allow_logins')
+    remote_allowed = config['RELAY'].getboolean('allow_remote')
+    do_use_nicknames = config['RELAY'].getboolean('use_nicknames')
+    do_use_embeds = config['RELAY'].getboolean('use_embeds')
+    send_to_offline_players_allowed = config['RELAY'].getboolean('allow_send_to_offline_players')
+    whereis_allowed = config['RELAY'].getboolean('allow_whereis')
+    server_down_color = config['RELAY']['server_down_color']
+    not_logged_in_color = config['RELAY']['not_logged_in_color']
+    password_leak_color = config['RELAY']['password_leak_color']
+    # if config['RELAY'].getboolean('send_every_3s'):
+    #     incoming_msgs = collections.deque()
+    # else:
+    #     incoming_msgs = None
 
 bot = commands.Bot(
     command_prefix=prefix,
     intents=discord.Intents(messages=True, message_content=True),
 )
-
-channel_id = int(config['RELAY']['channel_id'])
-
-port = int(config['RELAY']['port'])
-token = config['BOT']['token']
-commands_allowed = config['RELAY'].getboolean('allow_commands')
-logins_allowed = config['RELAY'].getboolean('allow_logins')
-remote_allowed = config['RELAY'].getboolean('allow_remote')
-do_use_nicknames = config['RELAY'].getboolean('use_nicknames')
-do_use_embeds = config['RELAY'].getboolean('use_embeds')
-server_down_color = config['RELAY']['server_down_color']
-not_logged_in_color = config['RELAY']['not_logged_in_color']
-password_leak_color = config['RELAY']['password_leak_color']
-send_to_offline_players_allowed = config['RELAY'].getboolean('allow_send_to_offline_players')
-whereis_allowed = config['RELAY'].getboolean('allow_whereis')
-# if config['RELAY'].getboolean('send_every_3s'):
-#     incoming_msgs = collections.deque()
-# else:
-#     incoming_msgs = None
 
 last_request = 0
 
