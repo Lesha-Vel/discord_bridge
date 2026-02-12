@@ -69,7 +69,7 @@ minetest.override_chatcommand('msg', {
             if not target_player then
                 return false, "Invalid usage, see /help msg."
             end
-            discord_bridge.send_dm_to_discord(target_player, message)
+            discord_bridge.send_dm_to_discord(target_player, minetest.format_chat_message(name, message))
             if not minetest.get_player_by_name(target_player) then
                 return true, 'DM sent to a discord user ' .. target_player .. ': ' .. message
             end
