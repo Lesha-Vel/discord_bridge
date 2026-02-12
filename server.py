@@ -59,8 +59,8 @@ coords_queue = Queue()
 
 if len(args.token_and_channel_id[0]) and len(args.token_and_channel_id[1]):
     token = args.token_and_channel_id[0]
-    channel_id = args.token_and_channel_id[1]
-    port = args.port
+    channel_id = int(args.token_and_channel_id[1])
+    port = int(args.port)
     prefix = args.command_prefix
 
     commands_allowed = not args.no_allow_command
