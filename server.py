@@ -113,6 +113,7 @@ authenticated_users = {}
 authenticated_users_ids = {}
 
 announce_loguot = False
+startup_setup = True
 
 def check_timeout():
     return time.time() - last_request <= 1
@@ -120,7 +121,7 @@ def check_timeout():
 translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
 
 async def handle(request):
-    global last_request, announce_loguot
+    global last_request, announce_loguot, startup_setup
     last_request = time.time()
     send_user_list = False
     try:
@@ -203,6 +204,9 @@ async def handle(request):
             return web.Response(text='Acknowledged')
 
         if send_to_offline_players_allowed and request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
+            send_user_list = True
+        if startup_setup:
+            startup_setup = False
             send_user_list = True
     except Exception:
         traceback.print_exc()
