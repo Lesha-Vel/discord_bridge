@@ -100,6 +100,8 @@ minetest.override_chatcommand('status', {
 local irc_enabled = minetest.get_modpath("irc")
 local xban2_enabled = minetest.get_modpath("xban2")
 
+discord_bridge.mod_storage = minetest.get_mod_storage()
+
 function discord_bridge.register_on_message(func)
     table.insert(discord_bridge.registered_on_messages, func)
 end
@@ -263,17 +265,31 @@ function discord_bridge.handle_response(response)
             local player = minetest.get_player_by_name(v.player)
             if player then
                 local pos = player:get_pos()
-                local posStr = 'player ' .. v.player .. ' is located at: ' .. math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
+                local posStr = 'player ' .. v.player .. ' is located at: ' ..
+                math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
                 if not discord_bridge.use_embeds_on_svc_dms then
                     discord_bridge.send(posStr, v.context or nil)
                 else
                     discord_bridge.send(posStr, v.context or nil, discord_bridge.coords_color)
                 end
+            elseif discord_bridge.mod_storage:contains(v.player .. "_pos") then
+                local pos = minetest.string_to_pos(discord_bridge.mod_storage:get_string(v.player .. "_pos"))
+                if pos then
+                    local posStr = 'offline player ' .. v.player .. ' is located at: ' ..
+                    math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
+                    if not discord_bridge.use_embeds_on_svc_dms then
+                        discord_bridge.send(posStr, v.context or nil)
+                    else
+                        discord_bridge.send(posStr, v.context or nil, discord_bridge.coords_color)
+                    end
+                else
+                    discord_bridge.send('it seems like something went wrong, contact server staff.', v.context or nil)
+                end
             else
                 if not discord_bridge.use_embeds_on_svc_dms then
-                    discord_bridge.send('Player ' .. v.player .. ' is not online.', v.context or nil)
+                    discord_bridge.send('Player ' .. v.player .. ' is not known.', v.context or nil)
                 else
-                    discord_bridge.send('Player ' .. v.player .. ' is not online.', v.context or nil, discord_bridge.coords_color)
+                    discord_bridge.send('Player ' .. v.player .. ' is not known.', v.context or nil, discord_bridge.coords_color)
                 end
             end
         end
@@ -469,3 +485,19 @@ http.fetch({
     timeout = timeout,
     post_data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
 }, discord_bridge.handle_response)
+
+minetest.register_on_leaveplayer(function (player)
+    local name = player:get_player_name()
+    local pos = player:get_pos()
+    local pos_str = minetest.pos_to_string(pos)
+    discord_bridge.mod_storage:set_string(name .. "_pos", pos_str)
+end)
+
+minetest.register_on_shutdown(function()
+    for _, v in ipairs(minetest.get_connected_players()) do
+        local name = v:get_player_name()
+        local pos = v:get_pos()
+        local pos_str = minetest.pos_to_string(pos)
+        discord_bridge.mod_storage:set_string(name .. "_pos", pos_str)
+    end
+end)
