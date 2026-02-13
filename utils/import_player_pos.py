@@ -12,4 +12,4 @@ with sqlite3.connect(sys.argv[1] + '/players.sqlite') as players:
             if not entry:
                 break
             msCur.execute("INSERT OR REPLACE INTO entries VALUES ('discord_bridge',?,?)", [sqlite3.Binary(('_' + entry[0]).encode('utf-8')),
-                sqlite3.Binary(('(' + str(entry[1]) + ',' + str(entry[2]) + ',' + str(entry[3]) + ')').encode('utf-8'))])
+                sqlite3.Binary(('(' + str(entry[1]/10) + ',' + str(entry[2]/10) + ',' + str(entry[3]/10) + ')').encode('utf-8'))])
