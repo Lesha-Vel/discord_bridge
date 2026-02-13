@@ -272,8 +272,8 @@ function discord_bridge.handle_response(response)
                 else
                     discord_bridge.send(posStr, v.context or nil, discord_bridge.coords_color)
                 end
-            elseif discord_bridge.mod_storage:contains(v.player .. "_pos") then
-                local pos = minetest.string_to_pos(discord_bridge.mod_storage:get_string(v.player .. "_pos"))
+            elseif discord_bridge.mod_storage:contains('_' .. v.player) then
+                local pos = minetest.string_to_pos(discord_bridge.mod_storage:get_string('_' .. v.player))
                 if pos then
                     local posStr = 'offline player ' .. v.player .. ' is located at: ' ..
                     math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
@@ -490,7 +490,7 @@ minetest.register_on_leaveplayer(function (player)
     local name = player:get_player_name()
     local pos = player:get_pos()
     local pos_str = minetest.pos_to_string(pos)
-    discord_bridge.mod_storage:set_string(name .. "_pos", pos_str)
+    discord_bridge.mod_storage:set_string('_' .. name, pos_str)
 end)
 
 minetest.register_on_shutdown(function()
@@ -498,6 +498,6 @@ minetest.register_on_shutdown(function()
         local name = v:get_player_name()
         local pos = v:get_pos()
         local pos_str = minetest.pos_to_string(pos)
-        discord_bridge.mod_storage:set_string(name .. "_pos", pos_str)
+        discord_bridge.mod_storage:set_string('_' .. name, pos_str)
     end
 end)
