@@ -12,7 +12,7 @@ import argparse
 parser = argparse.ArgumentParser(usage = '%(prog)s [-h] [<token> <channel_id>\n'
                 '[-p,--port PORT] [--command_prefix PREFIX]\n'
                 '[--no_allow_command] [--no_allow_logins]\n'
-                '[--allow_remote] [--no_use_nicknames]\n'
+                '[--allow_remote] [--no_use_nicknames] [--no_send_backend_startups]\n'
                 '[--no_use_embeds] [--no_allow_send_to_offline_players]\n'
                 '[--no_allow_whereis] [--server_down_color COLOR]\n'
                 '[--not_logged_in_color COLOR] [--password_leak_color COLOR]]')
@@ -29,6 +29,7 @@ parser.add_argument('--no_allow_logins', action='store_true', help='Disables use
 parser.add_argument('--no_allow_send_to_offline_players', action='store_true', help='Disables user\'s ability to login in-game from Discord')
 parser.add_argument('--no_allow_whereis', action='store_true', help='Disables user\'s ability to know players position')
 parser.add_argument('--no_use_nicknames', action='store_true', help='Discord messages nick format, use discord username if set, nickname otherwise')
+parser.add_argument('--no_send_backend_startups', action='store_true', help='send a message when server.py is ready')
 parser.add_argument('--no_use_embeds', action='store_true', help='Use embeds when reasonable if not set')
 
 parser.add_argument('--server_down_color', default='#ede442', metavar='COLOR', help='Color of the messages informing that luanti server is not running, color format is: #RRGGBB')
@@ -67,6 +68,7 @@ if len(args.token_and_channel_id[0]) and len(args.token_and_channel_id[1]):
     logins_allowed = not args.no_allow_logins
     remote_allowed = args.allow_remote
     do_use_nicknames = not args.no_use_nicknames
+    send_backend_startups = not args.no_send_backend_startups
     do_use_embeds = not args.no_use_embeds
     send_to_offline_players_allowed = not args.no_allow_send_to_offline_players
     whereis_allowed = not args.no_allow_whereis
@@ -88,6 +90,7 @@ else:
     logins_allowed = config['RELAY'].getboolean('allow_logins')
     remote_allowed = config['RELAY'].getboolean('allow_remote')
     do_use_nicknames = config['RELAY'].getboolean('use_nicknames')
+    send_backend_startups = config['RELAY'].getboolean('send_backend_startups')
     do_use_embeds = config['RELAY'].getboolean('use_embeds')
     send_to_offline_players_allowed = config['RELAY'].getboolean('allow_send_to_offline_players')
     whereis_allowed = config['RELAY'].getboolean('allow_whereis')
@@ -243,6 +246,11 @@ async def on_message(message):
                 outgoing_msgs.add(msg)
 
     await bot.process_commands(message)
+
+if send_backend_startups:
+    @bot.event
+    async def on_ready():
+        await channel.send("discord_bridge backend started")
 
 if commands_allowed:
     @bot.command(help='Runs an ingame command from Discord.')
