@@ -115,7 +115,7 @@ authenticated_users = {}
 # playername -> user id
 authenticated_users_ids = {}
 
-announce_loguot = False
+announce_logout = False
 startup_setup = True
 
 def check_timeout():
@@ -124,7 +124,7 @@ def check_timeout():
 translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
 
 async def handle(request):
-    global last_request, announce_loguot, startup_setup
+    global last_request, announce_logout, startup_setup
     last_request = time.time()
     send_user_list = False
     try:
@@ -221,8 +221,8 @@ async def handle(request):
         'statuses': status_queue.get_all(),
         'coords': coords_queue.get_all()
     }
-    if send_user_list or announce_loguot:
-        announce_loguot = False
+    if send_user_list or announce_logout:
+        announce_logout = False
         responseObject['logged_in_users'] = list(authenticated_users_ids.keys())
     response = json.dumps(responseObject)
     return web.Response(text=response)
@@ -323,9 +323,9 @@ if commands_allowed:
 
     @bot.command(help='Logs out your ingame account from Discord so you no more appear ingame.')
     async def logout(ctx):
-        global announce_loguot
+        global announce_logout
         if send_to_offline_players_allowed:
-            announce_loguot = True
+            announce_logout = True
             if authenticated_users[ctx.author.id] in authenticated_users_ids:
                 del authenticated_users_ids[authenticated_users[ctx.author.id]]
         if ctx.author.id in authenticated_users:
