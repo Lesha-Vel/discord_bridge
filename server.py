@@ -332,7 +332,7 @@ if commands_allowed:
             class password_modal(ui.Modal, title='Enter your luanti server\'s credential'):
                 txt = ui.TextDisplay('this should be safe enough, but be cautious')
                 username = ui.TextInput(label='Name', placeholder='Username')
-                password = ui.TextInput(label='Password', placeholder='\\*\\*\\*\\*\\*\\*\\*\\*', required=False)
+                password = ui.TextInput(label='Password', placeholder='********', required=False)
 
                 async def on_submit(self, interaction: discord.Interaction):
                     login_queue.add({
