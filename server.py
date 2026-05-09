@@ -286,94 +286,95 @@ if commands_allowed:
             command['context'] = str(ctx.channel.id)
         command_queue.add(command)
 
-    @bot.command(name='login', help='Logs into your ingame account from Discord so you can run '
-                      'commands and receive direct messages if allowed. You '
-                      'should only run this command in DMs with the bot.')
-    async def login_prefix(ctx, username=commands.parameter(description='in-game player name'), password=commands.parameter(description='in-game password', default='')):
-        if not logins_allowed:
-            return
-        if ctx.guild is not None:
-            if not do_use_embeds:
-                await ctx.send(ctx.author.mention + ' You\'ve quite possibly just '
-                               'leaked your password by using this command outside of '
-                               'DMs; it is advised that you change it at once.\n*This '
-                               'message will be automatically deleted.*',
-                               delete_after=10, ephemeral=True)
-            else:
-                await ctx.send(embed = discord.Embed(title = ctx.author.mention + ' You\'ve quite possibly just '
-                               'leaked your password by using this command outside of '
-                               'DMs; it is advised that you change it at once.\n*This '
-                               'message will be automatically deleted.*', color = discord.Color.from_str(password_leak_color)),
-                               delete_after=10, ephemeral=True)
-            try:
-                await ctx.message.delete()
-            except discord.errors.Forbidden:
-                print(f"Unable to delete possible password leak by user ID "
-                      f"{ctx.author.id} due to insufficient permissions.")
-            return
-        login_queue.add({
-            'username': username,
-            'password': password,
-            'user_id': str(ctx.author.id),
-            'context': str(ctx.channel.id)
-        })
-        if not check_timeout():
-            if not do_use_embeds:
-                await ctx.send("The server currently appears to be down, but your "
-                           "login attempt has been added to the queue and will be "
-                           "executed as soon as the server returns.")
-            else:
-                await ctx.send(embed = discord.Embed(title = "The server currently appears to be down, but your "
-                           "login attempt has been added to the queue and will be "
-                           "executed as soon as the server returns.",
-                           color = discord.Color.from_str(server_down_color)))
-
-    @bot.tree.command(name='login', description='Login to ingame account to run cmds and receive DMs')
-    async def login_slash(interaction: discord.Interaction):
-        if not logins_allowed:
-            await interaction.response.send_message('Logins are disabled', delete_after=10, ephemeral=True)
-            return
-
-        class password_modal(ui.Modal, title='Enter your luanti server\'s credential'):
-            txt = ui.TextDisplay('this should be safe enough, but be cautious')
-            username = ui.TextInput(label='Name', placeholder='Username')
-            password = ui.TextInput(label='Password', placeholder='\\*\\*\\*\\*\\*\\*\\*\\*', required=False)
-
-            async def on_submit(self, interaction: discord.Interaction):
-                login_queue.add({
-                    'username': self.username.value,
-                    'password': self.password.value,
-                    'user_id': str(interaction.user.id),
-                    'context': str(interaction.channel_id)
-                })
-                if not check_timeout():
-                    if not do_use_embeds:
-                        await interaction.response.send_message("The server currently appears to be down, but your "
-                                   "login attempt has been added to the queue and will be "
-                                   "executed as soon as the server returns.")
-                    else:
-                        await interaction.response.send_message(embed = discord.Embed(title = "The server currently appears to be down, but your "
-                                   "login attempt has been added to the queue and will be "
-                                   "executed as soon as the server returns.",
-                                   color = discord.Color.from_str(server_down_color)))
+    if logins_allowed:
+        @bot.command(name='login', help='Logs into your ingame account from Discord so you can run '
+                          'commands and receive direct messages if allowed. You '
+                          'should only run this command in DMs with the bot.')
+        async def login_prefix(ctx, username=commands.parameter(description='in-game player name'), password=commands.parameter(description='in-game password', default='')):
+            if not logins_allowed:
+                return
+            if ctx.guild is not None:
+                if not do_use_embeds:
+                    await ctx.send(ctx.author.mention + ' You\'ve quite possibly just '
+                                   'leaked your password by using this command outside of '
+                                   'DMs; it is advised that you change it at once.\n*This '
+                                   'message will be automatically deleted.*',
+                                   delete_after=10, ephemeral=True)
                 else:
-                    await interaction.response.defer()
-        await interaction.response.send_modal(password_modal())
+                    await ctx.send(embed = discord.Embed(title = ctx.author.mention + ' You\'ve quite possibly just '
+                                   'leaked your password by using this command outside of '
+                                   'DMs; it is advised that you change it at once.\n*This '
+                                   'message will be automatically deleted.*', color = discord.Color.from_str(password_leak_color)),
+                                   delete_after=10, ephemeral=True)
+                try:
+                    await ctx.message.delete()
+                except discord.errors.Forbidden:
+                    print(f"Unable to delete possible password leak by user ID "
+                          f"{ctx.author.id} due to insufficient permissions.")
+                return
+            login_queue.add({
+                'username': username,
+                'password': password,
+                'user_id': str(ctx.author.id),
+                'context': str(ctx.channel.id)
+            })
+            if not check_timeout():
+                if not do_use_embeds:
+                    await ctx.send("The server currently appears to be down, but your "
+                               "login attempt has been added to the queue and will be "
+                               "executed as soon as the server returns.")
+                else:
+                    await ctx.send(embed = discord.Embed(title = "The server currently appears to be down, but your "
+                               "login attempt has been added to the queue and will be "
+                               "executed as soon as the server returns.",
+                               color = discord.Color.from_str(server_down_color)))
 
-    @bot.hybrid_command(help='Logs out your ingame account')
-    async def logout(ctx):
-        if not do_use_embeds:
-            await ctx.send("logout was invoked", delete_after=10, ephemeral=True)
-        else:
-            await ctx.send(embed = discord.Embed(title = "logout was invoked",
-                       color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
-        global announce_logout
-        if send_to_offline_players_allowed:
-            announce_logout = True
-            if authenticated_users[ctx.author.id] in authenticated_users_ids:
-                del authenticated_users_ids[authenticated_users[ctx.author.id]]
-        if ctx.author.id in authenticated_users:
-            del authenticated_users[ctx.author.id]
+        @bot.tree.command(name='login', description='Login to ingame account to run cmds and receive DMs')
+        async def login_slash(interaction: discord.Interaction):
+            if not logins_allowed:
+                await interaction.response.send_message('Logins are disabled', delete_after=10, ephemeral=True)
+                return
+
+            class password_modal(ui.Modal, title='Enter your luanti server\'s credential'):
+                txt = ui.TextDisplay('this should be safe enough, but be cautious')
+                username = ui.TextInput(label='Name', placeholder='Username')
+                password = ui.TextInput(label='Password', placeholder='\\*\\*\\*\\*\\*\\*\\*\\*', required=False)
+
+                async def on_submit(self, interaction: discord.Interaction):
+                    login_queue.add({
+                        'username': self.username.value,
+                        'password': self.password.value,
+                        'user_id': str(interaction.user.id),
+                        'context': str(interaction.channel_id)
+                    })
+                    if not check_timeout():
+                        if not do_use_embeds:
+                            await interaction.response.send_message("The server currently appears to be down, but your "
+                                       "login attempt has been added to the queue and will be "
+                                       "executed as soon as the server returns.")
+                        else:
+                            await interaction.response.send_message(embed = discord.Embed(title = "The server currently appears to be down, but your "
+                                       "login attempt has been added to the queue and will be "
+                                       "executed as soon as the server returns.",
+                                       color = discord.Color.from_str(server_down_color)))
+                    else:
+                        await interaction.response.defer()
+            await interaction.response.send_modal(password_modal())
+
+        @bot.hybrid_command(help='Logs out your ingame account')
+        async def logout(ctx):
+            if not do_use_embeds:
+                await ctx.send("logout was invoked", delete_after=10, ephemeral=True)
+            else:
+                await ctx.send(embed = discord.Embed(title = "logout was invoked",
+                           color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
+            global announce_logout
+            if send_to_offline_players_allowed:
+                announce_logout = True
+                if authenticated_users[ctx.author.id] in authenticated_users_ids:
+                    del authenticated_users_ids[authenticated_users[ctx.author.id]]
+            if ctx.author.id in authenticated_users:
+                del authenticated_users[ctx.author.id]
 
     @bot.command(help='Get ingame player name you\'re now logged in.')
     async def whoami(ctx):
