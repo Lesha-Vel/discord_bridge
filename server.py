@@ -291,8 +291,6 @@ if commands_allowed:
                           'commands and receive direct messages if allowed. You '
                           'should only run this command in DMs with the bot.')
         async def login_prefix(ctx, username=commands.parameter(description='in-game player name'), password=commands.parameter(description='in-game password', default='')):
-            if not logins_allowed:
-                return
             if ctx.guild is not None:
                 if not do_use_embeds:
                     await ctx.send(ctx.author.mention + ' You\'ve quite possibly just '
@@ -331,10 +329,6 @@ if commands_allowed:
 
         @bot.tree.command(name='login', description='Login to ingame account to run cmds and receive DMs')
         async def login_slash(interaction: discord.Interaction):
-            if not logins_allowed:
-                await interaction.response.send_message('Logins are disabled', delete_after=10, ephemeral=True)
-                return
-
             class password_modal(ui.Modal, title='Enter your luanti server\'s credential'):
                 txt = ui.TextDisplay('this should be safe enough, but be cautious')
                 username = ui.TextInput(label='Name', placeholder='Username')
