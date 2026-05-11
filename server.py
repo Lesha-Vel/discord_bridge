@@ -9,6 +9,48 @@ import time
 import re
 import traceback
 import argparse
+import warnings
+
+warnings.filterwarnings('ignore', 'Changing state of started or joined application is deprecated', DeprecationWarning)
+
+async def handle_setup_root(request):
+    app['no_setup_already_sent'] = True
+    return web.Response(text='NO_SETUP')
+
+async def handle_setup_packet(request):
+    if request.app['setup_packet_received']:
+        print('setup packet already received')
+        return web.Response()
+    request.app['setup_packet_received'] = True
+    response = await request.json()
+    print(json.dumps(response))
+    request.app['finished'].set()
+    return web.Response(text='{"status": "SUCCESS"}')
+
+async def srv():
+    print('='*15+'\nSetting it up.\n'+'='*15)
+    finished = asyncio.Event()
+    app = web.Application()
+    app['setup_packet_received'] = False
+    app['finished'] = finished
+    app['no_setup_already_sent'] = False
+    app.add_routes([web.get('/', handle_setup_root),
+        web.post('/', handle_setup_root)])
+    app.add_routes([web.get('/setup', handle_setup_packet),
+        web.post('/setup', handle_setup_packet)])
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, 'localhost', 8080)
+    await site.start()
+    await finished.wait()
+    await asyncio.sleep(.25)
+    await runner.cleanup()
+
+if __name__ == '__main__':
+    try:
+        asyncio.run(srv())
+    except KeyboardInterrupt:
+        exit()
 
 parser = argparse.ArgumentParser(usage = '%(prog)s [-h] [<token> <channel_id>\n'
                 '[-p,--port PORT] [--command_prefix PREFIX]\n'
@@ -228,9 +270,13 @@ async def handle(request):
     response = json.dumps(responseObject)
     return web.Response(text=response)
 
+async def setup_already_completed(response):
+    return web.Response(text='{"status": "SUCCESS"}')
+
 app = web.Application()
 app.add_routes([web.get('/', handle),
                 web.post('/', handle)])
+app.add_routes([web.post('/setup', setup_already_completed)])
 
 @bot.event
 async def on_message(message):
@@ -445,7 +491,7 @@ app.on_startup.append(on_startup)
 
 if __name__ == '__main__':
     try:
-        print('='*37+'\nStarting relay. Press Ctrl-C to exit.\n'+'='*37)
+        print('Starting relay.\n'+'='*15)
         if remote_allowed:
             web.run_app(app, host='0.0.0.0', port=port)
         else:

@@ -8,6 +8,7 @@ local timeout = 10
 
 local discord_bridge = {}
 discord = {}
+discord.ready = false
 
 -- Configuration
 discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or '#ffffff'
@@ -57,8 +58,58 @@ discord_bridge.login_success_color = settings:get('discord_bridge.login_success_
 discord_bridge.login_fail_color = settings:get('discord_bridge.login_fail_color') or '#ed4245'
 discord_bridge.coords_color = settings:get('discord_bridge.coords_color') or 'NOT_SET'
 
+discord_bridge.setup_token = settings:get('discord_bridge.setup_token') or ''
+discord_bridge.setup_command_prefix = settings:get('discord_bridge.setup_command_prefix') or '!'
+discord_bridge.setup_channel_id = settings:get('discord_bridge.setup_channel_id') or 0
+discord_bridge.setup_allow_commands = settings:get_bool('discord_bridge.setup_allow_commands', true)
+discord_bridge.setup_allow_logins = settings:get_bool('discord_bridge.setup_allow_logins', true)
+discord_bridge.setup_allow_send_to_offline_players = settings:get_bool('discord_bridge.setup_allow_send_to_offline_players', true)
+discord_bridge.setup_allow_whereis = settings:get_bool('discord_bridge.setup_allow_whereis', true)
+discord_bridge.setup_use_nicknames = settings:get_bool('discord_bridge.setup_use_nicknames', true)
+discord_bridge.setup_send_backend_startups = settings:get_bool('discord_bridge.setup_send_backend_startups', true)
+discord_bridge.setup_use_embeds = settings:get_bool('discord_bridge.setup_use_embeds', true)
+discord_bridge.setup_server_down_color = settings:get('discord_bridge.setup_server_down_color') or '#ede442'
+discord_bridge.setup_not_logged_in_color = settings:get('discord_bridge.setup_not_logged_in_color') or '#46e8e8'
+discord_bridge.setup_password_leak_color = settings:get('discord_bridge.setup_password_leak_color') or '#ed9d42'
+
+discord_bridge.server_config = {
+    setup_token = discord_bridge.setup_token,
+    setup_command_prefix = discord_bridge.setup_command_prefix,
+    setup_channel_id = discord_bridge.setup_channel_id,
+    setup_allow_commands = discord_bridge.setup_allow_commands,
+    setup_allow_logins = discord_bridge.setup_allow_logins,
+    setup_allow_send_to_offline_players = discord_bridge.setup_allow_send_to_offline_players,
+    setup_allow_whereis = discord_bridge.setup_allow_whereis,
+    setup_use_nicknames = discord_bridge.setup_use_nicknames,
+    setup_send_backend_startups = discord_bridge.setup_send_backend_startups,
+    setup_use_embeds = discord_bridge.setup_use_embeds,
+    setup_server_down_color = discord_bridge.setup_server_down_color,
+    setup_not_logged_in_color = discord_bridge.setup_not_logged_in_color,
+    setup_password_leak_color = discord_bridge.setup_password_leak_color
+}
+
 discord_bridge.registered_on_messages = {}
 discord_bridge.authenticated_users = {}
+discord_bridge.mod_storage = minetest.get_mod_storage()
+
+discord_bridge.ready = false
+
+if discord_bridge.setup_token == '' or discord_bridge.setup_channel_id == 0 then
+    error('setup_token or setup_channel_id not set')
+end
+
+function discord_bridge.handle_setup_response(response)
+    if response.data == '' or response.data == nil then return end
+    local data = minetest.parse_json(response.data)
+    if not response.data.status == 'SUCCESS' then return end
+    minetest.after(1.5, discord_bridge.main_loop)
+end
+
+function discord_bridge.main_loop()
+minetest.log('action', 'discord_bridge.main_loop is invoked')
+if discord_bridge.ready then return end
+minetest.log('action', 'discord_bridge.main_loop is started')
+discord_bridge.ready = true
 
 discord_bridge.old_msg_func = minetest.registered_chatcommands['msg'].func
 minetest.override_chatcommand('msg', {
@@ -100,8 +151,6 @@ minetest.override_chatcommand('status', {
 local irc_enabled = minetest.get_modpath("irc")
 local xban2_enabled = minetest.get_modpath("xban2")
 
-discord_bridge.mod_storage = minetest.get_mod_storage()
-
 function discord_bridge.register_on_message(func)
     table.insert(discord_bridge.registered_on_messages, func)
 end
@@ -124,6 +173,14 @@ end
 function discord_bridge.handle_response(response)
     local data = response.data
     if data == '' or data == nil then
+        return
+    end
+    if data == 'NO_SETUP' then
+        http.fetch({
+            url = tostring(host) .. ':' .. tostring(port) .. '/setup',
+            timeout = timeout,
+            post_data = minetest.write_json(discord_bridge.server_config)
+        }, function() end)
         return
     end
     local data = minetest.parse_json(response.data)
@@ -501,3 +558,12 @@ minetest.register_on_shutdown(function()
         discord_bridge.mod_storage:set_string('_' .. name, pos_str)
     end
 end)
+end
+
+http.fetch({
+    url = tostring(host) .. ':' .. tostring(port) .. '/setup',
+    timeout = timeout,
+    post_data = minetest.write_json(discord_bridge.server_config)
+}, discord_bridge.handle_setup_response)
+
+discord.ready = true
