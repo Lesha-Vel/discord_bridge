@@ -73,19 +73,19 @@ discord_bridge.setup_not_logged_in_color = settings:get('discord_bridge.setup_no
 discord_bridge.setup_password_leak_color = settings:get('discord_bridge.setup_password_leak_color') or '#ed9d42'
 
 discord_bridge.server_config = {
-    setup_token = discord_bridge.setup_token,
-    setup_command_prefix = discord_bridge.setup_command_prefix,
-    setup_channel_id = discord_bridge.setup_channel_id,
-    setup_allow_commands = discord_bridge.setup_allow_commands,
-    setup_allow_logins = discord_bridge.setup_allow_logins,
-    setup_allow_send_to_offline_players = discord_bridge.setup_allow_send_to_offline_players,
-    setup_allow_whereis = discord_bridge.setup_allow_whereis,
-    setup_use_nicknames = discord_bridge.setup_use_nicknames,
-    setup_send_backend_startups = discord_bridge.setup_send_backend_startups,
-    setup_use_embeds = discord_bridge.setup_use_embeds,
-    setup_server_down_color = discord_bridge.setup_server_down_color,
-    setup_not_logged_in_color = discord_bridge.setup_not_logged_in_color,
-    setup_password_leak_color = discord_bridge.setup_password_leak_color
+    token = discord_bridge.setup_token,
+    command_prefix = discord_bridge.setup_command_prefix,
+    channel_id = discord_bridge.setup_channel_id,
+    allow_commands = discord_bridge.setup_allow_commands,
+    allow_logins = discord_bridge.setup_allow_logins,
+    allow_send_to_offline_players = discord_bridge.setup_allow_send_to_offline_players,
+    allow_whereis = discord_bridge.setup_allow_whereis,
+    use_nicknames = discord_bridge.setup_use_nicknames,
+    send_backend_startups = discord_bridge.setup_send_backend_startups,
+    use_embeds = discord_bridge.setup_use_embeds,
+    server_down_color = discord_bridge.setup_server_down_color,
+    not_logged_in_color = discord_bridge.setup_not_logged_in_color,
+    password_leak_color = discord_bridge.setup_password_leak_color
 }
 
 discord_bridge.registered_on_messages = {}

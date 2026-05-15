@@ -50,7 +50,7 @@ discord_bridge.coords_color (coordinates request color) string NOT_SET
 [Server]
 discord_bridge.setup_token () string
 discord_bridge.setup_command_prefix () string !
-discord_bridge.setup_channel_id () int 0
+discord_bridge.setup_channel_id () string 0
 discord_bridge.setup_allow_commands () bool true
 discord_bridge.setup_allow_logins () bool true
 discord_bridge.setup_allow_send_to_offline_players () bool true

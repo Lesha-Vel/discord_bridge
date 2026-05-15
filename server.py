@@ -13,17 +13,56 @@ import warnings
 
 warnings.filterwarnings('ignore', 'Changing state of started or joined application is deprecated', DeprecationWarning)
 
+parser = argparse.ArgumentParser(usage = '%(prog)s [-h|--help] [-p,--port PORT] [--allow_remote]')
+parser.add_argument('-p', '--port', type=int, default=8080, help='Port server.py listens on, default: 8080')
+parser.add_argument('--allow_remote', action='store_true', help='Allow clients not running locally to connect, e.g. not from localhost')
+args = parser.parse_args()
+
+port = int(args.port)
+remote_allowed = args.allow_remote
+
+token = ''
+prefix = ''
+channel_id = 0
+
+commands_allowed = True
+logins_allowed = True
+do_use_nicknames = True
+send_backend_startups = True
+do_use_embeds = True
+send_to_offline_players_allowed = True
+whereis_allowed = True
+
+server_down_color = '#ede442'
+not_logged_in_color = '#46e8e8'
+password_leak_color = '#ed9d42'
+
 async def handle_setup_root(request):
-    app['no_setup_already_sent'] = True
     return web.Response(text='NO_SETUP')
 
 async def handle_setup_packet(request):
+    global token, prefix, channel_id, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
+    global send_to_offline_players_allowed, whereis_allowed, server_down_color, not_logged_in_color, password_leak_color
     if request.app['setup_packet_received']:
         print('setup packet already received')
         return web.Response()
     request.app['setup_packet_received'] = True
     response = await request.json()
-    print(json.dumps(response))
+    
+    token = response['token']
+    prefix = response['command_prefix']
+    channel_id = int(response['channel_id'])
+    commands_allowed = response['allow_commands']
+    logins_allowed = response['allow_logins']
+    do_use_nicknames = response['use_nicknames']
+    send_backend_startups = response['send_backend_startups']
+    do_use_embeds = response['use_embeds']
+    send_to_offline_players_allowed = response['allow_send_to_offline_players']
+    whereis_allowed = response['allow_whereis']
+    server_down_color = response['server_down_color']
+    not_logged_in_color = response['not_logged_in_color']
+    password_leak_color = response['password_leak_color']
+    
     request.app['finished'].set()
     return web.Response(text='{"status": "SUCCESS"}')
 
@@ -33,7 +72,6 @@ async def srv():
     app = web.Application()
     app['setup_packet_received'] = False
     app['finished'] = finished
-    app['no_setup_already_sent'] = False
     app.add_routes([web.get('/', handle_setup_root),
         web.post('/', handle_setup_root)])
     app.add_routes([web.get('/setup', handle_setup_packet),
@@ -52,6 +90,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         exit()
 
+"""
 parser = argparse.ArgumentParser(usage = '%(prog)s [-h] [<token> <channel_id>\n'
                 '[-p,--port PORT] [--command_prefix PREFIX]\n'
                 '[--no_allow_command] [--no_allow_logins]\n'
@@ -82,6 +121,7 @@ args = parser.parse_args()
 
 if len(args.token_and_channel_id) != 2:
     parser.error('You have to provide both token and channel id')
+"""
 
 class Queue:
     def __init__(self):
@@ -101,6 +141,7 @@ login_queue = Queue()
 status_queue = Queue()
 coords_queue = Queue()
 
+"""
 if len(args.token_and_channel_id[0]) and len(args.token_and_channel_id[1]):
     token = args.token_and_channel_id[0]
     channel_id = int(args.token_and_channel_id[1])
@@ -144,6 +185,7 @@ else:
     #     incoming_msgs = collections.deque()
     # else:
     #     incoming_msgs = None
+"""
 
 bot = commands.Bot(
     command_prefix=prefix,
