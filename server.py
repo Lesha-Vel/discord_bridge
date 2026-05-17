@@ -78,7 +78,10 @@ async def srv():
         web.post('/setup', handle_setup_packet)])
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, 'localhost', 8080)
+    if remote_allowed:
+        site = web.TCPSite(runner, '0.0.0.0', port)
+    else:
+        site = web.TCPSite(runner, 'localhost', port)
     await site.start()
     await finished.wait()
     await asyncio.sleep(.25)
