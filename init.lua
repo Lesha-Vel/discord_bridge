@@ -9,6 +9,7 @@ local timeout = 10
 local discord_bridge = {}
 discord = {}
 discord.ready = false
+discord_bridge.game_startup_time = os.time()
 
 -- Configuration
 discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or '#ffffff'
@@ -520,7 +521,7 @@ if irc_enabled then
     end
 end
 
-if discord_bridge.send_server_startup then
+if discord_bridge.send_server_startup and os.time() - discord_bridge.game_startup_time < 15 then
     if discord_bridge.use_embeds_on_server_updates then
         discord_bridge.send(discord_bridge.startup_text, nil, discord_bridge.startup_color,
             (discord_bridge.include_server_status_on_startup and minetest.get_server_status():gsub("^#", "\\#") or nil))
