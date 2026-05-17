@@ -98,13 +98,6 @@ if discord_bridge.setup_token == '' or discord_bridge.setup_channel_id == 0 then
     error('setup_token or setup_channel_id not set')
 end
 
-function discord_bridge.handle_setup_response(response)
-    if response.data == '' or response.data == nil then return end
-    local data = minetest.parse_json(response.data)
-    if not response.data.status == 'SUCCESS' then return end
-    minetest.after(1.5, discord_bridge.main_loop)
-end
-
 function discord_bridge.main_loop()
 minetest.log('action', 'discord_bridge.main_loop is invoked')
 if discord_bridge.ready then return end
@@ -560,10 +553,41 @@ minetest.register_on_shutdown(function()
 end)
 end
 
-http.fetch({
-    url = tostring(host) .. ':' .. tostring(port) .. '/setup',
-    timeout = timeout,
-    post_data = minetest.write_json(discord_bridge.server_config)
-}, discord_bridge.handle_setup_response)
+local setup_timer = 0
+local setup_completed = false
+local setup_ongoing = nil
+minetest.register_globalstep(function(dtime)
+    if setup_completed then return end
+    if not dtime then return end
+    setup_timer = setup_timer + dtime
+    if setup_timer < 0.2 then return end
+
+    if not setup_ongoing then
+        setup_ongoing = http.fetch_async({
+            url = tostring(host) .. ':' .. tostring(port) .. '/setup',
+            timeout = timeout,
+            post_data = minetest.write_json(discord_bridge.server_config)
+        })
+    else
+        local res = http.fetch_async_get(setup_ongoing)
+
+        if res.completed == true then
+            if res.data ~= '' and res.data ~= nil then
+                local data = minetest.parse_json(res.data)
+                if data.status == 'SUCCESS' then
+                    minetest.after(0.25, discord_bridge.main_loop)
+                    setup_completed = true
+                    return
+                end
+            end
+            setup_ongoing = http.fetch_async({
+                url = tostring(host) .. ':' .. tostring(port) .. '/setup',
+                timeout = timeout,
+                post_data = minetest.write_json(discord_bridge.server_config)
+            })
+        end
+    end
+    setup_timer = 0
+end)
 
 discord.ready = true
