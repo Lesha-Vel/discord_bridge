@@ -48,16 +48,16 @@ discord_bridge.login_success_color (success login color) string #57f287
 discord_bridge.login_fail_color (failed login color) string #ed4245
 discord_bridge.coords_color (coordinates request color) string NOT_SET
 [Server]
-discord_bridge.setup_token () string
-discord_bridge.setup_command_prefix () string !
-discord_bridge.setup_channel_id () string 0
-discord_bridge.setup_allow_commands () bool true
-discord_bridge.setup_allow_logins () bool true
-discord_bridge.setup_allow_send_to_offline_players () bool true
-discord_bridge.setup_allow_whereis () bool true
-discord_bridge.setup_use_nicknames () bool true
-discord_bridge.setup_send_backend_startups () bool true
-discord_bridge.setup_use_embeds () bool true
-discord_bridge.setup_server_down_color () string #ede442
-discord_bridge.setup_not_logged_in_color () string #46e8e8
-discord_bridge.setup_password_leak_color () string #ed9d42
+discord_bridge.setup_token (Discord bot token) string
+discord_bridge.setup_command_prefix (Discord prefix commands prefix) string !
+discord_bridge.setup_channel_id (Discord channel id) string 0
+discord_bridge.setup_allow_commands (allow Discord commands) bool true
+discord_bridge.setup_allow_logins (allow logging in from Discord) bool true
+discord_bridge.setup_allow_send_to_offline_players (allow sending messages from in-game to Discord) bool true
+discord_bridge.setup_allow_whereis (allow using whereis Discord command) bool true
+discord_bridge.setup_use_nicknames (use Discord nicknames instead of Discord usernames) bool true
+discord_bridge.setup_send_backend_startups (send a message to Discord when server.py is started) bool true
+discord_bridge.setup_use_embeds (use Discord embeds for service messages) bool true
+discord_bridge.setup_server_down_color (color of server down Discord embed) string #ede442
+discord_bridge.setup_not_logged_in_color (color of not logged in Discord embed) string #46e8e8
+discord_bridge.setup_password_leak_color (color of password leak Discord embed) string #ed9d42
