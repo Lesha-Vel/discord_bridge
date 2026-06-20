@@ -74,8 +74,7 @@ async def srv():
     app['finished'] = finished
     app.add_routes([web.get('/', handle_setup_root),
         web.post('/', handle_setup_root)])
-    app.add_routes([web.get('/setup', handle_setup_packet),
-        web.post('/setup', handle_setup_packet)])
+    app.add_routes([web.post('/setup', handle_setup_packet)])
     runner = web.AppRunner(app)
     await runner.setup()
     if remote_allowed:
