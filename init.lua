@@ -130,8 +130,8 @@ minetest.override_chatcommand('status', {
         if not success then
             return false, res
         end
-        i = 0
-        for _, v in pairs(discord_bridge.authenticated_users) do
+        local i = 0
+        for _ in pairs(discord_bridge.authenticated_users) do
             if i == 0 then
                 res = res .. ' | discord: '
             end
@@ -177,7 +177,7 @@ function discord_bridge.handle_response(response)
         }, function() end)
         return
     end
-    local data = minetest.parse_json(response.data)
+    data = minetest.parse_json(response.data)
     if not data then
         return
     end
