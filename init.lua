@@ -123,24 +123,32 @@ minetest.override_chatcommand('msg', {
     end
 })
 
-discord_bridge.old_status_func = minetest.registered_chatcommands['status'].func
-minetest.override_chatcommand('status', {
-    func = function(name, param)
-        local success, res = discord_bridge.old_status_func(name, param)
-        if not success then
-            return false, res
+discord_bridge.old_get_server_status = minetest.get_server_status
+
+minetest.get_server_status = function (name, joined)
+	local original_status = discord_bridge.old_get_server_status(name, joined)
+	if original_status == nil then return nil end
+
+	local new_status = ''
+	local users_list = ''
+	local match = string.find(original_status, '\n')
+
+	local first = true
+    for _ in pairs(discord_bridge.authenticated_users) do
+        if first then
+            users_list = users_list .. ' | discord: '
         end
-        local i = 0
-        for _ in pairs(discord_bridge.authenticated_users) do
-            if i == 0 then
-                res = res .. ' | discord: '
-            end
-            res = res .. (i > 0 and ', ' or '') .. _
-            i = i + 1
-        end
-        return true, res
+        users_list = users_list .. (not first and ', ' or '') .. _
+        first = false
     end
-})
+
+	if match == nil then
+	    new_status = original_status .. users_list
+	else
+	    new_status = original_status:sub(1, match - 1) .. users_list .. original_status:sub(match)
+	end
+	return new_status
+end
 
 local irc_enabled = minetest.get_modpath("irc")
 local xban2_enabled = minetest.get_modpath("xban2")
