@@ -265,6 +265,28 @@ if send_backend_startups:
         await channel.send("discord_bridge backend started")
 
 if commands_allowed:
+    @bot.tree.command(name='help', description='Want to know how to use discord_bridge? use this command')
+    async def help_slash(interaction: discord.Interaction):
+        await interaction.response.send_message(embed = discord.Embed(description=f'''There're three slash commands, `/login`, `/logout`, and you guessed it `/help`:
+1. `/login`:        will ask your in-game login and password, so you can run in-game commands whil not being in-game
+2. `/logout`:       will log you out, meaning you'll not be online anymore
+3. `/help`:         print this text
+
+These commands are prefix commands, meaning you need to run them with the following prefix: `{prefix}`, those includes:
+1. `{prefix}cmd`:     Runs an ingame command from Discord, e.g. `{prefix}cmd msg player hello from discord`
+2. `{prefix}help`:    Shows built-in help from discord.py.. i've mentioned it here because i wanted you to know
+3. `{prefix}login`:   Please use `/login` instead
+4. `{prefix}logout`:  Logs out your ingame account, same as `/logout`, again, `/logout` is a lot more secure
+5. `{prefix}status`:  Lists connected players and server information.
+6. `{prefix}whereis`: Get player coordinates.
+7. `{prefix}whoami`:  Get ingame player name you're now logged in.
+8. `{prefix}sync`:    sync command tree globally (makes slash commands work)
+The login will:
+1. allow you to run in-game commands
+2. will show you in `/status` in-game
+3. allow in-game players to dm you in discord
+'''), ephemeral=True)
+
     @bot.command(help='sync command tree globally (makes slash commands work)')
     @commands.is_owner()
     async def sync(ctx):
