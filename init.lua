@@ -100,9 +100,9 @@ if discord_bridge.setup_token == '' or discord_bridge.setup_channel_id == 0 then
 end
 
 function discord_bridge.main_loop()
-minetest.log('action', 'discord_bridge.main_loop is invoked')
+minetest.log('verbose', 'discord_bridge.main_loop is invoked')
 if discord_bridge.ready then return end
-minetest.log('action', 'discord_bridge.main_loop is started')
+minetest.log('verbose', 'discord_bridge.main_loop is started')
 discord_bridge.ready = true
 
 function discord_bridge.escape_message(str, always)
