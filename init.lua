@@ -253,7 +253,7 @@ function discord_bridge.handle_response(response)
                 minetest.chat_send_player = function(name, message)
                     old_chat_send_player(name, message)
                     if name == v.name then
-                        message = discord_bridge.escape_message(message)
+                        message = discord_bridge.escape_message(message, true)
                         if not discord_bridge.use_embeds_on_dm_cmd then
                             discord_bridge.send(message, v.context or nil)
                         else
@@ -263,7 +263,7 @@ function discord_bridge.handle_response(response)
                 end
                 local success, ret_val = commands[v.command].func(v.name, v.params or '')
                 if ret_val then
-                    ret_val = discord_bridge.escape_message(ret_val)
+                    ret_val = discord_bridge.escape_message(ret_val, true)
                     if not discord_bridge.use_embeds_on_dm_cmd then
                         discord_bridge.send(ret_val, v.context or nil)
                     else
