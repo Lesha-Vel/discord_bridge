@@ -14,7 +14,7 @@ import warnings
 warnings.filterwarnings('ignore', 'Changing state of started or joined application is deprecated', DeprecationWarning)
 
 parser = argparse.ArgumentParser(usage = '%(prog)s [-h|--help] [-p,--port PORT] [--allow_remote]')
-parser.add_argument('-p', '--port', type=int, default=8080, help='Port server.py listens on, default: 8080')
+parser.add_argument('-p', '--port', type=int, default=9692, help='Port server.py listens on, default: 9692')
 parser.add_argument('--allow_remote', action='store_true', help='Allow clients not running locally to connect, e.g. not from localhost')
 args = parser.parse_args()
 
