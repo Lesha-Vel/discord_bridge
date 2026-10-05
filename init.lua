@@ -134,6 +134,37 @@ minetest.override_chatcommand('me', {
     end
 })
 
+if discord_bridge.setup_allow_whereis then
+    minetest.register_chatcommand('dc_whereis', {
+        params = '<player>',
+        description = 'get player coordinates',
+        func = function (name, param)
+            if string.find(param, '[^0-9a-zA-Z%-_]') then
+                return false, '-!- illigal player name'
+            end
+            local player = minetest.get_player_by_name(param)
+
+            if player then
+                local pos = player:get_pos()
+                local posStr = 'player ' .. param .. ' is located at: ' ..
+                math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
+                return true, posStr
+            elseif discord_bridge.mod_storage:contains('_' .. param) then
+                local pos = minetest.string_to_pos(discord_bridge.mod_storage:get_string('_' .. param))
+                if pos then
+                    local posStr = 'offline player ' .. param .. ' is located at: ' ..
+                    math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
+                    return true, posStr
+                else
+                    return false, 'it seems like something went wrong, contact server staff.'
+                end
+            else
+                return false, 'Player ' .. param .. ' is not known.'
+            end
+        end
+    })
+end
+
 discord_bridge.old_get_server_status = minetest.get_server_status
 
 minetest.get_server_status = function (name, joined)
