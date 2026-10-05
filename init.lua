@@ -192,6 +192,12 @@ minetest.get_server_status = function (name, joined)
 	return new_status
 end
 
+minetest.register_on_prejoinplayer(function (name, ip)
+    if name == 'discord_relay' then
+        return 'this name is reserver for discord_bridge mod internal usage'
+    end
+end)
+
 local irc_enabled = minetest.get_modpath("irc")
 local xban2_enabled = minetest.get_modpath("xban2")
 
@@ -300,7 +306,7 @@ function discord_bridge.handle_response(response)
     end
     if data.statuses then
         local admin = minetest.settings:get('name')
-        if admin == '' then admin = 'discord_relay' end
+        if admin == '' or not admin then admin = 'discord_relay' end
         for _, v in pairs(data.statuses) do
             local success, ret_val = minetest.registered_chatcommands['status'].func(admin, '')
             if ret_val then
