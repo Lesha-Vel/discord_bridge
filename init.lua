@@ -105,6 +105,11 @@ if discord_bridge.ready then return end
 minetest.log('action', 'discord_bridge.main_loop is started')
 discord_bridge.ready = true
 
+function discord_bridge.escape_message(str, always)
+    if not escape_formatting and not always then return str end
+    return (str:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
+end
+
 discord_bridge.old_msg_func = minetest.registered_chatcommands['msg'].func
 minetest.override_chatcommand('msg', {
     func = function(name, param)
@@ -127,11 +132,7 @@ discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
 minetest.override_chatcommand('me', {
     func = function(name, param)
         local msg = name .. ' ' .. param
-        if not escape_formatting then
-            discord_bridge.send('\\* ' .. msg)
-        else
-            discord_bridge.send('\\* ' .. msg:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
-        end
+        discord_bridge.send('\\* ' .. discord_bridge.escape_message(msg))
         return discord_bridge.old_me_func(name, param)
     end
 })
@@ -252,9 +253,7 @@ function discord_bridge.handle_response(response)
                 minetest.chat_send_player = function(name, message)
                     old_chat_send_player(name, message)
                     if name == v.name then
-                        if escape_formatting then
-                            message = message:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
-                        end
+                        message = discord_bridge.escape_message(message)
                         if not discord_bridge.use_embeds_on_dm_cmd then
                             discord_bridge.send(message, v.context or nil)
                         else
@@ -264,9 +263,7 @@ function discord_bridge.handle_response(response)
                 end
                 local success, ret_val = commands[v.command].func(v.name, v.params or '')
                 if ret_val then
-                    if escape_formatting then
-                        ret_val = ret_val:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
-                    end
+                    ret_val = discord_bridge.escape_message(ret_val)
                     if not discord_bridge.use_embeds_on_dm_cmd then
                         discord_bridge.send(ret_val, v.context or nil)
                     else
@@ -289,7 +286,7 @@ function discord_bridge.handle_response(response)
         for _, v in pairs(data.statuses) do
             local success, ret_val = minetest.registered_chatcommands['status'].func(admin, '')
             if ret_val then
-                ret_val = ret_val:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")
+                ret_val = discord_bridge.escape_message(ret_val, true)
                 if not discord_bridge.use_embeds_on_svc_dms then
                     discord_bridge.send(ret_val, v.context or nil)
                 else
@@ -420,11 +417,7 @@ end
 -- Register the chat message callback after other mods load so that anything
 -- that overrides chat will work correctly
 minetest.after(0, minetest.register_on_chat_message, function(name, message)
-    if not escape_formatting then
-        discord_bridge.send(replace(discord_bridge.name_wrapper, name) .. message)
-    else
-        discord_bridge.send(replace(discord_bridge.name_wrapper, name) .. message:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
-    end
+    discord_bridge.send(replace(discord_bridge.name_wrapper, name) .. discord_bridge.escape_message(message))
 end)
 
 
@@ -534,11 +527,7 @@ if irc_enabled then
     discord_bridge.old_irc_sendLocal = irc.sendLocal
     function irc.sendLocal(msg)
         discord_bridge.old_irc_sendLocal(msg)
-        if not escape_formatting then
-            discord_bridge.send(msg)
-        else
-            discord_bridge.send(msg:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
-        end
+        discord_bridge.send(discord_bridge.escape_message(msg))
     end
 end
 
