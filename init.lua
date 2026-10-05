@@ -123,6 +123,19 @@ minetest.override_chatcommand('msg', {
     end
 })
 
+discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
+minetest.override_chatcommand('me', {
+    func = function(name, param)
+        local msg = name .. ' ' .. param
+        if not escape_formatting then
+            discord_bridge.send('\\* ' .. msg)
+        else
+            discord_bridge.send('\\* ' .. msg:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
+        end
+        return discord_bridge.old_me_func(name, param)
+    end
+})
+
 discord_bridge.old_get_server_status = minetest.get_server_status
 
 minetest.get_server_status = function (name, joined)
