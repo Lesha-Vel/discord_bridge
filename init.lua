@@ -349,34 +349,42 @@ function discord_bridge.handle_response(response)
     end
     if data.coords then
         for _, v in pairs(data.coords) do
-            local player = minetest.get_player_by_name(v.player)
-            if player then
-                local pos = player:get_pos()
-                local posStr = 'player ' .. v.player .. ' is located at: ' ..
-                math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
-                if not discord_bridge.use_embeds_on_svc_dms then
-                    discord_bridge.send(posStr, v.context or nil)
-                else
-                    discord_bridge.send(posStr, v.context or nil, discord_bridge.coords_color)
-                end
-            elseif discord_bridge.mod_storage:contains('_' .. v.player) then
-                local pos = minetest.string_to_pos(discord_bridge.mod_storage:get_string('_' .. v.player))
-                if pos then
-                    local posStr = 'offline player ' .. v.player .. ' is located at: ' ..
+            if not string.find(v.player, '[^0-9a-zA-Z%-_]') then
+                local player = minetest.get_player_by_name(v.player)
+                if player then
+                    local pos = player:get_pos()
+                    local posStr = 'player ' .. v.player .. ' is located at: ' ..
                     math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
                     if not discord_bridge.use_embeds_on_svc_dms then
                         discord_bridge.send(posStr, v.context or nil)
                     else
                         discord_bridge.send(posStr, v.context or nil, discord_bridge.coords_color)
                     end
+                elseif discord_bridge.mod_storage:contains('_' .. v.player) then
+                    local pos = minetest.string_to_pos(discord_bridge.mod_storage:get_string('_' .. v.player))
+                    if pos then
+                        local posStr = 'offline player ' .. v.player .. ' is located at: ' ..
+                        math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
+                        if not discord_bridge.use_embeds_on_svc_dms then
+                            discord_bridge.send(posStr, v.context or nil)
+                        else
+                            discord_bridge.send(posStr, v.context or nil, discord_bridge.coords_color)
+                        end
+                    else
+                        discord_bridge.send('it seems like something went wrong, contact server staff.', v.context or nil)
+                    end
                 else
-                    discord_bridge.send('it seems like something went wrong, contact server staff.', v.context or nil)
+                    if not discord_bridge.use_embeds_on_svc_dms then
+                        discord_bridge.send('Player ' .. v.player .. ' is not known.', v.context or nil)
+                    else
+                        discord_bridge.send('Player ' .. v.player .. ' is not known.', v.context or nil, discord_bridge.coords_color)
+                    end
                 end
             else
                 if not discord_bridge.use_embeds_on_svc_dms then
-                    discord_bridge.send('Player ' .. v.player .. ' is not known.', v.context or nil)
+                    discord_bridge.send('-!- illigal player name', v.context or nil)
                 else
-                    discord_bridge.send('Player ' .. v.player .. ' is not known.', v.context or nil, discord_bridge.coords_color)
+                    discord_bridge.send('-!- illigal player name', v.context or nil, discord_bridge.coords_color)
                 end
             end
         end
