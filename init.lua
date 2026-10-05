@@ -7,8 +7,6 @@ local escape_formatting = settings:get_bool('discord_bridge.escape_formatting', 
 local timeout = 10
 
 local discord_bridge = {}
-discord = {}
-discord.ready = false
 discord_bridge.game_startup_time = os.time()
 
 -- Configuration
@@ -89,7 +87,6 @@ discord_bridge.server_config = {
     password_leak_color = discord_bridge.setup_password_leak_color
 }
 
-discord_bridge.registered_on_messages = {}
 discord_bridge.authenticated_users = {}
 discord_bridge.mod_storage = minetest.get_mod_storage()
 
@@ -167,13 +164,6 @@ end
 local irc_enabled = minetest.get_modpath("irc")
 local xban2_enabled = minetest.get_modpath("xban2")
 
-function discord_bridge.register_on_message(func)
-    table.insert(discord_bridge.registered_on_messages, func)
-end
-discord.register_on_message = discord_bridge.register_on_message
-
-discord_bridge.chat_send_all = minetest.chat_send_all
-discord.chat_send_all = minetest.chat_send_all
 
 local function replace(str, ...)
     local arg = {...}
@@ -205,14 +195,11 @@ function discord_bridge.handle_response(response)
     end
     if data.messages then
         for _, message in pairs(data.messages) do
-            for _, func in pairs(discord_bridge.registered_on_messages) do
-                func(message.author, message.content)
-            end
             if discord_bridge.clean_invites then
                 message.content = message.content:gsub("%S*discord%.gg%S*", ""):gsub("%S*discordapp%.com/invite%S*", "")
             end
             local msg = discord_bridge.format_chat_message(message.author, message.content)
-            discord_bridge.chat_send_all(minetest.colorize(discord_bridge.text_colorization, msg))
+            minetest.chat_send_all(minetest.colorize(discord_bridge.text_colorization, msg))
             if irc_enabled then
                 irc.say(msg)
             end
@@ -397,7 +384,6 @@ function discord_bridge.send(message, id, embed_color, embed_description)
         post_data = minetest.write_json(data)
     })
 end
-discord.send = discord_bridge.send
 
 function discord_bridge.send_dm_to_discord(playername, message)
     local content
@@ -600,5 +586,3 @@ minetest.register_globalstep(function(dtime)
     end
     setup_timer = 0
 end)
-
-discord.ready = true
