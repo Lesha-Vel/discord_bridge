@@ -165,6 +165,19 @@ if discord_bridge.setup_allow_whereis then
     })
 end
 
+minetest.register_chatcommand('dc_count', {
+    description = 'get number of players in whereis database',
+    func = function (name, param)
+        local players_count = 0
+        for _,v in ipairs(discord_bridge.mod_storage:get_keys()) do
+            if string.sub(v, 1, 1) == '_' then
+                players_count = players_count + 1
+            end
+        end
+        return true, 'players in database: ' .. players_count
+    end
+})
+
 discord_bridge.old_get_server_status = minetest.get_server_status
 
 minetest.get_server_status = function (name, joined)
