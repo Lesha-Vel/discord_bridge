@@ -189,11 +189,11 @@ minetest.get_server_status = function (name, joined)
 	local match = string.find(original_status, '\n')
 
 	local first = true
-    for _ in pairs(discord_bridge.authenticated_users) do
+    for k in pairs(discord_bridge.authenticated_users) do
         if first then
             users_list = users_list .. ' | discord: '
         end
-        users_list = users_list .. (not first and ', ' or '') .. _
+        users_list = users_list .. (not first and ', ' or '') .. k
         first = false
     end
 
