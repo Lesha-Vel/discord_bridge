@@ -104,7 +104,7 @@ discord_bridge.ready = true
 
 function discord_bridge.escape_message(str, always)
     if not escape_formatting and not always then return str end
-    return (str:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#"))
+    return (str:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")):gsub("\n#", "\n")
 end
 
 discord_bridge.old_msg_func = minetest.registered_chatcommands['msg'].func
