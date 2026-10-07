@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-from aiohttp import web
-import discord
-from discord.ext import commands
-from discord import ui
+import argparse
 import asyncio
 import json
-import time
 import re
+import sys
+import time
 import traceback
-import argparse
 import warnings
+
+import discord
+from aiohttp import web
+from discord import ui
+from discord.ext import commands
 
 warnings.filterwarnings('ignore', 'Changing state of started or joined application is deprecated', DeprecationWarning)
 
@@ -90,7 +92,7 @@ if __name__ == '__main__':
     try:
         asyncio.run(srv())
     except KeyboardInterrupt:
-        exit()
+        sys.exit()
 
 class Queue:
     def __init__(self):
@@ -153,7 +155,7 @@ async def handle(request):
             else:
                 embed_description = None
             if 'embed_color' in data:
-                if not data['embed_color'] == 'NOT_SET':
+                if data['embed_color'] != 'NOT_SET':
                     color = discord.Color.from_str(data['embed_color'])
                 else:
                     color = None
@@ -245,17 +247,15 @@ app.add_routes([web.post('/setup', setup_already_completed)])
 
 @bot.event
 async def on_message(message):
-    global outgoing_msgs
-    if check_timeout():
-        if (message.channel.id == channel_id and
-                message.author.id != bot.user.id):
-            msg = {
-                'author': (message.author.display_name
-                           if do_use_nicknames else message.author.name),
-                'content': message.content.replace('\n', '/')
-            }
-            if msg['content'] != '':
-                outgoing_msgs.add(msg)
+    if check_timeout() and (message.channel.id == channel_id and
+        message.author.id != bot.user.id):
+        msg = {
+            'author': (message.author.display_name
+                       if do_use_nicknames else message.author.name),
+            'content': message.content.replace('\n', '/')
+        }
+        if msg['content'] != '':
+            outgoing_msgs.add(msg)
 
     await bot.process_commands(message)
 
@@ -304,7 +304,7 @@ The login will:
         if ((ctx.channel.id != channel_id and ctx.guild is not None) or
                 not logins_allowed):
             return
-        if ctx.author.id not in authenticated_users.keys():
+        if ctx.author.id not in authenticated_users:
             if not do_use_embeds:
                 await ctx.send('Not logged in.')
             else:
