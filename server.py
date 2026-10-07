@@ -132,6 +132,7 @@ def check_timeout():
     return time.time() - last_request <= 1
 
 translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
+underscore_re = re.compile(r'_')
 
 async def handle(request):
     global last_request, announce_logout, startup_setup
@@ -206,6 +207,7 @@ async def handle(request):
         if send_to_offline_players_allowed and request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
             if data['playername'] in authenticated_users_ids:
                 msg = translation_re.sub('', data['content'])
+                msg = underscore_re.sub('\\_', msg)
                 msg = discord.utils.escape_mentions(msg)
                 id = authenticated_users_ids[data['playername']]
                 user = bot.get_user(id)
@@ -405,11 +407,12 @@ The login will:
 
     @bot.command(help='Get ingame player name you\'re now logged in.')
     async def whoami(ctx):
+        name = underscore_re.sub('\\_', authenticated_users[ctx.author.id])
         if ctx.author.id in authenticated_users:
             if not do_use_embeds:
-                await ctx.send('your ingame name is: ' + authenticated_users[ctx.author.id])
+                await ctx.send('your ingame name is: ' + name)
             else:
-                await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + authenticated_users[ctx.author.id]))
+                await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name))
         else:
             if not do_use_embeds:
                 await ctx.send('Not logged in.')

@@ -128,7 +128,7 @@ minetest.override_chatcommand('msg', {
 discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
 minetest.override_chatcommand('me', {
     func = function(name, param)
-        local msg = name .. ' ' .. param
+        local msg = name:gsub("_", "\\_") .. ' ' .. param
         discord_bridge.send('\\* ' .. discord_bridge.escape_message(msg))
         return discord_bridge.old_me_func(name, param)
     end
@@ -370,9 +370,10 @@ function discord_bridge.handle_response(response)
         for _, v in pairs(data.coords) do
             if not string.find(v.player, '[^0-9a-zA-Z%-_]') then
                 local player = minetest.get_player_by_name(v.player)
+                local player_escaped = v.player:gsub("_", "\\_")
                 if player then
                     local pos = player:get_pos()
-                    local posStr = 'player ' .. v.player .. ' is located at: ' ..
+                    local posStr = 'player ' .. player_escaped .. ' is located at: ' ..
                     math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
                     if not discord_bridge.use_embeds_on_svc_dms then
                         discord_bridge.send(posStr, v.context or nil)
@@ -382,7 +383,7 @@ function discord_bridge.handle_response(response)
                 elseif discord_bridge.mod_storage:contains('_' .. v.player) then
                     local pos = minetest.string_to_pos(discord_bridge.mod_storage:get_string('_' .. v.player))
                     if pos then
-                        local posStr = 'offline player ' .. v.player .. ' is located at: ' ..
+                        local posStr = 'offline player ' .. player_escaped .. ' is located at: ' ..
                         math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
                         if not discord_bridge.use_embeds_on_svc_dms then
                             discord_bridge.send(posStr, v.context or nil)
@@ -394,9 +395,9 @@ function discord_bridge.handle_response(response)
                     end
                 else
                     if not discord_bridge.use_embeds_on_svc_dms then
-                        discord_bridge.send('Player ' .. v.player .. ' is not known.', v.context or nil)
+                        discord_bridge.send('Player ' .. player_escaped .. ' is not known.', v.context or nil)
                     else
-                        discord_bridge.send('Player ' .. v.player .. ' is not known.', v.context or nil, discord_bridge.coords_color)
+                        discord_bridge.send('Player ' .. player_escaped .. ' is not known.', v.context or nil, discord_bridge.coords_color)
                     end
                 end
             else
@@ -461,13 +462,14 @@ end
 -- Register the chat message callback after other mods load so that anything
 -- that overrides chat will work correctly
 minetest.after(0, minetest.register_on_chat_message, function(name, message)
+    name = name:gsub("_", "\\_")
     discord_bridge.send(replace(discord_bridge.name_wrapper, name) .. discord_bridge.escape_message(message))
 end)
 
 
 if discord_bridge.send_joins then
     minetest.after(0, minetest.register_on_joinplayer, function(player, last_login)
-        local name = player:get_player_name()
+        local name = player:get_player_name():gsub("_", "\\_")
 
         if last_login == nil and discord_bridge.send_welcomes then
             if not discord_bridge.use_embeds_on_welcomes then
@@ -493,7 +495,7 @@ end
 
 if discord_bridge.send_leaves then
     minetest.register_on_leaveplayer(function(player)
-        local name = player:get_player_name()
+        local name = player:get_player_name():gsub("_", "\\_")
 
         if not discord_bridge.use_embeds_on_joins_and_leaves then
             discord_bridge.send(replace(discord_bridge.leave_text, name))
@@ -506,7 +508,7 @@ end
 
 if discord_bridge.send_deaths then
     minetest.register_on_dieplayer(function(player)
-        local name = player:get_player_name()
+        local name = player:get_player_name():gsub("_", "\\_")
 
         if not discord_bridge.use_embeds_on_deaths then
             discord_bridge.send(replace(discord_bridge.death_text, name))
@@ -559,10 +561,10 @@ minetest.register_on_shutdown(function()
     if discord_bridge.send_server_shutdown then
         if discord_bridge.use_embeds_on_server_updates then
             discord_bridge.send(discord_bridge.shutdown_text, nil, discord_bridge.shutdown_color,
-                (discord_bridge.include_server_status_on_shutdown and minetest.get_server_status():gsub("^#", "\\#") or nil))
+                (discord_bridge.include_server_status_on_shutdown and discord_bridge.escape_message(minetest.get_server_status(), true) or nil))
         else
             discord_bridge.send(discord_bridge.shutdown_text ..
-                (discord_bridge.include_server_status_on_shutdown and " - " .. minetest.get_server_status() or ""))
+                (discord_bridge.include_server_status_on_shutdown and " - " .. discord_bridge.escape_message(minetest.get_server_status(), true) or ""))
         end
     end
 end)
@@ -578,10 +580,10 @@ end
 if discord_bridge.send_server_startup and os.time() - discord_bridge.game_startup_time < 15 then
     if discord_bridge.use_embeds_on_server_updates then
         discord_bridge.send(discord_bridge.startup_text, nil, discord_bridge.startup_color,
-            (discord_bridge.include_server_status_on_startup and minetest.get_server_status():gsub("^#", "\\#") or nil))
+            (discord_bridge.include_server_status_on_startup and discord_bridge.escape_message(minetest.get_server_status(), true) or nil))
     else
         discord_bridge.send(discord_bridge.startup_text ..
-            (discord_bridge.include_server_status_on_startup and " - " .. minetest.get_server_status() or ""))
+            (discord_bridge.include_server_status_on_startup and " - " .. discord_bridge.escape_message(minetest.get_server_status(), true) or ""))
     end
 end
 
