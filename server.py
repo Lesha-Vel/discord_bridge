@@ -167,6 +167,13 @@ async def handle(request):
                     await target_channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
                             description=embed_description))
                 # elif incoming_msgs is None:
+                elif 'userid' in data:
+                    userid = int(data['userid'])
+                    user = bot.get_user(userid)
+                    if user is None:
+                        user = await bot.fetch_user(userid)
+                    await user.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
+                            description=embed_description))
                 else:
                     # for chunk in chunks:
                     await channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
@@ -181,6 +188,13 @@ async def handle(request):
                     target_channel = bot.get_partial_messageable(id)
                     for chunk in chunks:
                         await target_channel.send(chunk)
+                elif 'userid' in data:
+                    userid = int(data['userid'])
+                    user = bot.get_user(userid)
+                    if user is None:
+                        user = await bot.fetch_user(userid)
+                    for chunk in chunks:
+                        await user.send(chunk)
                 # elif incoming_msgs is None:
                 else:
                     for chunk in chunks:
@@ -297,20 +311,23 @@ The login will:
 
     @bot.command(help='Runs an ingame command from Discord.')
     async def cmd(ctx, command=commands.parameter(description='in-game command without leading /, if command is for example //help it become /help'), *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
+        user = bot.get_user(ctx.author.id)
+        if user is None:
+            user = await bot.fetch_user(ctx.author.id)
         if not check_timeout():
             if not do_use_embeds:
-                await ctx.send("The server currently appears to be down.")
+                await user.send("The server currently appears to be down.")
             else:
-                await ctx.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
+                await user.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
             return
         if ((ctx.channel.id != channel_id and ctx.guild is not None) or
                 not logins_allowed):
             return
         if ctx.author.id not in authenticated_users:
             if not do_use_embeds:
-                await ctx.send('Not logged in.')
+                await user.send('Not logged in.')
             else:
-                await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
+                await user.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
             return
         command = {
             'name': authenticated_users[ctx.author.id],
@@ -380,12 +397,12 @@ The login will:
                         if not do_use_embeds:
                             await interaction.response.send_message("The server currently appears to be down, but your "
                                        "login attempt has been added to the queue and will be "
-                                       "executed as soon as the server returns.")
+                                       "executed as soon as the server returns.", ephemeral=True)
                         else:
                             await interaction.response.send_message(embed = discord.Embed(title = "The server currently appears to be down, but your "
                                        "login attempt has been added to the queue and will be "
                                        "executed as soon as the server returns.",
-                                       color = discord.Color.from_str(server_down_color)))
+                                       color = discord.Color.from_str(server_down_color)), ephemeral=True)
                     else:
                         await interaction.response.defer()
             await interaction.response.send_modal(password_modal())

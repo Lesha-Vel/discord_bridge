@@ -353,15 +353,15 @@ function discord_bridge.handle_response(response)
             }, discord_bridge.handle_response)
             if result then
                 if not discord_bridge.use_embeds_on_svc_dms then
-                    discord_bridge.send('Login successful.', v.context or nil)
+                    discord_bridge.send('Login successful.', nil, nil, nil, v.user_id)
                 else
-                    discord_bridge.send('Login successful.', v.context or nil, discord_bridge.login_success_color)
+                    discord_bridge.send('Login successful.', nil, discord_bridge.login_success_color, nil, v.user_id)
                 end
             else
                 if not discord_bridge.use_embeds_on_svc_dms then
-                    discord_bridge.send('Login failed.', v.context or nil)
+                    discord_bridge.send('Login failed.', nil, nil, nil, v.user_id)
                 else
-                    discord_bridge.send('Login failed.', v.context or nil, discord_bridge.login_fail_color)
+                    discord_bridge.send('Login failed.', nil, discord_bridge.login_fail_color, nil, v.user_id)
                 end
             end
         end
@@ -417,7 +417,7 @@ function discord_bridge.handle_response(response)
     end
 end
 
-function discord_bridge.send(message, id, embed_color, embed_description)
+function discord_bridge.send(message, id, embed_color, embed_description, userid)
     local content
     local data = {
         type = 'DISCORD-RELAY-MESSAGE'
@@ -436,6 +436,9 @@ function discord_bridge.send(message, id, embed_color, embed_description)
     end
     if embed_description then
         data['embed_description'] = embed_description
+    end
+    if userid then
+        data['userid'] = userid
     end
     http.fetch_async({
         url = tostring(host)..':'..tostring(port),
