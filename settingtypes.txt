@@ -3,6 +3,7 @@ discord_bridge.host (Address of server.py) string 127.0.0.1
 discord_bridge.port (Port to run the relay on.) int 9692
 discord_bridge.text_color (Custom color for messages relayed from Discord.) string #ffffff
 discord_bridge.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool false
+discord_bridge.send_every_3s (buffer messages for 3 seconds to avoid discord limits) bool false
 [Options]
 discord_bridge.clean_invites (Clean Discord invites) bool true
 discord_bridge.date (Date format string) string %m/%d/%Y %I:%M%p

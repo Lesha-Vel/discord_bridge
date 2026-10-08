@@ -10,6 +10,7 @@ local discord_bridge = {}
 discord_bridge.game_startup_time = os.time()
 
 -- Configuration
+discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', false)
 discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or '#ffffff'
 
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
@@ -101,6 +102,7 @@ minetest.log('verbose', 'discord_bridge.main_loop is invoked')
 if discord_bridge.ready then return end
 minetest.log('verbose', 'discord_bridge.main_loop is started')
 discord_bridge.ready = true
+discord_bridge.msg_queue = ''
 
 function discord_bridge.escape_message(str, always)
     if not escape_formatting and not always then return str end
@@ -129,7 +131,7 @@ discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
 minetest.override_chatcommand('me', {
     func = function(name, param)
         local msg = name:gsub("_", "\\_") .. ' ' .. param
-        discord_bridge.send('\\* ' .. discord_bridge.escape_message(msg))
+        discord_bridge.send_buffered('\\* ' .. discord_bridge.escape_message(msg))
         return discord_bridge.old_me_func(name, param)
     end
 })
@@ -447,6 +449,33 @@ function discord_bridge.send(message, id, embed_color, embed_description, userid
     })
 end
 
+function discord_bridge.send_buffered(message)
+    if discord_bridge.send_every_3s then
+	    if discord_bridge.msg_queue ~= '' then
+	        discord_bridge.msg_queue = discord_bridge.msg_queue .. '\n' .. message
+	    else
+	        discord_bridge.msg_queue = message
+	    end
+	else
+	    discord_bridge.send(message)
+	end
+end
+
+if discord_bridge.send_every_3s then
+    local send_timer = 0
+    minetest.register_globalstep(function (dtime)
+        if dtime then
+            send_timer = send_timer + dtime
+            if discord_bridge.msg_queue ~= '' and (send_timer > 3 or
+                #discord_bridge.msg_queue > 1999 - math.min(tonumber(settings:get('chat_message_max_size')) or 500, 800)) then
+                discord_bridge.send(discord_bridge.msg_queue)
+                discord_bridge.msg_queue = ''
+                send_timer = 0
+            end
+        end
+    end)
+end
+
 function discord_bridge.send_dm_to_discord(playername, message)
     local content
     local data = {
@@ -466,7 +495,7 @@ end
 -- that overrides chat will work correctly
 minetest.after(0, minetest.register_on_chat_message, function(name, message)
     name = name:gsub("_", "\\_")
-    discord_bridge.send(replace(discord_bridge.name_wrapper, name) .. discord_bridge.escape_message(message))
+    discord_bridge.send_buffered(replace(discord_bridge.name_wrapper, name) .. discord_bridge.escape_message(message))
 end)
 
 
@@ -476,14 +505,14 @@ if discord_bridge.send_joins then
 
         if last_login == nil and discord_bridge.send_welcomes then
             if not discord_bridge.use_embeds_on_welcomes then
-                discord_bridge.send(replace(discord_bridge.welcome_text, name))
+                discord_bridge.send_buffered(replace(discord_bridge.welcome_text, name))
             else
                 discord_bridge.send(nil, nil, discord_bridge.welcome_color,
                     replace(discord_bridge.welcome_text, name))
             end
         else
             if not discord_bridge.use_embeds_on_joins_and_leaves then
-                discord_bridge.send(discord_bridge.send_last_login and
+                discord_bridge.send_buffered(discord_bridge.send_last_login and
                     replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
                     replace(discord_bridge.join_text, name))
             else
@@ -501,7 +530,7 @@ if discord_bridge.send_leaves then
         local name = player:get_player_name():gsub("_", "\\_")
 
         if not discord_bridge.use_embeds_on_joins_and_leaves then
-            discord_bridge.send(replace(discord_bridge.leave_text, name))
+            discord_bridge.send_buffered(replace(discord_bridge.leave_text, name))
         else
             discord_bridge.send(nil, nil, discord_bridge.leave_color, replace(discord_bridge.leave_text, name))
         end
@@ -514,7 +543,7 @@ if discord_bridge.send_deaths then
         local name = player:get_player_name():gsub("_", "\\_")
 
         if not discord_bridge.use_embeds_on_deaths then
-            discord_bridge.send(replace(discord_bridge.death_text, name))
+            discord_bridge.send_buffered(replace(discord_bridge.death_text, name))
         else
             discord_bridge.send(nil, nil, discord_bridge.death_color, replace(discord_bridge.death_text, name))
         end
@@ -576,7 +605,7 @@ if irc_enabled then
     discord_bridge.old_irc_sendLocal = irc.sendLocal
     function irc.sendLocal(msg)
         discord_bridge.old_irc_sendLocal(msg)
-        discord_bridge.send(discord_bridge.escape_message(msg))
+        discord_bridge.send_buffered(discord_bridge.escape_message(msg))
     end
 end
 
