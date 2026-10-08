@@ -139,7 +139,7 @@ if discord_bridge.setup_allow_whereis then
         params = '<player>',
         description = 'get player coordinates',
         func = function (name, param)
-            if string.find(param, '[^0-9a-zA-Z%-_]') then
+            if not minetest.is_valid_player_name(param) then
                 return false, '-!- illigal player name'
             end
             local player = minetest.get_player_by_name(param)
@@ -368,7 +368,7 @@ function discord_bridge.handle_response(response)
     end
     if data.coords then
         for _, v in pairs(data.coords) do
-            if not string.find(v.player, '[^0-9a-zA-Z%-_]') then
+            if minetest.is_valid_player_name(v.player) then
                 local player = minetest.get_player_by_name(v.player)
                 local player_escaped = v.player:gsub("_", "\\_")
                 if player then
