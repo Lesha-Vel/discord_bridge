@@ -1,17 +1,15 @@
 local http = minetest.request_http_api()
 local settings = minetest.settings
 
-local host = settings:get('discord_bridge.host') or '127.0.0.1'
-local port = settings:get('discord_bridge.port') or 9692
-local escape_formatting = settings:get_bool('discord_bridge.escape_formatting', false)
-local timeout = 10
-
 local discord_bridge = {}
 discord_bridge.game_startup_time = os.time()
 
 -- Configuration
+discord_bridge.host = settings:get('discord_bridge.host') or '127.0.0.1'
+discord_bridge.port = settings:get('discord_bridge.port') or 9692
 discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', false)
 discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or '#ffffff'
+discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', false)
 
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
@@ -72,6 +70,8 @@ discord_bridge.setup_server_down_color = settings:get('discord_bridge.setup_serv
 discord_bridge.setup_not_logged_in_color = settings:get('discord_bridge.setup_not_logged_in_color') or '#46e8e8'
 discord_bridge.setup_password_leak_color = settings:get('discord_bridge.setup_password_leak_color') or '#ed9d42'
 
+discord_bridge.timeout = 10
+
 discord_bridge.setup_channel_ids_table = {}
 for id in string.gmatch(discord_bridge.setup_channel_ids, "[0-9]+") do
 	table.insert(discord_bridge.setup_channel_ids_table, id)
@@ -110,7 +110,7 @@ discord_bridge.ready = true
 discord_bridge.msg_queue = ''
 
 function discord_bridge.escape_message(str, always)
-    if not escape_formatting and not always then return str end
+    if not discord_bridge.escape_formatting and not always then return str end
     return (str:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")):gsub("\n#", "\n")
 end
 
@@ -218,10 +218,10 @@ minetest.register_on_prejoinplayer(function (name, ip)
     end
 end)
 
-local irc_enabled = minetest.get_modpath("irc")
-local xban2_enabled = minetest.get_modpath("xban2")
+discord_bridge.irc_enabled = minetest.get_modpath("irc")
+discord_bridge.xban2_enabled = minetest.get_modpath("xban2")
 
-local function replace(str, ...)
+function discord_bridge.replace(str, ...)
     local arg = {...}
     return (str:gsub("@(.)", function(matched)
         return arg[tonumber(matched)]
@@ -235,8 +235,8 @@ function discord_bridge.handle_response(response)
     end
     if data == 'NO_SETUP' then
         http.fetch({
-            url = tostring(host) .. ':' .. tostring(port) .. '/setup',
-            timeout = timeout,
+            url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
+            timeout = discord_bridge.timeout,
             post_data = minetest.write_json(discord_bridge.server_config)
         }, function() end)
         return
@@ -252,7 +252,7 @@ function discord_bridge.handle_response(response)
             end
             local msg = (discord_bridge.chat_message_format):format(message.author, message.content)
             minetest.chat_send_all(minetest.colorize(discord_bridge.text_colorization, msg))
-            if irc_enabled then
+            if discord_bridge.irc_enabled then
                 irc.say(msg)
             end
             minetest.log('action', '[Discord] Message: '..msg)
@@ -262,7 +262,7 @@ function discord_bridge.handle_response(response)
         local commands = minetest.registered_chatcommands
         for _, v in pairs(data.commands) do
             local xban2_banned = false
-            if xban2_enabled then
+            if discord_bridge.xban2_enabled then
                 local names, banned, record = xban.get_info(v.name)
                 xban2_banned = (banned and record) or false
             end
@@ -349,8 +349,8 @@ function discord_bridge.handle_response(response)
                 success = result
             }
             http.fetch({
-                url = tostring(host)..':'..tostring(port),
-                timeout = timeout,
+                url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+                timeout = discord_bridge.timeout,
                 post_data = minetest.write_json(request)
             }, discord_bridge.handle_response)
             if result then
@@ -443,8 +443,8 @@ function discord_bridge.send(message, id, embed_color, embed_description, userid
         data['userid'] = userid
     end
     http.fetch_async({
-        url = tostring(host)..':'..tostring(port),
-        timeout = timeout,
+        url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+        timeout = discord_bridge.timeout,
         post_data = minetest.write_json(data)
     })
 end
@@ -485,8 +485,8 @@ function discord_bridge.send_dm_to_discord(playername, message)
     content = minetest.strip_colors(message)
     data['content'] = content
     http.fetch_async({
-        url = tostring(host) .. ':' .. tostring(port),
-        timeout = timeout,
+        url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
+        timeout = discord_bridge.timeout,
         post_data = minetest.write_json(data)
     })
 end
@@ -495,7 +495,7 @@ end
 -- that overrides chat will work correctly
 minetest.after(0, minetest.register_on_chat_message, function(name, message)
     name = name:gsub("_", "\\_")
-    discord_bridge.send_buffered(replace(discord_bridge.name_wrapper, name) .. discord_bridge.escape_message(message))
+    discord_bridge.send_buffered(discord_bridge.replace(discord_bridge.name_wrapper, name) .. discord_bridge.escape_message(message))
 end)
 
 if discord_bridge.send_joins then
@@ -504,21 +504,21 @@ if discord_bridge.send_joins then
 
         if last_login == nil and discord_bridge.send_welcomes then
             if not discord_bridge.use_embeds_on_welcomes then
-                discord_bridge.send_buffered(replace(discord_bridge.welcome_text, name))
+                discord_bridge.send_buffered(discord_bridge.replace(discord_bridge.welcome_text, name))
             else
                 discord_bridge.send(nil, nil, discord_bridge.welcome_color,
-                    replace(discord_bridge.welcome_text, name))
+                    discord_bridge.replace(discord_bridge.welcome_text, name))
             end
         else
             if not discord_bridge.use_embeds_on_joins_and_leaves then
                 discord_bridge.send_buffered(discord_bridge.send_last_login and
-                    replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
-                    replace(discord_bridge.join_text, name))
+                    discord_bridge.replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
+                    discord_bridge.replace(discord_bridge.join_text, name))
             else
                 discord_bridge.send(nil, nil, discord_bridge.join_color,
                     (discord_bridge.send_last_login and
-                    replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
-                    replace(discord_bridge.join_text, name)))
+                    discord_bridge.replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
+                    discord_bridge.replace(discord_bridge.join_text, name)))
             end
         end
     end)
@@ -529,9 +529,9 @@ if discord_bridge.send_leaves then
         local name = player:get_player_name():gsub("_", "\\_")
 
         if not discord_bridge.use_embeds_on_joins_and_leaves then
-            discord_bridge.send_buffered(replace(discord_bridge.leave_text, name))
+            discord_bridge.send_buffered(discord_bridge.replace(discord_bridge.leave_text, name))
         else
-            discord_bridge.send(nil, nil, discord_bridge.leave_color, replace(discord_bridge.leave_text, name))
+            discord_bridge.send(nil, nil, discord_bridge.leave_color, discord_bridge.replace(discord_bridge.leave_text, name))
         end
 
     end)
@@ -542,9 +542,9 @@ if discord_bridge.send_deaths then
         local name = player:get_player_name():gsub("_", "\\_")
 
         if not discord_bridge.use_embeds_on_deaths then
-            discord_bridge.send_buffered(replace(discord_bridge.death_text, name))
+            discord_bridge.send_buffered(discord_bridge.replace(discord_bridge.death_text, name))
         else
-            discord_bridge.send(nil, nil, discord_bridge.death_color, replace(discord_bridge.death_text, name))
+            discord_bridge.send(nil, nil, discord_bridge.death_color, discord_bridge.replace(discord_bridge.death_text, name))
         end
 
     end)
@@ -559,8 +559,8 @@ minetest.register_globalstep(function(dtime)
         login_request_timer = login_request_timer + dtime
         if login_request_timer > 15 then
             http.fetch({
-                url = tostring(host)..':'..tostring(port),
-                timeout = timeout,
+                url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+                timeout = discord_bridge.timeout,
                 post_data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
             }, discord_bridge.handle_response)
             login_request_timer = 0
@@ -568,8 +568,8 @@ minetest.register_globalstep(function(dtime)
         if timer > 0.2 then
             if not ongoing then
                 ongoing = http.fetch_async({
-                    url = tostring(host)..':'..tostring(port),
-                    timeout = timeout,
+                    url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+                    timeout = discord_bridge.timeout,
                 })
             else
                 local res = http.fetch_async_get(ongoing)
@@ -577,8 +577,8 @@ minetest.register_globalstep(function(dtime)
                 if res.completed == true then
                     discord_bridge.handle_response(res)
                     ongoing = http.fetch_async({
-                        url = tostring(host)..':'..tostring(port),
-                        timeout = timeout,
+                        url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+                        timeout = discord_bridge.timeout,
                     })
                 end
             end
@@ -600,7 +600,7 @@ minetest.register_on_shutdown(function()
     end
 end)
 
-if irc_enabled then
+if discord_bridge.irc_enabled then
     discord_bridge.old_irc_sendLocal = irc.sendLocal
     function irc.sendLocal(msg)
         discord_bridge.old_irc_sendLocal(msg)
@@ -646,8 +646,8 @@ minetest.register_globalstep(function(dtime)
 
     if not setup_ongoing then
         setup_ongoing = http.fetch_async({
-            url = tostring(host) .. ':' .. tostring(port) .. '/setup',
-            timeout = timeout,
+            url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
+            timeout = discord_bridge.timeout,
             post_data = minetest.write_json(discord_bridge.server_config)
         })
     else
@@ -663,8 +663,8 @@ minetest.register_globalstep(function(dtime)
                 end
             end
             setup_ongoing = http.fetch_async({
-                url = tostring(host) .. ':' .. tostring(port) .. '/setup',
-                timeout = timeout,
+                url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
+                timeout = discord_bridge.timeout,
                 post_data = minetest.write_json(discord_bridge.server_config)
             })
         end
