@@ -142,6 +142,31 @@ minetest.override_chatcommand('me', {
     end
 })
 
+minetest.register_chatcommand("dc_send", {
+    params = "<message>",
+    description = "sends a chatmessage, works aproximatelly as a transparent prefix, e.g. " ..
+        "'/dc_send /me hello' or even '/dc_send /dc_send /dc_send /me hello' = '/me hello'",
+    func = function(name, param)
+        if not minetest.check_player_privs(name, 'shout') and param:sub(1,1) ~= "/" then
+            return false, '-!- You don\'t have permission to shout.'
+        end
+        if not param:find("[^%s]") then
+            return false, '-!- Empty messages are not allowed.'
+        end
+        local handled = false
+        for _, v in ipairs(minetest.registered_on_chat_messages) do
+            if v(name, param) then
+                handled = true
+                break
+            end
+        end
+        if not handled then
+            minetest.chat_send_all(minetest.format_chat_message(name, param))
+        end
+        return true
+    end
+})
+
 if discord_bridge.setup_allow_whereis then
     minetest.register_chatcommand('dc_whereis', {
         params = '<player>',
