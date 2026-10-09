@@ -25,7 +25,7 @@ remote_allowed = args.allow_remote
 
 token = ''
 prefix = ''
-channel_id = 0
+channel_ids = []
 
 commands_allowed = True
 logins_allowed = True
@@ -43,7 +43,7 @@ async def handle_setup_root(request):
     return web.Response(text='NO_SETUP')
 
 async def handle_setup_packet(request):
-    global token, prefix, channel_id, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
+    global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
     global send_to_offline_players_allowed, whereis_allowed, server_down_color, not_logged_in_color, password_leak_color
     if request.app['setup_packet_received']:
         print('setup packet already received')
@@ -53,7 +53,9 @@ async def handle_setup_packet(request):
     
     token = response['token']
     prefix = response['command_prefix']
-    channel_id = int(response['channel_id'])
+    channel_ids_str = response['channel_ids']
+    for i in channel_ids_str:
+        channel_ids.append(int(i))
     commands_allowed = response['allow_commands']
     logins_allowed = response['allow_logins']
     do_use_nicknames = response['use_nicknames']
@@ -119,7 +121,10 @@ bot = commands.Bot(
 
 last_request = 0
 
-channel = bot.get_partial_messageable(channel_id)
+channels = []
+for i in channel_ids:
+    channels.append(bot.get_partial_messageable(i))
+
 # user id -> playername
 authenticated_users = {}
 # playername -> user id
@@ -176,8 +181,9 @@ async def handle(request):
                             description=embed_description))
                 else:
                     # for chunk in chunks:
-                    await channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
-                            description=embed_description))
+                    for channel in channels:
+                        await channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
+                                description=embed_description))
                 # else:
                 #     for chunk in chunks:
                 #         incoming_msgs.append({'msg': chunk, 'color': discord.Color.from_str(data['embed_color']),
@@ -197,8 +203,9 @@ async def handle(request):
                         await user.send(chunk)
                 # elif incoming_msgs is None:
                 else:
-                    for chunk in chunks:
-                        await channel.send(chunk)
+                    for channel in channels:
+                        for chunk in chunks:
+                            await channel.send(chunk)
                 # else:
                 #     for chunk in chunks:
                 #         incoming_msgs.append({'msg': chunk})
@@ -263,7 +270,7 @@ app.add_routes([web.post('/setup', setup_already_completed)])
 
 @bot.event
 async def on_message(message):
-    if check_timeout() and (message.channel.id == channel_id and
+    if check_timeout() and (message.channel.id in channel_ids and
         message.author.id != bot.user.id):
         msg = {
             'author': (message.author.display_name
@@ -278,7 +285,8 @@ async def on_message(message):
 if send_backend_startups:
     @bot.event
     async def on_ready():
-        await channel.send("discord_bridge backend started")
+        for channel in channels:
+            await channel.send("discord_bridge backend started")
 
 if commands_allowed:
     @bot.tree.command(name='help', description='Want to know how to use discord_bridge? use this command')
@@ -320,7 +328,7 @@ The login will:
             else:
                 await user.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
             return
-        if ((ctx.channel.id != channel_id and ctx.guild is not None) or
+        if ((not ctx.channel.id in channel_ids and ctx.guild is not None) or
                 not logins_allowed):
             return
         if ctx.author.id not in authenticated_users:
@@ -444,7 +452,7 @@ The login will:
             else:
                 await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
             return
-        if ctx.channel.id != channel_id and ctx.guild is not None:
+        if not ctx.channel.id in channel_ids and ctx.guild is not None:
             return
         data = {}
         if ctx.guild is None:
@@ -460,7 +468,7 @@ The login will:
                 else:
                     await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
                 return
-            if ctx.channel.id != channel_id and ctx.guild is not None:
+            if not ctx.channel.id in channel_ids and ctx.guild is not None:
                 return
             data = {
                 'player': player,

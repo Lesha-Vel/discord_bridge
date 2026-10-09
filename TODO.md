@@ -1,4 +1,3 @@
-operate on multiple discord servers simultaneously
 minor formatting shenanigans, it looks like i used ' and " in the wrong places..
 need to fix descriptions in settingtypes.txt and the beginning of init.lua
 need to check if it's still works with IRC

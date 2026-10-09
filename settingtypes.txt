@@ -51,7 +51,7 @@ discord_bridge.coords_color (coordinates request color) string NOT_SET
 [Server]
 discord_bridge.setup_token (Discord bot token) string
 discord_bridge.setup_command_prefix (Discord prefix commands prefix) string !
-discord_bridge.setup_channel_id (Discord channel id) string 0
+discord_bridge.setup_channel_ids (Discord channel ids, not numeric symbol separated list) string
 discord_bridge.setup_allow_commands (allow Discord commands) bool true
 discord_bridge.setup_allow_logins (allow logging in from Discord) bool true
 discord_bridge.setup_allow_send_to_offline_players (allow sending messages from in-game to Discord) bool true

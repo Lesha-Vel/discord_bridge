@@ -60,7 +60,7 @@ discord_bridge.coords_color = settings:get('discord_bridge.coords_color') or 'NO
 
 discord_bridge.setup_token = settings:get('discord_bridge.setup_token') or ''
 discord_bridge.setup_command_prefix = settings:get('discord_bridge.setup_command_prefix') or '!'
-discord_bridge.setup_channel_id = settings:get('discord_bridge.setup_channel_id') or 0
+discord_bridge.setup_channel_ids = settings:get('discord_bridge.setup_channel_ids') or ''
 discord_bridge.setup_allow_commands = settings:get_bool('discord_bridge.setup_allow_commands', true)
 discord_bridge.setup_allow_logins = settings:get_bool('discord_bridge.setup_allow_logins', true)
 discord_bridge.setup_allow_send_to_offline_players = settings:get_bool('discord_bridge.setup_allow_send_to_offline_players', true)
@@ -72,10 +72,17 @@ discord_bridge.setup_server_down_color = settings:get('discord_bridge.setup_serv
 discord_bridge.setup_not_logged_in_color = settings:get('discord_bridge.setup_not_logged_in_color') or '#46e8e8'
 discord_bridge.setup_password_leak_color = settings:get('discord_bridge.setup_password_leak_color') or '#ed9d42'
 
+discord_bridge.setup_channel_ids_table = {}
+for id in string.gmatch(discord_bridge.setup_channel_ids, "[0-9]+") do
+	table.insert(discord_bridge.setup_channel_ids_table, id)
+end
+
+assert(#discord_bridge.setup_channel_ids_table ~= 0, 'discord_bridge.setup_channel_ids is invalid')
+
 discord_bridge.server_config = {
     token = discord_bridge.setup_token,
     command_prefix = discord_bridge.setup_command_prefix,
-    channel_id = discord_bridge.setup_channel_id,
+    channel_ids = discord_bridge.setup_channel_ids_table,
     allow_commands = discord_bridge.setup_allow_commands,
     allow_logins = discord_bridge.setup_allow_logins,
     allow_send_to_offline_players = discord_bridge.setup_allow_send_to_offline_players,
@@ -93,9 +100,7 @@ discord_bridge.mod_storage = minetest.get_mod_storage()
 
 discord_bridge.ready = false
 
-if discord_bridge.setup_token == '' or discord_bridge.setup_channel_id == 0 then
-    error('setup_token or setup_channel_id not set')
-end
+assert(discord_bridge.setup_token ~= '', 'setup_token not set')
 
 function discord_bridge.main_loop()
 minetest.log('verbose', 'discord_bridge.main_loop is invoked')
