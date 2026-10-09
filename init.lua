@@ -110,8 +110,9 @@ discord_bridge.ready = true
 discord_bridge.msg_queue = ''
 
 function discord_bridge.escape_message(str, always)
+    str = minetest.strip_escapes(str)
     if not discord_bridge.escape_formatting and not always then return str end
-    return (str:gsub("\\", "\\\\"):gsub("%*", "\\*"):gsub("_", "\\_"):gsub("^#", "\\#")):gsub("\n#", "\n")
+    return (str:gsub("([_*~\\`%[%]()<>|])", "\\%1"):gsub("^#", "\\#"):gsub("\n#", "\n\\#"):gsub("(https?://)(/*[^ /])", "`%1`%2"))
 end
 
 discord_bridge.old_msg_func = minetest.registered_chatcommands['msg'].func
