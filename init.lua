@@ -555,7 +555,7 @@ if discord_bridge.send_deaths then
 end
 
 local timer = 0
-local login_request_timer = 0
+local login_request_timer = 20
 local ongoing = nil
 minetest.register_globalstep(function(dtime)
     if dtime then
@@ -621,12 +621,6 @@ if discord_bridge.send_server_startup and os.time() - discord_bridge.game_startu
             (discord_bridge.include_server_status_on_startup and " - " .. discord_bridge.escape_message(minetest.get_server_status(), true) or ""))
     end
 end
-
-http.fetch({
-    url = tostring(host)..':'..tostring(port),
-    timeout = timeout,
-    post_data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
-}, discord_bridge.handle_response)
 
 minetest.register_on_leaveplayer(function (player)
     local name = player:get_player_name()
