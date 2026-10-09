@@ -168,10 +168,8 @@ async def handle(request):
                 if 'context' in data:
                     id = int(data['context'])
                     target_channel = bot.get_partial_messageable(id)
-                    # for chunk in chunks:
                     await target_channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
                             description=embed_description))
-                # elif incoming_msgs is None:
                 elif 'userid' in data:
                     userid = int(data['userid'])
                     user = bot.get_user(userid)
@@ -180,14 +178,9 @@ async def handle(request):
                     await user.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
                             description=embed_description))
                 else:
-                    # for chunk in chunks:
                     for channel in channels:
                         await channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
                                 description=embed_description))
-                # else:
-                #     for chunk in chunks:
-                #         incoming_msgs.append({'msg': chunk, 'color': discord.Color.from_str(data['embed_color']),
-                #             'description': (data['embed_description'] if data['embed_description'] else None)})
             else:
                 if 'context' in data:
                     id = int(data['context'])
@@ -201,14 +194,10 @@ async def handle(request):
                         user = await bot.fetch_user(userid)
                     for chunk in chunks:
                         await user.send(chunk)
-                # elif incoming_msgs is None:
                 else:
                     for channel in channels:
                         for chunk in chunks:
                             await channel.send(chunk)
-                # else:
-                #     for chunk in chunks:
-                #         incoming_msgs.append({'msg': chunk})
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
@@ -477,30 +466,8 @@ The login will:
                 data['context'] = str(ctx.channel.id)
             coords_queue.add(data)
 
-# async def send_messages():
-#     while True:
-#         await asyncio.sleep(3)
-#         # if channel is None or not incoming_msgs:
-#         if channel is None:
-#             continue
-
-#         to_send = []
-#         msglen = 0
-#         while incoming_msgs and msglen + len(incoming_msgs[0]['msg']) <= 2000:
-#             msg = incoming_msgs.popleft()
-#             to_send.append(msg['msg'])
-#             msglen += len(msg['msg']) + 1
-
-#         try:
-#             await asyncio.wait_for(channel.send('\n'.join(to_send)),
-#                                    timeout=10)
-#         except Exception:
-#             traceback.print_exc()
-
 async def on_startup(app):
     asyncio.create_task(bot.start(token))
-    # if incoming_msgs is not None:
-    #     asyncio.create_task(send_messages())
 
 app.on_startup.append(on_startup)
 
