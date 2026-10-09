@@ -227,10 +227,6 @@ local function replace(str, ...)
         return arg[tonumber(matched)]
     end))
 end
--- Allow the chat message format to be customised by other mods
-function discord_bridge.format_chat_message(name, msg)
-    return (discord_bridge.chat_message_format):format(name, msg)
-end
 
 function discord_bridge.handle_response(response)
     local data = response.data
@@ -254,7 +250,7 @@ function discord_bridge.handle_response(response)
             if discord_bridge.clean_invites then
                 message.content = message.content:gsub("%S*discord%.gg%S*", ""):gsub("%S*discordapp%.com/invite%S*", "")
             end
-            local msg = discord_bridge.format_chat_message(message.author, message.content)
+            local msg = (discord_bridge.chat_message_format):format(message.author, message.content)
             minetest.chat_send_all(minetest.colorize(discord_bridge.text_colorization, msg))
             if irc_enabled then
                 irc.say(msg)
