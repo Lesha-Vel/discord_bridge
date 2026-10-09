@@ -221,7 +221,6 @@ end)
 local irc_enabled = minetest.get_modpath("irc")
 local xban2_enabled = minetest.get_modpath("xban2")
 
-
 local function replace(str, ...)
     local arg = {...}
     return (str:gsub("@(.)", function(matched)
@@ -502,7 +501,6 @@ minetest.after(0, minetest.register_on_chat_message, function(name, message)
     name = name:gsub("_", "\\_")
     discord_bridge.send_buffered(replace(discord_bridge.name_wrapper, name) .. discord_bridge.escape_message(message))
 end)
-
 
 if discord_bridge.send_joins then
     minetest.after(0, minetest.register_on_joinplayer, function(player, last_login)
