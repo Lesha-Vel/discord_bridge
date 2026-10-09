@@ -2,8 +2,8 @@
 discord_bridge.host (Address of server.py) string 127.0.0.1
 discord_bridge.port (Port to run the relay on.) int 9692
 discord_bridge.text_color (Custom color for messages relayed from Discord.) string #ffffff
-discord_bridge.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool false
-discord_bridge.send_every_3s (buffer messages for 3 seconds to avoid discord limits) bool false
+discord_bridge.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool true
+discord_bridge.send_every_3s (buffer messages for 3 seconds to avoid discord limits) bool true
 [Options]
 discord_bridge.clean_invites (Clean Discord invites) bool true
 discord_bridge.date (Date format string) string %m/%d/%Y %I:%M%p
@@ -12,7 +12,7 @@ discord_bridge.send_server_shutdown (Send server shutdowns) bool true
 discord_bridge.include_server_status_on_startup (Include server status in startup notification) bool true
 discord_bridge.include_server_status_on_shutdown (Include server status in shutdown notification) bool true
 discord_bridge.send_joins (Notification on player join) bool true
-discord_bridge.send_last_login (Include last login in notification on player join) bool false
+discord_bridge.send_last_login (Include last login in notification on player join) bool true
 discord_bridge.send_leaves (Notification on player leave) bool true
 discord_bridge.send_welcomes (Notification on player welcome) bool true
 discord_bridge.send_deaths (Notification on player death) bool true
@@ -32,7 +32,7 @@ discord_bridge.use_embeds_on_welcomes (Use Discord embeds for notifications on p
 discord_bridge.use_embeds_on_deaths (Use Discord embeds for notifications on player death) bool true
 discord_bridge.use_embeds_on_server_updates (Use Discord embeds for server status notifications) bool true
 discord_bridge.use_embeds_on_dm_cmd (Use Discord embeds for DM command answer) bool false
-discord_bridge.use_embeds_on_svc_dms (Use Discord embeds for service DMS) bool false
+discord_bridge.use_embeds_on_svc_dms (Use Discord embeds for service DMS) bool true
 [Colors]
 discord_bridge.startup_color (Startup Discord embed color) string #5865f2
 discord_bridge.shutdown_color (Shut down Discord embed color) string NOT_SET

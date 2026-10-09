@@ -7,9 +7,9 @@ discord_bridge.game_startup_time = os.time()
 -- Configuration
 discord_bridge.host = settings:get('discord_bridge.host') or '127.0.0.1'
 discord_bridge.port = settings:get('discord_bridge.port') or 9692
-discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', false)
+discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', true)
 discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or '#ffffff'
-discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', false)
+discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', true)
 
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
@@ -19,7 +19,7 @@ discord_bridge.send_server_shutdown = settings:get_bool('discord_bridge.send_ser
 discord_bridge.include_server_status_on_startup = settings:get_bool('discord_bridge.include_server_status_on_startup', true)
 discord_bridge.include_server_status_on_shutdown = settings:get_bool('discord_bridge.include_server_status_on_shutdown', true)
 discord_bridge.send_joins = settings:get_bool('discord_bridge.send_joins', true)
-discord_bridge.send_last_login = settings:get_bool('discord_bridge.send_last_login', false)
+discord_bridge.send_last_login = settings:get_bool('discord_bridge.send_last_login', true)
 discord_bridge.send_leaves = settings:get_bool('discord_bridge.send_leaves', true)
 discord_bridge.send_welcomes = settings:get_bool('discord_bridge.send_welcomes', true)
 discord_bridge.send_deaths = settings:get_bool('discord_bridge.send_deaths', true)
@@ -39,7 +39,7 @@ discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord_bridge.use_em
 discord_bridge.use_embeds_on_deaths = settings:get_bool('discord_bridge.use_embeds_on_deaths', true)
 discord_bridge.use_embeds_on_server_updates = settings:get_bool('discord_bridge.use_embeds_on_server_updates', true)
 discord_bridge.use_embeds_on_dm_cmd = settings:get_bool('discord_bridge.use_embeds_on_dm_cmd', false)
-discord_bridge.use_embeds_on_svc_dms = settings:get_bool('discord_bridge.use_embeds_on_svc_dms', false)
+discord_bridge.use_embeds_on_svc_dms = settings:get_bool('discord_bridge.use_embeds_on_svc_dms', true)
 
 discord_bridge.startup_color = settings:get('discord_bridge.startup_color') or '#5865f2'
 discord_bridge.shutdown_color = settings:get('discord_bridge.shutdown_color') or 'NOT_SET'
