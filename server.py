@@ -287,13 +287,14 @@ if commands_allowed:
 
 These commands are prefix commands, meaning you need to run them with the following prefix: `{prefix}`, those includes:
 1. `{prefix}cmd`:     Runs an ingame command from Discord, e.g. `{prefix}cmd msg player hello from discord`
-2. `{prefix}help`:    Shows built-in help from discord.py.. i've mentioned it here because i wanted you to know
-3. `{prefix}login`:   Please use `/login` instead
-4. `{prefix}logout`:  Logs out your ingame account, same as `/logout`, again, `/logout` is a lot more secure
-5. `{prefix}status`:  Lists connected players and server information.
-6. `{prefix}whereis`: Get player coordinates.
-7. `{prefix}whoami`:  Get ingame player name you're now logged in.
-8. `{prefix}sync`:    sync command tree globally (makes slash commands work)
+2. `{prefix}say`:     An alias for `!cmd dc_send`
+3. `{prefix}help`:    Shows built-in help from discord.py.. i've mentioned it here because i wanted you to know
+4. `{prefix}login`:   Please use `/login` instead
+5. `{prefix}logout`:  Logs out your ingame account, same as `/logout`, again, `/logout` is a lot more secure
+6. `{prefix}status`:  Lists connected players and server information.
+7. `{prefix}whereis`: Get player coordinates.
+8. `{prefix}whoami`:  Get ingame player name you're now logged in.
+9. `{prefix}sync`:    sync command tree globally (makes slash commands work)
 The login will:
 1. allow you to run in-game commands
 2. will show you in `/status` in-game
@@ -306,19 +307,18 @@ The login will:
         synced_count = await bot.tree.sync()
         await ctx.send(f'command tree is synced: {len(synced_count)}')
 
-    @bot.command(help='Runs an ingame command from Discord.')
-    async def cmd(ctx, command=commands.parameter(description='in-game command without leading /, if command is for example //help it become /help'), *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
+    async def run_cmd(ctx, command, *, args):
         user = bot.get_user(ctx.author.id)
         if user is None:
             user = await bot.fetch_user(ctx.author.id)
+        if ((not ctx.channel.id in channel_ids and ctx.guild is not None) or
+                not logins_allowed):
+            return
         if not check_timeout():
             if not do_use_embeds:
                 await user.send("The server currently appears to be down.")
             else:
                 await user.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
-            return
-        if ((not ctx.channel.id in channel_ids and ctx.guild is not None) or
-                not logins_allowed):
             return
         if ctx.author.id not in authenticated_users:
             if not do_use_embeds:
@@ -334,6 +334,14 @@ The login will:
         if ctx.guild is None:
             command['context'] = str(ctx.channel.id)
         command_queue.add(command)
+
+    @bot.command(help='Runs an ingame command from Discord.')
+    async def cmd(ctx, command=commands.parameter(description='in-game command without leading /, if command is for example //help it become /help'), *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
+        return await run_cmd(ctx=ctx, command=command, args=args)
+
+    @bot.command(help='an alias for `!cmd dc_send`')
+    async def say(ctx, *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
+        return await run_cmd(ctx=ctx, command='dc_send', args=args)
 
     if logins_allowed:
         @bot.command(name='login', help='Logs into your ingame account from Discord so you can run '

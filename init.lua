@@ -151,7 +151,7 @@ minetest.register_chatcommand("dc_send", {
             return false, '-!- You don\'t have permission to shout.'
         end
         if not param:find("[^%s]") then
-            return false, '-!- Empty messages are not allowed.'
+            return true
         end
         local handled = false
         for _, v in ipairs(minetest.registered_on_chat_messages) do
