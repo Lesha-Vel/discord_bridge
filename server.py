@@ -307,43 +307,42 @@ The login will:
         synced_count = await bot.tree.sync()
         await ctx.send(f'command tree is synced: {len(synced_count)}')
 
-    async def run_cmd(ctx, command, *, args):
-        user = bot.get_user(ctx.author.id)
-        if user is None:
-            user = await bot.fetch_user(ctx.author.id)
-        if ((not ctx.channel.id in channel_ids and ctx.guild is not None) or
-                not logins_allowed):
-            return
-        if not check_timeout():
-            if not do_use_embeds:
-                await user.send("The server currently appears to be down.")
-            else:
-                await user.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
-            return
-        if ctx.author.id not in authenticated_users:
-            if not do_use_embeds:
-                await user.send('Not logged in.')
-            else:
-                await user.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
-            return
-        command = {
-            'name': authenticated_users[ctx.author.id],
-            'command': command,
-            'params': args.replace('\n', '')
-        }
-        if ctx.guild is None:
-            command['context'] = str(ctx.channel.id)
-        command_queue.add(command)
-
-    @bot.command(help='Runs an ingame command from Discord.')
-    async def cmd(ctx, command=commands.parameter(description='in-game command without leading /, if command is for example //help it become /help'), *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
-        return await run_cmd(ctx=ctx, command=command, args=args)
-
-    @bot.command(help='an alias for `!cmd dc_send`')
-    async def say(ctx, *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
-        return await run_cmd(ctx=ctx, command='dc_send', args=args)
-
     if logins_allowed:
+        async def run_cmd(ctx, command, *, args):
+            user = bot.get_user(ctx.author.id)
+            if user is None:
+                user = await bot.fetch_user(ctx.author.id)
+            if (not ctx.channel.id in channel_ids and ctx.guild is not None):
+                return
+            if not check_timeout():
+                if not do_use_embeds:
+                    await user.send("The server currently appears to be down.")
+                else:
+                    await user.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
+                return
+            if ctx.author.id not in authenticated_users:
+                if not do_use_embeds:
+                    await user.send('Not logged in.')
+                else:
+                    await user.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
+                return
+            command = {
+                'name': authenticated_users[ctx.author.id],
+                'command': command,
+                'params': args.replace('\n', '')
+            }
+            if ctx.guild is None:
+                command['context'] = str(ctx.channel.id)
+            command_queue.add(command)
+
+        @bot.command(help='Runs an ingame command from Discord.')
+        async def cmd(ctx, command=commands.parameter(description='in-game command without leading /, if command is for example //help it become /help'), *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
+            return await run_cmd(ctx=ctx, command=command, args=args)
+
+        @bot.command(help='an alias for `!cmd dc_send`')
+        async def say(ctx, *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
+            return await run_cmd(ctx=ctx, command='dc_send', args=args)
+
         @bot.command(name='login', help='Logs into your ingame account from Discord so you can run '
                           'commands and receive direct messages if allowed. You '
                           'should only run this command in DMs with the bot.')
