@@ -446,13 +446,11 @@ function discord_bridge.handle_response(response)
 end
 
 function discord_bridge.send(message, id, embed_color, embed_description, userid)
-    local content
     local data = {
         type = 'DISCORD-RELAY-MESSAGE'
     }
     if message then
-        content = minetest.strip_colors(message)
-        data['content'] = content
+        data['content'] = message
     else
         data['content'] = nil
     end
