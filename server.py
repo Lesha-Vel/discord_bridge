@@ -34,6 +34,7 @@ send_backend_startups = True
 do_use_embeds = True
 send_to_offline_players_allowed = True
 whereis_allowed = True
+mirror_chats = True
 
 server_down_color = '#ede442'
 not_logged_in_color = '#46e8e8'
@@ -44,7 +45,7 @@ async def handle_setup_root(request):
 
 async def handle_setup_packet(request):
     global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
-    global send_to_offline_players_allowed, whereis_allowed, server_down_color, not_logged_in_color, password_leak_color
+    global send_to_offline_players_allowed, whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color
     if request.app['setup_packet_received']:
         print('setup packet already received')
         return web.Response()
@@ -63,6 +64,7 @@ async def handle_setup_packet(request):
     do_use_embeds = response['use_embeds']
     send_to_offline_players_allowed = response['allow_send_to_offline_players']
     whereis_allowed = response['allow_whereis']
+    mirror_chats = response['mirror_chats']
     server_down_color = response['server_down_color']
     not_logged_in_color = response['not_logged_in_color']
     password_leak_color = response['password_leak_color']
@@ -123,7 +125,7 @@ last_request = 0
 
 channels = []
 for i in channel_ids:
-    channels.append(bot.get_partial_messageable(i))
+    channels.append([i, bot.get_partial_messageable(i)])
 
 # user id -> playername
 authenticated_users = {}
@@ -179,7 +181,7 @@ async def handle(request):
                             description=embed_description))
                 else:
                     for channel in channels:
-                        await channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
+                        await channel[1].send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
                                 description=embed_description))
             else:
                 if 'context' in data:
@@ -197,7 +199,7 @@ async def handle(request):
                 else:
                     for channel in channels:
                         for chunk in chunks:
-                            await channel.send(chunk)
+                            await channel[1].send(chunk)
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
@@ -259,15 +261,20 @@ app.add_routes([web.post('/setup', setup_already_completed)])
 
 @bot.event
 async def on_message(message):
-    if check_timeout() and (message.channel.id in channel_ids and
-        message.author.id != bot.user.id):
-        msg = {
-            'author': (message.author.display_name
-                       if do_use_nicknames else message.author.name),
-            'content': message.content.replace('\n', '/')
-        }
-        if msg['content'] != '':
-            outgoing_msgs.add(msg)
+    if message.channel.id in channel_ids and message.author.id != bot.user.id:
+        author = (message.author.display_name if do_use_nicknames else message.author.name)
+        if mirror_chats:
+            for channel in channels:
+                if channel[0] != message.channel.id:
+                    await channel[1].send(author + '@Discord: ' + message.content.replace('\n', '/'))
+
+        if check_timeout():
+            msg = {
+                'author': author,
+                'content': message.content.replace('\n', '/')
+            }
+            if msg['content'] != '':
+                outgoing_msgs.add(msg)
 
     await bot.process_commands(message)
 
@@ -275,7 +282,7 @@ if send_backend_startups:
     @bot.event
     async def on_ready():
         for channel in channels:
-            await channel.send("discord_bridge backend started")
+            await channel[1].send("discord_bridge backend started")
 
 if commands_allowed:
     @bot.tree.command(name='help', description='Want to know how to use discord_bridge? use this command')

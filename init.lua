@@ -10,6 +10,7 @@ discord_bridge.port = settings:get('discord_bridge.port') or 9692
 discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', true)
 discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or '#ffffff'
 discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', true)
+discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', true)
 
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
@@ -92,7 +93,8 @@ discord_bridge.server_config = {
     use_embeds = discord_bridge.setup_use_embeds,
     server_down_color = discord_bridge.setup_server_down_color,
     not_logged_in_color = discord_bridge.setup_not_logged_in_color,
-    password_leak_color = discord_bridge.setup_password_leak_color
+    password_leak_color = discord_bridge.setup_password_leak_color,
+    mirror_chats = discord_bridge.mirror_chats
 }
 
 discord_bridge.authenticated_users = {}
