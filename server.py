@@ -439,8 +439,8 @@ The login will:
 
     @bot.command(help='Get ingame player name you\'re now logged in.')
     async def whoami(ctx):
-        name = underscore_re.sub('\\_', authenticated_users[ctx.author.id])
         if ctx.author.id in authenticated_users:
+            name = underscore_re.sub('\\_', authenticated_users[ctx.author.id])
             if not do_use_embeds:
                 await ctx.send('your ingame name is: ' + name)
             else:
