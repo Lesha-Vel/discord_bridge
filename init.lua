@@ -74,9 +74,7 @@ discord_bridge.setup_password_leak_color = settings:get('discord_bridge.setup_pa
 discord_bridge.timeout = 10
 
 discord_bridge.setup_channel_ids_table = {}
-for id in string.gmatch(discord_bridge.setup_channel_ids, "[0-9]+") do
-	table.insert(discord_bridge.setup_channel_ids_table, id)
-end
+discord_bridge.setup_channel_ids_table = string.split(discord_bridge.setup_channel_ids, ',%s?', false, -1, true)
 
 assert(#discord_bridge.setup_channel_ids_table ~= 0, 'discord_bridge.setup_channel_ids is invalid')
 
