@@ -26,6 +26,7 @@ remote_allowed = args.allow_remote
 token = ''
 prefix = ''
 channel_ids = []
+channel_names = {}
 
 commands_allowed = True
 logins_allowed = True
@@ -56,7 +57,9 @@ async def handle_setup_packet(request):
     prefix = response['command_prefix']
     channel_ids_str = response['channel_ids']
     for i in channel_ids_str:
-        channel_ids.append(int(i))
+        channel_ids.append(int(i[0]))
+        if len(i) == 2:
+            channel_names[int(i[0])] = i[1]
     commands_allowed = response['allow_commands']
     logins_allowed = response['allow_logins']
     do_use_nicknames = response['use_nicknames']
@@ -266,7 +269,8 @@ async def on_message(message):
         if mirror_chats:
             for channel in channels:
                 if channel[0] != message.channel.id:
-                    await channel[1].send(author + '@Discord: ' + message.content.replace('\n', '/'))
+                    await channel[1].send(author + '@' + (channel_names[message.channel.id] if message.channel.id in channel_names else 'Discord') +
+                        ': ' + message.content.replace('\n', '/'))
 
         if check_timeout():
             msg = {
