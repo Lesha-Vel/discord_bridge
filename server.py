@@ -266,7 +266,7 @@ app.add_routes([web.post('/setup', setup_already_completed)])
 async def on_message(message):
     if message.channel.id in channel_ids and message.author.id != bot.user.id:
         author = (message.author.display_name if do_use_nicknames else message.author.name)
-        if mirror_chats:
+        if mirror_chats and not message.content.startswith('!login '):
             for channel in channels:
                 if channel[0] != message.channel.id:
                     await channel[1].send(author + '@' + (channel_names[message.channel.id] if message.channel.id in channel_names else 'Discord') +
