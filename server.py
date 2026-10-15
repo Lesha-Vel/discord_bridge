@@ -215,9 +215,9 @@ async def handle(request):
             if data['success']:
                 if send_to_offline_players_allowed:
                     send_user_list = True
-                    if user_id in authenticated_users:
-                        del authenticated_users_ids[authenticated_users[user_id]]
-                    authenticated_users_ids[data['username']] = user_id
+                if user_id in authenticated_users:
+                    del authenticated_users_ids[authenticated_users[user_id]]
+                authenticated_users_ids[data['username']] = user_id
                 authenticated_users[user_id] = data['username']
         if send_to_offline_players_allowed and request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
             if data['playername'] in authenticated_users_ids:
@@ -250,7 +250,8 @@ async def handle(request):
     }
     if send_user_list or announce_logout:
         announce_logout = False
-        responseObject['logged_in_users'] = list(authenticated_users_ids.keys())
+        if send_to_offline_players_allowed:
+            responseObject['logged_in_users'] = list(authenticated_users_ids.keys())
     response = json.dumps(responseObject)
     return web.Response(text=response)
 
@@ -312,7 +313,7 @@ The login will:
 3. allow in-game players to dm you in discord
 '''), ephemeral=True)
 
-    @bot.command(help='sync command tree globally (makes slash commands work)')
+    @bot.command(help='sync command tree globally (makes slash commands work) (admin only)')
     @commands.is_owner()
     async def sync(ctx):
         if not ctx.channel.id in channel_ids and ctx.guild is not None:
@@ -459,6 +460,25 @@ The login will:
                     del authenticated_users_ids[authenticated_users[ctx.author.id]]
             if ctx.author.id in authenticated_users:
                 del authenticated_users[ctx.author.id]
+
+    @bot.command(help='kick a discord user from luanti (admin only)')
+    @commands.is_owner()
+    async def kick(ctx, username=commands.parameter(description='in-game name to kick')):
+        if not ctx.channel.id in channel_ids and ctx.guild is not None:
+            return
+        if not do_use_embeds:
+            await ctx.send("kick was invoked for user: " + username, delete_after=10, ephemeral=True)
+        else:
+            await ctx.send(embed = discord.Embed(title = "kick was invoked for user: " + username,
+                       color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
+        global announce_logout
+        id = authenticated_users_ids[username]
+        if send_to_offline_players_allowed:
+            announce_logout = True
+            if authenticated_users[id] in authenticated_users_ids:
+                del authenticated_users_ids[authenticated_users[id]]
+        if id in authenticated_users:
+            del authenticated_users[id]
 
     @bot.command(help='Get ingame player name you\'re now logged in.')
     async def whoami(ctx):
