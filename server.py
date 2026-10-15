@@ -356,6 +356,23 @@ The login will:
         async def say(ctx, *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
             return await run_cmd(ctx=ctx, command='dc_send', args=args)
 
+        @bot.command(help='list logged in discord users')
+        async def logins(ctx):
+            if not ctx.channel.id in channel_ids and ctx.guild is not None:
+                return
+            msg = 'logged in users: '
+            first = True
+            for i in authenticated_users.values():
+                msg += (', ' if not first else '') + i
+                first = False
+
+            if first:
+                msg = 'there\'re no users currently logged in'
+            if not do_use_embeds:
+                await ctx.send(msg)
+            else:
+                await ctx.send(embed = discord.Embed(title = msg))
+
         @bot.command(name='login', help='Logs into your ingame account from Discord so you can run '
                           'commands and receive direct messages if allowed. You '
                           'should only run this command in DMs with the bot.')
