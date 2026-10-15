@@ -106,13 +106,6 @@ discord_bridge.ready = false
 
 assert(discord_bridge.setup_token ~= '', 'setup_token not set')
 
-function discord_bridge.main_loop()
-minetest.log('verbose', 'discord_bridge.main_loop is invoked')
-if discord_bridge.ready then return end
-minetest.log('verbose', 'discord_bridge.main_loop is started')
-discord_bridge.ready = true
-discord_bridge.msg_queue = ''
-
 function discord_bridge.escape_message(str, always)
     str = minetest.strip_escapes(str)
     if not discord_bridge.escape_formatting and not always then return str end
@@ -140,8 +133,10 @@ minetest.override_chatcommand('msg', {
 discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
 minetest.override_chatcommand('me', {
     func = function(name, param)
-        local msg = name:gsub("_", "\\_") .. ' ' .. param
-        discord_bridge.send_buffered('\\* ' .. discord_bridge.escape_message(msg))
+        if discord_bridge.ready then
+            local msg = name:gsub("_", "\\_") .. ' ' .. param
+            discord_bridge.send_buffered('\\* ' .. discord_bridge.escape_message(msg))
+        end
         return discord_bridge.old_me_func(name, param)
     end
 })
@@ -242,7 +237,7 @@ minetest.get_server_status = function (name, joined)
 	return new_status
 end
 
-minetest.register_on_prejoinplayer(function (name, ip)
+minetest.register_on_prejoinplayer(function (name)
     if name == 'discord_relay' then
         return 'this name is reserver for discord_bridge mod internal usage'
     end
@@ -257,6 +252,13 @@ function discord_bridge.replace(str, ...)
         return arg[tonumber(matched)]
     end))
 end
+
+function discord_bridge.main_loop()
+minetest.log('verbose', 'discord_bridge.main_loop is invoked')
+if discord_bridge.ready then return end
+minetest.log('verbose', 'discord_bridge.main_loop is started')
+discord_bridge.ready = true
+discord_bridge.msg_queue = ''
 
 function discord_bridge.handle_response(response)
     local data = response.data
@@ -645,6 +647,7 @@ if discord_bridge.send_server_startup and os.time() - discord_bridge.game_startu
             (discord_bridge.include_server_status_on_startup and " - " .. discord_bridge.escape_message(minetest.get_server_status(), true) or ""))
     end
 end
+end
 
 minetest.register_on_leaveplayer(function (player)
     local name = player:get_player_name()
@@ -661,7 +664,6 @@ minetest.register_on_shutdown(function()
         discord_bridge.mod_storage:set_string('_' .. name, pos_str)
     end
 end)
-end
 
 local setup_timer = 0
 local setup_completed = false
