@@ -315,16 +315,18 @@ The login will:
     @bot.command(help='sync command tree globally (makes slash commands work)')
     @commands.is_owner()
     async def sync(ctx):
+        if not ctx.channel.id in channel_ids and ctx.guild is not None:
+            return
         synced_count = await bot.tree.sync()
         await ctx.send(f'command tree is synced: {len(synced_count)}')
 
     if logins_allowed:
         async def run_cmd(ctx, command, *, args):
+            if (not ctx.channel.id in channel_ids and ctx.guild is not None):
+                return
             user = bot.get_user(ctx.author.id)
             if user is None:
                 user = await bot.fetch_user(ctx.author.id)
-            if (not ctx.channel.id in channel_ids and ctx.guild is not None):
-                return
             if not check_timeout():
                 if not do_use_embeds:
                     await user.send("The server currently appears to be down.")
@@ -358,6 +360,8 @@ The login will:
                           'commands and receive direct messages if allowed. You '
                           'should only run this command in DMs with the bot.')
         async def login_prefix(ctx, username=commands.parameter(description='in-game player name'), password=commands.parameter(description='in-game password', default='')):
+            if not ctx.channel.id in channel_ids and ctx.guild is not None:
+                return
             if ctx.guild is not None:
                 if not do_use_embeds:
                     await ctx.send(ctx.author.mention + ' You\'ve quite possibly just '
@@ -424,6 +428,8 @@ The login will:
 
         @bot.hybrid_command(help='Logs out your ingame account')
         async def logout(ctx):
+            if not ctx.channel.id in channel_ids and ctx.guild is not None and not ctx.interaction:
+                return
             if not do_use_embeds:
                 await ctx.send("logout was invoked", delete_after=10, ephemeral=True)
             else:
@@ -439,6 +445,8 @@ The login will:
 
     @bot.command(help='Get ingame player name you\'re now logged in.')
     async def whoami(ctx):
+        if not ctx.channel.id in channel_ids and ctx.guild is not None:
+            return
         if ctx.author.id in authenticated_users:
             name = underscore_re.sub('\\_', authenticated_users[ctx.author.id])
             if not do_use_embeds:
@@ -453,13 +461,13 @@ The login will:
 
     @bot.command(help='Lists connected players and server information.')
     async def status(ctx):
+        if not ctx.channel.id in channel_ids and ctx.guild is not None:
+            return
         if not check_timeout():
             if not do_use_embeds:
                 await ctx.send("The server currently appears to be down.")
             else:
                 await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
-            return
-        if not ctx.channel.id in channel_ids and ctx.guild is not None:
             return
         data = {}
         if ctx.guild is None:
@@ -469,6 +477,8 @@ The login will:
     if whereis_allowed:
         @bot.command(help='Get player coordinates.')
         async def whereis(ctx, player=commands.parameter(description='player name in-game')):
+            if not ctx.channel.id in channel_ids and ctx.guild is not None:
+                return
             if not check_timeout():
                 if not do_use_embeds:
                     await ctx.send("The server currently appears to be down.")
