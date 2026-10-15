@@ -494,15 +494,14 @@ end
 if discord_bridge.send_every_3s then
     local send_timer = 0
     minetest.register_globalstep(function (dtime)
-        if dtime then
-            send_timer = send_timer + dtime
-            if discord_bridge.msg_queue ~= '' and (send_timer > 3 or
-                #discord_bridge.msg_queue > 1999 - math.min(tonumber(settings:get('chat_message_max_size')) or 500, 800)) then
-                discord_bridge.send(discord_bridge.msg_queue)
-                discord_bridge.msg_queue = ''
-                send_timer = 0
-            end
-        end
+        if not dtime then return end
+        send_timer = send_timer + dtime
+        if discord_bridge.msg_queue == '' or (send_timer <= 3 and
+            #discord_bridge.msg_queue < 2000 - math.min(tonumber(settings:get('chat_message_max_size')) or 500, 800))
+            then return end
+        discord_bridge.send(discord_bridge.msg_queue)
+        discord_bridge.msg_queue = ''
+        send_timer = 0
     end)
 end
 
@@ -584,37 +583,34 @@ local timer = 0
 local login_request_timer = 20
 local ongoing = nil
 minetest.register_globalstep(function(dtime)
-    if dtime then
-        timer = timer + dtime
-        login_request_timer = login_request_timer + dtime
-        if login_request_timer > 15 then
-            http.fetch({
+    if not dtime then return end
+    timer = timer + dtime
+    login_request_timer = login_request_timer + dtime
+    if login_request_timer > 15 then
+        http.fetch({
+            url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+            timeout = discord_bridge.timeout,
+            post_data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
+        }, discord_bridge.handle_response)
+        login_request_timer = 0
+    end
+    if timer > 0.2 then
+        if not ongoing then
+            ongoing = http.fetch_async({
                 url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
                 timeout = discord_bridge.timeout,
-                post_data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
-            }, discord_bridge.handle_response)
-            login_request_timer = 0
-        end
-        if timer > 0.2 then
-            if not ongoing then
+            })
+        else
+            local res = http.fetch_async_get(ongoing)
+            if res.completed == true then
+                discord_bridge.handle_response(res)
                 ongoing = http.fetch_async({
                     url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
                     timeout = discord_bridge.timeout,
                 })
-            else
-                local res = http.fetch_async_get(ongoing)
-
-                if res.completed == true then
-                    discord_bridge.handle_response(res)
-                    ongoing = http.fetch_async({
-                        url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
-                        timeout = discord_bridge.timeout,
-                    })
-                end
             end
-
-            timer = 0
         end
+        timer = 0
     end
 end)
 
