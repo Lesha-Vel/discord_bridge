@@ -52,7 +52,7 @@ async def handle_setup_packet(request):
         return web.Response()
     request.app['setup_packet_received'] = True
     response = await request.json()
-    
+
     token = response['token']
     prefix = response['command_prefix']
     channel_ids_str = response['channel_ids']
@@ -71,7 +71,7 @@ async def handle_setup_packet(request):
     server_down_color = response['server_down_color']
     not_logged_in_color = response['not_logged_in_color']
     password_leak_color = response['password_leak_color']
-    
+
     request.app['finished'].set()
     return web.Response(text='{"status": "SUCCESS"}')
 
