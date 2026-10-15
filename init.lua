@@ -126,7 +126,7 @@ minetest.override_chatcommand('msg', {
                 return true, 'DM sent to a discord user ' .. target_player .. ': ' .. message
             end
         end
-	    return discord_bridge.old_msg_func(name, param)
+        return discord_bridge.old_msg_func(name, param)
     end
 })
 
@@ -213,14 +213,14 @@ minetest.register_chatcommand('dc_count', {
 discord_bridge.old_get_server_status = minetest.get_server_status
 
 minetest.get_server_status = function (name, joined)
-	local original_status = discord_bridge.old_get_server_status(name, joined)
-	if original_status == nil then return nil end
+    local original_status = discord_bridge.old_get_server_status(name, joined)
+    if original_status == nil then return nil end
 
-	local new_status = ''
-	local users_list = ''
-	local match = string.find(original_status, '\n')
+    local new_status = ''
+    local users_list = ''
+    local match = string.find(original_status, '\n')
 
-	local first = true
+    local first = true
     for k in pairs(discord_bridge.authenticated_users) do
         if first then
             users_list = users_list .. ' | discord: '
@@ -229,12 +229,12 @@ minetest.get_server_status = function (name, joined)
         first = false
     end
 
-	if match == nil then
-	    new_status = original_status .. users_list
-	else
-	    new_status = original_status:sub(1, match - 1) .. users_list .. original_status:sub(match)
-	end
-	return new_status
+    if match == nil then
+        new_status = original_status .. users_list
+    else
+        new_status = original_status:sub(1, match - 1) .. users_list .. original_status:sub(match)
+    end
+    return new_status
 end
 
 minetest.register_on_prejoinplayer(function (name)
@@ -481,14 +481,14 @@ end
 
 function discord_bridge.send_buffered(message)
     if discord_bridge.send_every_3s then
-	    if discord_bridge.msg_queue ~= '' then
-	        discord_bridge.msg_queue = discord_bridge.msg_queue .. '\n' .. message
-	    else
-	        discord_bridge.msg_queue = message
-	    end
-	else
-	    discord_bridge.send(message)
-	end
+        if discord_bridge.msg_queue ~= '' then
+            discord_bridge.msg_queue = discord_bridge.msg_queue .. '\n' .. message
+        else
+            discord_bridge.msg_queue = message
+        end
+    else
+        discord_bridge.send(message)
+    end
 end
 
 if discord_bridge.send_every_3s then
