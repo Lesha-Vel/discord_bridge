@@ -444,6 +444,15 @@ The login will:
                         await interaction.response.defer()
             await interaction.response.send_modal(password_modal())
 
+        async def register_logout(id):
+            global announce_logout
+            if send_to_offline_players_allowed:
+                announce_logout = True
+                if authenticated_users[id] in authenticated_users_ids:
+                    del authenticated_users_ids[authenticated_users[id]]
+            if id in authenticated_users:
+                del authenticated_users[id]
+
         @bot.hybrid_command(help='Logs out your ingame account')
         async def logout(ctx):
             if not ctx.channel.id in channel_ids and ctx.guild is not None and not ctx.interaction:
@@ -453,32 +462,20 @@ The login will:
             else:
                 await ctx.send(embed = discord.Embed(title = "logout was invoked",
                            color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
-            global announce_logout
-            if send_to_offline_players_allowed:
-                announce_logout = True
-                if authenticated_users[ctx.author.id] in authenticated_users_ids:
-                    del authenticated_users_ids[authenticated_users[ctx.author.id]]
-            if ctx.author.id in authenticated_users:
-                del authenticated_users[ctx.author.id]
+            await register_logout(ctx.author.id)
 
-    @bot.command(help='kick a discord user from luanti (admin only)')
-    @commands.is_owner()
-    async def kick(ctx, username=commands.parameter(description='in-game name to kick')):
-        if not ctx.channel.id in channel_ids and ctx.guild is not None:
-            return
-        if not do_use_embeds:
-            await ctx.send("kick was invoked for user: " + username, delete_after=10, ephemeral=True)
-        else:
-            await ctx.send(embed = discord.Embed(title = "kick was invoked for user: " + username,
-                       color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
-        global announce_logout
-        id = authenticated_users_ids[username]
-        if send_to_offline_players_allowed:
-            announce_logout = True
-            if authenticated_users[id] in authenticated_users_ids:
-                del authenticated_users_ids[authenticated_users[id]]
-        if id in authenticated_users:
-            del authenticated_users[id]
+        @bot.command(help='kick a discord user from luanti (admin only)')
+        @commands.is_owner()
+        async def kick(ctx, username=commands.parameter(description='in-game name to kick')):
+            if not ctx.channel.id in channel_ids and ctx.guild is not None:
+                return
+            if not do_use_embeds:
+                await ctx.send("kick was invoked for user: " + username, delete_after=10, ephemeral=True)
+            else:
+                await ctx.send(embed = discord.Embed(title = "kick was invoked for user: " + username,
+                           color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
+            id = authenticated_users_ids[username]
+            await register_logout(id)
 
     @bot.command(help='Get ingame player name you\'re now logged in.')
     async def whoami(ctx):
