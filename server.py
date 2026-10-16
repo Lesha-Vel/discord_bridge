@@ -448,7 +448,7 @@ The login will:
             global announce_logout
             if send_to_offline_players_allowed:
                 announce_logout = True
-                if authenticated_users[id] in authenticated_users_ids:
+                if id in authenticated_users and authenticated_users[id] in authenticated_users_ids:
                     del authenticated_users_ids[authenticated_users[id]]
             if id in authenticated_users:
                 del authenticated_users[id]
