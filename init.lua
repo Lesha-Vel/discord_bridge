@@ -88,7 +88,6 @@ discord_bridge.server_config = {
     channel_ids = discord_bridge.setup_channel_ids_table,
     allow_commands = discord_bridge.setup_allow_commands,
     allow_logins = discord_bridge.setup_allow_logins,
-    allow_send_to_offline_players = discord_bridge.setup_allow_send_to_offline_players,
     allow_whereis = discord_bridge.setup_allow_whereis,
     use_nicknames = discord_bridge.setup_use_nicknames,
     send_backend_startups = discord_bridge.setup_send_backend_startups,
@@ -112,6 +111,7 @@ function discord_bridge.escape_message(str, always)
     return (str:gsub("([_*~\\`%[%]()<>|])", "\\%1"):gsub("^#", "\\#"):gsub("\n#", "\n\\#"):gsub("(https?://)(/*[^ /])", "`%1`%2"))
 end
 
+if discord_bridge.setup_allow_send_to_offline_players then
 discord_bridge.old_msg_func = minetest.registered_chatcommands['msg'].func
 minetest.override_chatcommand('msg', {
     func = function(name, param)
@@ -129,6 +129,7 @@ minetest.override_chatcommand('msg', {
         return discord_bridge.old_msg_func(name, param)
     end
 })
+end
 
 discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
 minetest.override_chatcommand('me', {
@@ -210,6 +211,7 @@ minetest.register_chatcommand('dc_count', {
     end
 })
 
+if discord_bridge.setup_allow_send_to_offline_players then
 discord_bridge.old_get_server_status = minetest.get_server_status
 
 minetest.get_server_status = function (name, joined)
@@ -235,6 +237,7 @@ minetest.get_server_status = function (name, joined)
         new_status = original_status:sub(1, match - 1) .. users_list .. original_status:sub(match)
     end
     return new_status
+end
 end
 
 minetest.register_on_prejoinplayer(function (name)

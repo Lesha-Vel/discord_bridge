@@ -33,7 +33,6 @@ logins_allowed = True
 do_use_nicknames = True
 send_backend_startups = True
 do_use_embeds = True
-send_to_offline_players_allowed = True
 whereis_allowed = True
 mirror_chats = True
 
@@ -46,7 +45,7 @@ async def handle_setup_root(request):
 
 async def handle_setup_packet(request):
     global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
-    global send_to_offline_players_allowed, whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color
+    global whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color
     if request.app['setup_packet_received']:
         print('setup packet already received')
         return web.Response()
@@ -65,7 +64,6 @@ async def handle_setup_packet(request):
     do_use_nicknames = response['use_nicknames']
     send_backend_startups = response['send_backend_startups']
     do_use_embeds = response['use_embeds']
-    send_to_offline_players_allowed = response['allow_send_to_offline_players']
     whereis_allowed = response['allow_whereis']
     mirror_chats = response['mirror_chats']
     server_down_color = response['server_down_color']
@@ -213,13 +211,12 @@ async def handle(request):
                 user = await bot.fetch_user(user_id)
 
             if data['success']:
-                if send_to_offline_players_allowed:
-                    send_user_list = True
+                send_user_list = True
                 if user_id in authenticated_users:
                     del authenticated_users_ids[authenticated_users[user_id]]
                 authenticated_users_ids[data['username']] = user_id
                 authenticated_users[user_id] = data['username']
-        if send_to_offline_players_allowed and request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
+        if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
             if data['playername'] in authenticated_users_ids:
                 msg = translation_re.sub('', data['content'])
                 msg = underscore_re.sub('\\_', msg)
@@ -233,7 +230,7 @@ async def handle(request):
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
 
-        if send_to_offline_players_allowed and request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
+        if request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
             send_user_list = True
         if startup_setup:
             startup_setup = False
@@ -250,8 +247,7 @@ async def handle(request):
     }
     if send_user_list or announce_logout:
         announce_logout = False
-        if send_to_offline_players_allowed:
-            responseObject['logged_in_users'] = list(authenticated_users_ids.keys())
+        responseObject['logged_in_users'] = list(authenticated_users_ids.keys())
     response = json.dumps(responseObject)
     return web.Response(text=response)
 
@@ -446,8 +442,7 @@ The login will:
 
         async def register_logout(id):
             global announce_logout
-            if send_to_offline_players_allowed:
-                announce_logout = True
+            announce_logout = True
             if id in authenticated_users and authenticated_users[id] in authenticated_users_ids:
                 del authenticated_users_ids[authenticated_users[id]]
             if id in authenticated_users:
