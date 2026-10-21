@@ -5,6 +5,7 @@ discord_bridge.text_color (Custom color for messages relayed from Discord.) stri
 discord_bridge.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool true
 discord_bridge.send_every_3s (buffer messages for 3 seconds to avoid discord limits) bool true
 discord_bridge.mirror_chats (mirror discord channels to each other) bool true
+discord_bridge.persistent_logins (save logins between python restarts) bool true
 [Options]
 discord_bridge.clean_invites (Clean Discord invites) bool true
 discord_bridge.date (Date format string) string %m/%d/%Y %I:%M%p

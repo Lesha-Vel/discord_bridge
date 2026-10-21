@@ -35,6 +35,7 @@ send_backend_startups = True
 do_use_embeds = True
 whereis_allowed = True
 mirror_chats = True
+saved_logins = '[]'
 
 server_down_color = '#ede442'
 not_logged_in_color = '#46e8e8'
@@ -45,7 +46,7 @@ async def handle_setup_root(request):
 
 async def handle_setup_packet(request):
     global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
-    global whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color
+    global whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color, saved_logins
     if request.app['setup_packet_received']:
         print('setup packet already received')
         return web.Response()
@@ -66,6 +67,7 @@ async def handle_setup_packet(request):
     do_use_embeds = response['use_embeds']
     whereis_allowed = response['allow_whereis']
     mirror_chats = response['mirror_chats']
+    saved_logins = response['saved_logins']
     server_down_color = response['server_down_color']
     not_logged_in_color = response['not_logged_in_color']
     password_leak_color = response['password_leak_color']
@@ -132,6 +134,12 @@ for i in channel_ids:
 authenticated_users = {}
 # playername -> user id
 authenticated_users_ids = {}
+
+# load saved logins here
+for i in json.loads(saved_logins):
+    authenticated_users_ids[i['name']] = int(i['id'])
+    authenticated_users[int(i['id'])] = i['name']
+    send_user_list = True
 
 announce_logout = False
 startup_setup = True
@@ -247,7 +255,13 @@ async def handle(request):
     }
     if send_user_list or announce_logout:
         announce_logout = False
-        responseObject['logged_in_users'] = list(authenticated_users_ids.keys())
+        logged_in_users = []
+        for i, j in authenticated_users.items():
+            logged_in_users.append({
+            "id": str(i),
+            "name": j,
+        })
+        responseObject['logged_in_users'] = logged_in_users
     response = json.dumps(responseObject)
     return web.Response(text=response)
 

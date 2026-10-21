@@ -3,6 +3,7 @@ local settings = minetest.settings
 
 local discord_bridge = {}
 discord_bridge.game_startup_time = os.time()
+discord_bridge.mod_storage = minetest.get_mod_storage()
 
 -- Configuration
 discord_bridge.host = settings:get('discord_bridge.host') or '127.0.0.1'
@@ -11,6 +12,7 @@ discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s',
 discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or '#ffffff'
 discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', true)
 discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', true)
+discord_bridge.persistent_logins = settings:get_bool('discord_bridge.persistent_logins', true)
 
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
@@ -82,6 +84,10 @@ end
 
 assert(#discord_bridge.setup_channel_ids_table ~= 0, 'discord_bridge.setup_channel_ids is invalid')
 
+if not discord_bridge.persistent_logins or not discord_bridge.mod_storage:contains('saved_logins') then
+	discord_bridge.mod_storage:set_string('saved_logins', '[]')
+end
+
 discord_bridge.server_config = {
     token = discord_bridge.setup_token,
     command_prefix = discord_bridge.setup_command_prefix,
@@ -95,11 +101,11 @@ discord_bridge.server_config = {
     server_down_color = discord_bridge.setup_server_down_color,
     not_logged_in_color = discord_bridge.setup_not_logged_in_color,
     password_leak_color = discord_bridge.setup_password_leak_color,
-    mirror_chats = discord_bridge.mirror_chats
+    mirror_chats = discord_bridge.mirror_chats,
+    saved_logins = discord_bridge.mod_storage:get_string('saved_logins')
 }
 
 discord_bridge.authenticated_users = {}
-discord_bridge.mod_storage = minetest.get_mod_storage()
 
 discord_bridge.ready = false
 
@@ -269,6 +275,7 @@ function discord_bridge.handle_response(response)
         return
     end
     if data == 'NO_SETUP' then
+        discord_bridge.server_config['saved_logins'] = discord_bridge.mod_storage:get_string('saved_logins')
         http.fetch({
             url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
             timeout = discord_bridge.timeout,
@@ -447,9 +454,14 @@ function discord_bridge.handle_response(response)
         end
     end
     if data.logged_in_users then
+        if discord_bridge.persistent_logins then
+            local json = minetest.write_json(data.logged_in_users)
+            if json == 'null' then json = '[]' end
+            discord_bridge.mod_storage:set_string('saved_logins', json)
+        end
         discord_bridge.authenticated_users = {}
         for _, v in ipairs(data.logged_in_users) do
-            discord_bridge.authenticated_users[v] = true
+            discord_bridge.authenticated_users[v.name] = true
         end
     end
 end
