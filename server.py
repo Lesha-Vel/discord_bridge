@@ -152,7 +152,7 @@ for i in json.loads(saved_logins):
     authenticated_users[int(i['id'])] = i['name']
     authenticated_users_timestamps[int(i['id'])] = i['timestamp']
 
-announce_logout = True
+send_user_list = True
 
 def check_timeout():
     return time.time() - last_request <= 1
@@ -161,9 +161,8 @@ translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
 underscore_re = re.compile(r'_')
 
 async def handle(request):
-    global last_request, announce_logout
+    global last_request, send_user_list
     last_request = time.time()
-    send_user_list = False
     try:
         data = {}
         if request.method == 'POST':
@@ -262,8 +261,8 @@ async def handle(request):
         'statuses': status_queue.get_all(),
         'coords': coords_queue.get_all()
     }
-    if send_user_list or announce_logout:
-        announce_logout = False
+    if send_user_list:
+        send_user_list = False
         logged_in_users = []
         for i, j in authenticated_users.items():
             logged_in_users.append({
@@ -471,8 +470,8 @@ The login will:
             await interaction.response.send_modal(password_modal())
 
         def register_logout(id):
-            global announce_logout
-            announce_logout = True
+            global send_user_list
+            send_user_list = True
             if id in authenticated_users and authenticated_users[id] in authenticated_users_ids:
                 del authenticated_users_ids[authenticated_users[id]]
             authenticated_users.pop(id, None)
