@@ -79,9 +79,8 @@ discord_bridge.setup_password_leak_color = settings:get('discord_bridge.setup_pa
 discord_bridge.timeout = 10
 
 discord_bridge.setup_channel_ids_table = {}
-discord_bridge.setup_channel_ids_table_raw = string.split(discord_bridge.setup_channel_ids, ',%s?', false, -1, true)
 
-for _,v in ipairs(discord_bridge.setup_channel_ids_table_raw) do
+for _,v in ipairs(string.split(discord_bridge.setup_channel_ids, ',%s?', false, -1, true)) do
     table.insert(discord_bridge.setup_channel_ids_table, string.split(v, '%s*=%s*', false, 2, true))
 end
 
