@@ -314,6 +314,10 @@ if send_backend_startups:
         for channel in channels:
             await channel[1].send("discord_bridge backend started")
 
+@bot.event
+async def on_command_error(context, exception):
+    traceback.print_exception(exception)
+
 if commands_allowed:
     @bot.tree.command(name='help', description='Want to know how to use discord_bridge? use this command')
     async def help_slash(interaction: discord.Interaction):
