@@ -38,6 +38,7 @@ whereis_allowed = True
 mirror_chats = True
 persistent_logins = True
 date_format = ''
+moderators_table = []
 saved_logins = '[]'
 auto_logout_timeout = 0
 
@@ -50,7 +51,7 @@ async def handle_setup_root(request):
 
 async def handle_setup_packet(request):
     global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds, date_format, persistent_logins
-    global whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color, saved_logins, auto_logout_timeout
+    global whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color, saved_logins, auto_logout_timeout, moderators_table
     if request.app['setup_packet_received']:
         print('setup packet already received')
         return web.Response()
@@ -73,6 +74,7 @@ async def handle_setup_packet(request):
     mirror_chats = response['mirror_chats']
     persistent_logins = response['persistent_logins']
     date_format = response['date_format']
+    moderators_table = response['moderators_table']
     saved_logins = response['saved_logins']
     auto_logout_timeout = response['auto_logout_timeout']
     server_down_color = response['server_down_color']
@@ -500,8 +502,9 @@ The login will:
             register_logout(ctx.author.id)
 
         @bot.command(help='kick a discord user from luanti (admin only)')
-        @commands.is_owner()
         async def kick(ctx, username=commands.parameter(description='in-game name to kick')):
+            if not await bot.is_owner(ctx.author) and not str(ctx.author.id) in moderators_table:
+                return
             if not ctx.channel.id in channel_ids and ctx.guild is not None:
                 return
             if not do_use_embeds:

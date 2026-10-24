@@ -15,6 +15,7 @@ discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', t
 discord_bridge.persistent_logins = settings:get_bool('discord_bridge.persistent_logins', true)
 discord_bridge.auto_logout_timeout = tonumber(settings:get('discord_bridge.auto_logout_timeout')) or 604800
 discord_bridge.login_file = settings:get('discord_bridge.login_file') or 'discord_logins.txt'
+discord_bridge.moderators = settings:get('discord_bridge.moderators') or ''
 
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
@@ -84,6 +85,8 @@ for _,v in ipairs(discord_bridge.setup_channel_ids_table_raw) do
     table.insert(discord_bridge.setup_channel_ids_table, string.split(v, '%s*=%s*', false, 2, true))
 end
 
+discord_bridge.moderators_table = string.split(discord_bridge.moderators, ',%s?', false, -1, true)
+
 assert(#discord_bridge.setup_channel_ids_table ~= 0, 'discord_bridge.setup_channel_ids is invalid')
 
 if not discord_bridge.persistent_logins or not discord_bridge.mod_storage:contains('saved_logins') then
@@ -107,6 +110,7 @@ discord_bridge.server_config = {
     auto_logout_timeout = discord_bridge.auto_logout_timeout,
     date_format = discord_bridge.date,
     persistent_logins = discord_bridge.persistent_logins,
+    moderators_table = discord_bridge.moderators_table,
     saved_logins = discord_bridge.mod_storage:get_string('saved_logins')
 }
 
