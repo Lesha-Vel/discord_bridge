@@ -152,8 +152,7 @@ for i in json.loads(saved_logins):
     authenticated_users[int(i['id'])] = i['name']
     authenticated_users_timestamps[int(i['id'])] = i['timestamp']
 
-announce_logout = False
-startup_setup = True
+announce_logout = True
 
 def check_timeout():
     return time.time() - last_request <= 1
@@ -162,7 +161,7 @@ translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
 underscore_re = re.compile(r'_')
 
 async def handle(request):
-    global last_request, announce_logout, startup_setup
+    global last_request, announce_logout
     last_request = time.time()
     send_user_list = False
     try:
@@ -253,9 +252,6 @@ async def handle(request):
         if request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
             send_user_list = True
             logout_stales()
-        if startup_setup:
-            startup_setup = False
-            send_user_list = True
     except Exception:
         traceback.print_exc()
 
