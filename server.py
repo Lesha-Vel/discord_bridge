@@ -425,6 +425,7 @@ The login will:
             login_queue.add({
                 'username': username,
                 'password': password,
+                'dc_name': ctx.author.name + ':' + ctx.author.display_name,
                 'user_id': str(ctx.author.id),
                 'context': str(ctx.channel.id)
             })
@@ -451,6 +452,7 @@ The login will:
                         'username': self.username.value,
                         'password': self.password.value,
                         'user_id': str(interaction.user.id),
+                        'dc_name': interaction.user.name + ':' + interaction.user.display_name,
                         'context': str(interaction.channel_id)
                     })
                     if not check_timeout():

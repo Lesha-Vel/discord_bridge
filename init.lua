@@ -14,6 +14,7 @@ discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_form
 discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', true)
 discord_bridge.persistent_logins = settings:get_bool('discord_bridge.persistent_logins', true)
 discord_bridge.auto_logout_timeout = tonumber(settings:get('discord_bridge.auto_logout_timeout')) or 604800
+discord_bridge.login_file = settings:get('discord_bridge.login_file') or 'discord_logins.txt'
 
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
@@ -399,6 +400,12 @@ function discord_bridge.handle_response(response)
                 timeout = discord_bridge.timeout,
                 post_data = minetest.write_json(request)
             }, discord_bridge.handle_response)
+            minetest.log('action', 'Discord login: ' .. tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. tostring(result))
+            if discord_bridge.login_file ~= '' then
+                local f = io.open(minetest.get_worldpath() .. '/' .. discord_bridge.login_file, 'a')
+                f:write(tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. tostring(result) .. '\n')
+                f:close()
+            end
             if result then
                 if not discord_bridge.use_embeds_on_svc_dms then
                     discord_bridge.send('Login successful.', nil, nil, nil, v.user_id)
