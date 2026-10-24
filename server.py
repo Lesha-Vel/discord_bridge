@@ -7,6 +7,7 @@ import sys
 import time
 import traceback
 import warnings
+from datetime import datetime
 
 import discord
 from aiohttp import web
@@ -35,6 +36,7 @@ send_backend_startups = True
 do_use_embeds = True
 whereis_allowed = True
 mirror_chats = True
+date_format = ''
 saved_logins = '[]'
 auto_logout_timeout = 0
 
@@ -46,7 +48,7 @@ async def handle_setup_root(request):
     return web.Response(text='NO_SETUP')
 
 async def handle_setup_packet(request):
-    global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
+    global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds, date_format
     global whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color, saved_logins, auto_logout_timeout
     if request.app['setup_packet_received']:
         print('setup packet already received')
@@ -68,6 +70,7 @@ async def handle_setup_packet(request):
     do_use_embeds = response['use_embeds']
     whereis_allowed = response['allow_whereis']
     mirror_chats = response['mirror_chats']
+    date_format = response['date_format']
     saved_logins = response['saved_logins']
     auto_logout_timeout = response['auto_logout_timeout']
     server_down_color = response['server_down_color']
@@ -511,10 +514,17 @@ The login will:
             return
         if ctx.author.id in authenticated_users:
             name = underscore_re.sub('\\_', authenticated_users[ctx.author.id])
-            if not do_use_embeds:
-                await ctx.send('your ingame name is: ' + name)
+            if auto_logout_timeout > 0:
+                remaining_time_str = datetime.fromtimestamp(authenticated_users_timestamps[ctx.author.id] + auto_logout_timeout).strftime(date_format)
+                if not do_use_embeds:
+                    await ctx.send('your ingame name is: ' + name + '\nwill logout at: ' + remaining_time_str)
+                else:
+                    await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name, description='will logout at: ' + remaining_time_str))
             else:
-                await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name))
+                if not do_use_embeds:
+                    await ctx.send('your ingame name is: ' + name)
+                else:
+                    await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name))
         else:
             if not do_use_embeds:
                 await ctx.send('Not logged in.')

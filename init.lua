@@ -104,6 +104,7 @@ discord_bridge.server_config = {
     password_leak_color = discord_bridge.setup_password_leak_color,
     mirror_chats = discord_bridge.mirror_chats,
     auto_logout_timeout = discord_bridge.auto_logout_timeout,
+    date_format = discord_bridge.date,
     saved_logins = discord_bridge.mod_storage:get_string('saved_logins')
 }
 

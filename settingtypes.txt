@@ -9,7 +9,7 @@ discord_bridge.persistent_logins (save logins between python restarts) bool true
 discord_bridge.auto_logout_timeout (time in seconds before discord logout, 0 to disable) int 604800 0
 [Options]
 discord_bridge.clean_invites (Clean Discord invites) bool true
-discord_bridge.date (Date format string) string %m/%d/%Y %I:%M%p
+discord_bridge.date (Date format string, only %[aAbBdHImMpSwyY%] are allowed, %[cxX] not recommended) string %m/%d/%Y %I:%M%p
 discord_bridge.send_server_startup (Send server startups) bool true
 discord_bridge.send_server_shutdown (Send server shutdowns) bool true
 discord_bridge.include_server_status_on_startup (Include server status in startup notification) bool true
