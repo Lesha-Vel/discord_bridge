@@ -105,6 +105,7 @@ discord_bridge.server_config = {
     mirror_chats = discord_bridge.mirror_chats,
     auto_logout_timeout = discord_bridge.auto_logout_timeout,
     date_format = discord_bridge.date,
+    persistent_logins = discord_bridge.persistent_logins,
     saved_logins = discord_bridge.mod_storage:get_string('saved_logins')
 }
 
