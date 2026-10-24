@@ -151,7 +151,6 @@ for i in json.loads(saved_logins):
     authenticated_users_ids[i['name']] = int(i['id'])
     authenticated_users[int(i['id'])] = i['name']
     authenticated_users_timestamps[int(i['id'])] = i['timestamp']
-    send_user_list = True
 
 announce_logout = False
 startup_setup = True
