@@ -13,6 +13,7 @@ discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or 
 discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', true)
 discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', true)
 discord_bridge.persistent_logins = settings:get_bool('discord_bridge.persistent_logins', true)
+discord_bridge.auto_logout_timeout = tonumber(settings:get('discord_bridge.auto_logout_timeout')) or 604800
 
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
@@ -102,6 +103,7 @@ discord_bridge.server_config = {
     not_logged_in_color = discord_bridge.setup_not_logged_in_color,
     password_leak_color = discord_bridge.setup_password_leak_color,
     mirror_chats = discord_bridge.mirror_chats,
+    auto_logout_timeout = discord_bridge.auto_logout_timeout,
     saved_logins = discord_bridge.mod_storage:get_string('saved_logins')
 }
 

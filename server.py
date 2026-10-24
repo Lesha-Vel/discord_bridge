@@ -36,6 +36,7 @@ do_use_embeds = True
 whereis_allowed = True
 mirror_chats = True
 saved_logins = '[]'
+auto_logout_timeout = 0
 
 server_down_color = '#ede442'
 not_logged_in_color = '#46e8e8'
@@ -46,7 +47,7 @@ async def handle_setup_root(request):
 
 async def handle_setup_packet(request):
     global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
-    global whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color, saved_logins
+    global whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color, saved_logins, auto_logout_timeout
     if request.app['setup_packet_received']:
         print('setup packet already received')
         return web.Response()
@@ -68,6 +69,7 @@ async def handle_setup_packet(request):
     whereis_allowed = response['allow_whereis']
     mirror_chats = response['mirror_chats']
     saved_logins = response['saved_logins']
+    auto_logout_timeout = response['auto_logout_timeout']
     server_down_color = response['server_down_color']
     not_logged_in_color = response['not_logged_in_color']
     password_leak_color = response['password_leak_color']
@@ -134,11 +136,14 @@ for i in channel_ids:
 authenticated_users = {}
 # playername -> user id
 authenticated_users_ids = {}
+# user id -> timestamp
+authenticated_users_timestamps = {}
 
 # load saved logins here
 for i in json.loads(saved_logins):
     authenticated_users_ids[i['name']] = int(i['id'])
     authenticated_users[int(i['id'])] = i['name']
+    authenticated_users_timestamps[int(i['id'])] = i['timestamp']
     send_user_list = True
 
 announce_logout = False
@@ -224,6 +229,7 @@ async def handle(request):
                     del authenticated_users_ids[authenticated_users[user_id]]
                 authenticated_users_ids[data['username']] = user_id
                 authenticated_users[user_id] = data['username']
+                authenticated_users_timestamps[user_id] = time.time()
         if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
             if data['playername'] in authenticated_users_ids:
                 msg = translation_re.sub('', data['content'])
@@ -240,6 +246,7 @@ async def handle(request):
 
         if request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
             send_user_list = True
+            logout_stales()
         if startup_setup:
             startup_setup = False
             send_user_list = True
@@ -260,6 +267,7 @@ async def handle(request):
             logged_in_users.append({
             "id": str(i),
             "name": j,
+            "timestamp": authenticated_users_timestamps[i]
         })
         responseObject['logged_in_users'] = logged_in_users
     response = json.dumps(responseObject)
@@ -454,13 +462,24 @@ The login will:
                         await interaction.response.defer()
             await interaction.response.send_modal(password_modal())
 
-        async def register_logout(id):
+        def register_logout(id):
             global announce_logout
             announce_logout = True
             if id in authenticated_users and authenticated_users[id] in authenticated_users_ids:
                 del authenticated_users_ids[authenticated_users[id]]
-            if id in authenticated_users:
-                del authenticated_users[id]
+            authenticated_users.pop(id, None)
+            authenticated_users_timestamps.pop(id, None)
+
+        def logout_stales():
+            if auto_logout_timeout == 0:
+                return
+            logout_ids = []
+            for i, j in authenticated_users_timestamps.items():
+                if time.time() - j > auto_logout_timeout:
+                    logout_ids.append(i)
+            for i in logout_ids:
+                register_logout(i)
+        logout_stales()
 
         @bot.hybrid_command(help='Logs out your ingame account')
         async def logout(ctx):
@@ -471,7 +490,7 @@ The login will:
             else:
                 await ctx.send(embed = discord.Embed(title = "logout was invoked",
                            color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
-            await register_logout(ctx.author.id)
+            register_logout(ctx.author.id)
 
         @bot.command(help='kick a discord user from luanti (admin only)')
         @commands.is_owner()
@@ -484,7 +503,7 @@ The login will:
                 await ctx.send(embed = discord.Embed(title = "kick was invoked for user: " + username,
                            color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
             id = authenticated_users_ids[username]
-            await register_logout(id)
+            register_logout(id)
 
     @bot.command(help='Get ingame player name you\'re now logged in.')
     async def whoami(ctx):

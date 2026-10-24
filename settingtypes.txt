@@ -6,6 +6,7 @@ discord_bridge.escape_formatting (escape special symbols like backslash, asteris
 discord_bridge.send_every_3s (buffer messages for 3 seconds to avoid discord limits) bool true
 discord_bridge.mirror_chats (mirror discord channels to each other) bool true
 discord_bridge.persistent_logins (save logins between python restarts) bool true
+discord_bridge.auto_logout_timeout (time in seconds before discord logout, 0 to disable) int 604800 0
 [Options]
 discord_bridge.clean_invites (Clean Discord invites) bool true
 discord_bridge.date (Date format string) string %m/%d/%Y %I:%M%p
