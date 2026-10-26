@@ -149,7 +149,7 @@ discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
 minetest.override_chatcommand('me', {
     func = function(name, param)
         if discord_bridge.ready then
-            local msg = name:gsub("_", "\\_") .. ' ' .. param
+            local msg = name .. ' ' .. param
             discord_bridge.send_buffered('\\* ' .. discord_bridge.escape_message(msg))
         end
         return discord_bridge.old_me_func(name, param)
