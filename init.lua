@@ -30,14 +30,14 @@ discord_bridge.send_leaves = settings:get_bool('discord_bridge.send_leaves', tru
 discord_bridge.send_welcomes = settings:get_bool('discord_bridge.send_welcomes', true)
 discord_bridge.send_deaths = settings:get_bool('discord_bridge.send_deaths', true)
 
-discord_bridge.name_wrapper = settings:get('discord_bridge.name_wrapper') or '<**@1**>  '
+discord_bridge.name_wrapper = settings:get('discord_bridge.name_wrapper') or '<**%s**>  '
 discord_bridge.startup_text = settings:get('discord_bridge.startup_text') or '*** Server started!'
 discord_bridge.shutdown_text = settings:get('discord_bridge.shutdown_text') or '*** Server shutting down...'
-discord_bridge.join_text = settings:get('discord_bridge.join_text') or '\\*\\*\\* **@1** joined the game'
-discord_bridge.last_login_text = settings:get('discord_bridge.last_login_text') or '\\*\\*\\* **@1** joined the game. Last login: @2'
-discord_bridge.leave_text = settings:get('discord_bridge.leave_text') or '\\*\\*\\* **@1** left the game'
-discord_bridge.welcome_text = settings:get('discord_bridge.welcome_text') or '\\*\\*\\* **@1** joined the game for the first time. Welcome!'
-discord_bridge.death_text = settings:get('discord_bridge.death_text') or '\\*\\*\\* **@1** died'
+discord_bridge.join_text = settings:get('discord_bridge.join_text') or '\\*\\*\\* **%s** joined the game'
+discord_bridge.last_login_text = settings:get('discord_bridge.last_login_text') or '\\*\\*\\* **%s** joined the game. Last login: %s'
+discord_bridge.leave_text = settings:get('discord_bridge.leave_text') or '\\*\\*\\* **%s** left the game'
+discord_bridge.welcome_text = settings:get('discord_bridge.welcome_text') or '\\*\\*\\* **%s** joined the game for the first time. Welcome!'
+discord_bridge.death_text = settings:get('discord_bridge.death_text') or '\\*\\*\\* **%s** died'
 discord_bridge.chat_message_format = settings:get('discord_bridge.chat_message_format') or '<%s@%s> %s'
 
 discord_bridge.use_embeds_on_joins_and_leaves = settings:get_bool('discord_bridge.use_embeds_on_joins_and_leaves', true)
@@ -262,13 +262,6 @@ end)
 
 discord_bridge.irc_enabled = minetest.get_modpath("irc")
 discord_bridge.xban2_enabled = minetest.get_modpath("xban2")
-
-function discord_bridge.replace(str, ...)
-    local arg = {...}
-    return (str:gsub("@(.)", function(matched)
-        return arg[tonumber(matched)]
-    end))
-end
 
 function discord_bridge.main_loop()
 minetest.log('verbose', 'discord_bridge.main_loop is invoked')
@@ -553,7 +546,7 @@ end
 -- that overrides chat will work correctly
 minetest.after(0, minetest.register_on_chat_message, function(name, message)
     name = name:gsub("_", "\\_")
-    discord_bridge.send_buffered(discord_bridge.replace(discord_bridge.name_wrapper, name) .. discord_bridge.escape_message(message))
+    discord_bridge.send_buffered(discord_bridge.name_wrapper:format(name) .. discord_bridge.escape_message(message))
 end)
 
 if discord_bridge.send_joins then
@@ -562,21 +555,21 @@ if discord_bridge.send_joins then
 
         if last_login == nil and discord_bridge.send_welcomes then
             if not discord_bridge.use_embeds_on_welcomes then
-                discord_bridge.send_buffered(discord_bridge.replace(discord_bridge.welcome_text, name))
+                discord_bridge.send_buffered(discord_bridge.welcome_text:format(name))
             else
                 discord_bridge.send(nil, nil, discord_bridge.welcome_color,
-                    discord_bridge.replace(discord_bridge.welcome_text, name))
+                    discord_bridge.welcome_text:format(name))
             end
         else
             if not discord_bridge.use_embeds_on_joins_and_leaves then
                 discord_bridge.send_buffered(discord_bridge.send_last_login and
-                    discord_bridge.replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
-                    discord_bridge.replace(discord_bridge.join_text, name))
+                    discord_bridge.last_login_text:format(name, os.date(discord_bridge.date, last_login)) or
+                    discord_bridge.join_text:format(name))
             else
                 discord_bridge.send(nil, nil, discord_bridge.join_color,
                     (discord_bridge.send_last_login and
-                    discord_bridge.replace(discord_bridge.last_login_text, name, os.date(discord_bridge.date, last_login)) or
-                    discord_bridge.replace(discord_bridge.join_text, name)))
+                    discord_bridge.last_login_text:format(name, os.date(discord_bridge.date, last_login)) or
+                    discord_bridge.join_text:format(name)))
             end
         end
     end)
@@ -587,9 +580,9 @@ if discord_bridge.send_leaves then
         local name = player:get_player_name():gsub("_", "\\_")
 
         if not discord_bridge.use_embeds_on_joins_and_leaves then
-            discord_bridge.send_buffered(discord_bridge.replace(discord_bridge.leave_text, name))
+            discord_bridge.send_buffered(discord_bridge.leave_text:format(name))
         else
-            discord_bridge.send(nil, nil, discord_bridge.leave_color, discord_bridge.replace(discord_bridge.leave_text, name))
+            discord_bridge.send(nil, nil, discord_bridge.leave_color, discord_bridge.leave_text:format(name))
         end
 
     end)
@@ -600,9 +593,9 @@ if discord_bridge.send_deaths then
         local name = player:get_player_name():gsub("_", "\\_")
 
         if not discord_bridge.use_embeds_on_deaths then
-            discord_bridge.send_buffered(discord_bridge.replace(discord_bridge.death_text, name))
+            discord_bridge.send_buffered(discord_bridge.death_text:format(name))
         else
-            discord_bridge.send(nil, nil, discord_bridge.death_color, discord_bridge.replace(discord_bridge.death_text, name))
+            discord_bridge.send(nil, nil, discord_bridge.death_color, discord_bridge.death_text:format(name))
         end
 
     end)
