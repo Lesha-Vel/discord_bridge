@@ -38,7 +38,7 @@ discord_bridge.last_login_text = settings:get('discord_bridge.last_login_text') 
 discord_bridge.leave_text = settings:get('discord_bridge.leave_text') or '\\*\\*\\* **@1** left the game'
 discord_bridge.welcome_text = settings:get('discord_bridge.welcome_text') or '\\*\\*\\* **@1** joined the game for the first time. Welcome!'
 discord_bridge.death_text = settings:get('discord_bridge.death_text') or '\\*\\*\\* **@1** died'
-discord_bridge.chat_message_format = settings:get('discord_bridge.chat_message_format') or '<%s@Discord> %s'
+discord_bridge.chat_message_format = settings:get('discord_bridge.chat_message_format') or '<%s@%s> %s'
 
 discord_bridge.use_embeds_on_joins_and_leaves = settings:get_bool('discord_bridge.use_embeds_on_joins_and_leaves', true)
 discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord_bridge.use_embeds_on_welcomes', true)
@@ -300,7 +300,7 @@ function discord_bridge.handle_response(response)
             if discord_bridge.clean_invites then
                 message.content = message.content:gsub("%S*discord%.gg%S*", ""):gsub("%S*discordapp%.com/invite%S*", "")
             end
-            local msg = (discord_bridge.chat_message_format):format(message.author, message.content)
+            local msg = (discord_bridge.chat_message_format):format(message.author, message.server, message.content)
             minetest.chat_send_all(minetest.colorize(discord_bridge.text_colorization, msg))
             if discord_bridge.irc_enabled then
                 irc.say(msg)

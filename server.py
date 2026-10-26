@@ -295,6 +295,7 @@ async def on_message(message):
         if check_timeout():
             msg = {
                 'author': author,
+                'server': channel_names[message.channel.id] if message.channel.id in channel_names else 'Discord',
                 'content': message.content.replace('\n', '/')
             }
             if msg['content'] != '':

@@ -30,7 +30,7 @@ discord_bridge.last_login_text (Text of notification on player join including la
 discord_bridge.leave_text (Text of notification on player leave) string \\*\\*\\* **@1** left the game
 discord_bridge.welcome_text (Text of notification on player welcome) string \\*\\*\\* **@1** joined the game for the first time. Welcome!
 discord_bridge.death_text (Text of notification on player death) string \\*\\*\\* **@1** died
-discord_bridge.chat_message_format (Format of the messages from discord) string <%s@Discord> %s
+discord_bridge.chat_message_format (Format of the messages from discord) string <%s@%s> %s
 [Discord embeds]
 discord_bridge.use_embeds_on_joins_and_leaves (Use Discord embeds for notifications on player join and leave) bool true
 discord_bridge.use_embeds_on_welcomes (Use Discord embeds for notifications on player welcomes) bool true
