@@ -289,13 +289,13 @@ async def on_message(message):
         if mirror_chats and not message.content.startswith('!login '):
             for channel in channels:
                 if channel[0] != message.channel.id:
-                    await channel[1].send(author + '@' + (channel_names[message.channel.id] if message.channel.id in channel_names else 'Discord') +
+                    await channel[1].send(author + '@' + (channel_names.get(message.channel.id, 'Discord')) +
                         ': ' + message.content.replace('\n', '/'))
 
         if check_timeout():
             msg = {
                 'author': author,
-                'server': channel_names[message.channel.id] if message.channel.id in channel_names else 'Discord',
+                'server': channel_names.get(message.channel.id, 'Discord'),
                 'content': message.content.replace('\n', '/')
             }
             if msg['content'] != '':
