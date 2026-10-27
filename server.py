@@ -223,9 +223,6 @@ async def handle(request):
             return web.Response(text='Acknowledged')
         if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-RESULT':
             user_id = int(data['user_id'])
-            user = bot.get_user(user_id)
-            if user is None:
-                user = await bot.fetch_user(user_id)
 
             if data['success']:
                 send_user_list = True
