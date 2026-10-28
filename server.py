@@ -220,7 +220,7 @@ async def handle(request):
                             await channel[1].send(chunk)
 
             # discord.send should NOT block extensively on the Lua side
-            return web.Response(text='Acknowledged')
+            return web.Response()
         if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-SUCCESS':
             user_id = int(data['user_id'])
             send_user_list = True
@@ -241,8 +241,7 @@ async def handle(request):
                 await user.send(msg)
 
             # discord.send should NOT block extensively on the Lua side
-            return web.Response(text='Acknowledged')
-
+            return web.Response()
         if request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
             send_user_list = True
             logout_stales()
