@@ -89,7 +89,7 @@ discord_bridge.moderators_table = string.split(discord_bridge.moderators, ',%s?'
 assert(#discord_bridge.setup_channel_ids_table ~= 0, 'discord_bridge.setup_channel_ids is invalid')
 
 if not discord_bridge.persistent_logins or not discord_bridge.mod_storage:contains('saved_logins') then
-	discord_bridge.mod_storage:set_string('saved_logins', '[]')
+    discord_bridge.mod_storage:set_string('saved_logins', '[]')
 end
 
 discord_bridge.server_config = {
@@ -385,17 +385,18 @@ function discord_bridge.handle_response(response)
             if authdata then
                 result = minetest.check_password_entry(v.username, authdata.password, v.password)
             end
-            local request = {
-                type = 'DISCORD-LOGIN-RESULT',
-                user_id = v.user_id,
-                username = v.username,
-                success = result
-            }
-            http.fetch({
-                url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
-                timeout = discord_bridge.timeout,
-                post_data = minetest.write_json(request)
-            }, discord_bridge.handle_response)
+            if result then
+                local request = {
+                    type = 'DISCORD-LOGIN-SUCCESS',
+                    user_id = v.user_id,
+                    username = v.username
+                }
+                http.fetch({
+                    url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+                    timeout = discord_bridge.timeout,
+                    post_data = minetest.write_json(request)
+                }, discord_bridge.handle_response)
+            end
             minetest.log('action', 'Discord login: ' .. tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. tostring(result))
             if discord_bridge.login_file ~= '' then
                 local f = io.open(minetest.get_worldpath() .. '/' .. discord_bridge.login_file, 'a')

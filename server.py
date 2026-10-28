@@ -221,16 +221,14 @@ async def handle(request):
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response(text='Acknowledged')
-        if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-RESULT':
+        if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-SUCCESS':
             user_id = int(data['user_id'])
-
-            if data['success']:
-                send_user_list = True
-                if user_id in authenticated_users:
-                    del authenticated_users_ids[authenticated_users[user_id]]
-                authenticated_users_ids[data['username']] = user_id
-                authenticated_users[user_id] = data['username']
-                authenticated_users_timestamps[user_id] = time.time()
+            send_user_list = True
+            if user_id in authenticated_users:
+                del authenticated_users_ids[authenticated_users[user_id]]
+            authenticated_users_ids[data['username']] = user_id
+            authenticated_users[user_id] = data['username']
+            authenticated_users_timestamps[user_id] = time.time()
         if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
             if data['playername'] in authenticated_users_ids:
                 msg = translation_re.sub('', data['content'])
@@ -424,8 +422,7 @@ The login will:
                 'username': username,
                 'password': password,
                 'dc_name': ctx.author.name + ':' + ctx.author.display_name,
-                'user_id': str(ctx.author.id),
-                'context': str(ctx.channel.id)
+                'user_id': str(ctx.author.id)
             })
             if not check_timeout():
                 if not do_use_embeds:
@@ -450,8 +447,7 @@ The login will:
                         'username': self.username.value,
                         'password': self.password.value,
                         'user_id': str(interaction.user.id),
-                        'dc_name': interaction.user.name + ':' + interaction.user.display_name,
-                        'context': str(interaction.channel_id)
+                        'dc_name': interaction.user.name + ':' + interaction.user.display_name
                     })
                     if not check_timeout():
                         if not do_use_embeds:
