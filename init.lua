@@ -280,7 +280,8 @@ function discord_bridge.handle_response(response)
         http.fetch({
             url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
             timeout = discord_bridge.timeout,
-            post_data = minetest.write_json(discord_bridge.server_config)
+            method = 'POST',
+            data = minetest.write_json(discord_bridge.server_config)
         }, function() end)
         return
     end
@@ -394,7 +395,8 @@ function discord_bridge.handle_response(response)
                 http.fetch({
                     url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
                     timeout = discord_bridge.timeout,
-                    post_data = minetest.write_json(request)
+                    method = 'POST',
+                    data = minetest.write_json(request)
                 }, discord_bridge.handle_response)
             end
             minetest.log('action', 'Discord login: ' .. tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. tostring(result))
@@ -498,7 +500,8 @@ function discord_bridge.send(message, id, embed_color, embed_description, userid
     http.fetch_async({
         url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
         timeout = discord_bridge.timeout,
-        post_data = minetest.write_json(data)
+        method = 'POST',
+        data = minetest.write_json(data)
     })
 end
 
@@ -539,7 +542,8 @@ function discord_bridge.send_dm_to_discord(playername, message)
     http.fetch_async({
         url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
         timeout = discord_bridge.timeout,
-        post_data = minetest.write_json(data)
+        method = 'POST',
+        data = minetest.write_json(data)
     })
 end
 
@@ -613,7 +617,8 @@ minetest.register_globalstep(function(dtime)
         http.fetch({
             url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
             timeout = discord_bridge.timeout,
-            post_data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
+            method = 'POST',
+            data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
         }, discord_bridge.handle_response)
         login_request_timer = 0
     end
@@ -697,7 +702,8 @@ minetest.register_globalstep(function(dtime)
         setup_ongoing = http.fetch_async({
             url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
             timeout = discord_bridge.timeout,
-            post_data = minetest.write_json(discord_bridge.server_config)
+            method = 'POST',
+            data = minetest.write_json(discord_bridge.server_config)
         })
     else
         local res = http.fetch_async_get(setup_ongoing)
@@ -714,7 +720,8 @@ minetest.register_globalstep(function(dtime)
             setup_ongoing = http.fetch_async({
                 url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
                 timeout = discord_bridge.timeout,
-                post_data = minetest.write_json(discord_bridge.server_config)
+                method = 'POST',
+                data = minetest.write_json(discord_bridge.server_config)
             })
         end
     end
