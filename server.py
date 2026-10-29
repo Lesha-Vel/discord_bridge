@@ -305,7 +305,8 @@ if send_backend_startups:
 
 @bot.event
 async def on_command_error(context, exception):
-    traceback.print_exception(exception)
+    if not isinstance(exception, commands.MissingRequiredArgument):
+        traceback.print_exception(exception)
 
 if commands_allowed:
     @bot.tree.command(name='help', description='Want to know how to use discord_bridge? use this command')
@@ -372,7 +373,7 @@ The login will:
             return await run_cmd(ctx=ctx, command=command, args=args)
 
         @bot.command(help='an alias for `!cmd dc_send`')
-        async def say(ctx, *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
+        async def say(ctx, *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`')):
             return await run_cmd(ctx=ctx, command='dc_send', args=args)
 
         @bot.command(help='list logged in discord users')
