@@ -272,9 +272,7 @@ discord_bridge.msg_queue = ''
 
 function discord_bridge.handle_response(response)
     local data = response.data
-    if data == '' or data == nil then
-        return
-    end
+    if data == '' or data == nil then return end
     if data == 'NO_SETUP' then
         discord_bridge.server_config['saved_logins'] = discord_bridge.mod_storage:get_string('saved_logins')
         http.fetch_async({
@@ -286,9 +284,7 @@ function discord_bridge.handle_response(response)
         return
     end
     data = minetest.parse_json(response.data)
-    if not data then
-        return
-    end
+    if not data then return end
     if data.messages then
         for _, message in pairs(data.messages) do
             if discord_bridge.clean_invites then
