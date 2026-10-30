@@ -277,12 +277,12 @@ function discord_bridge.handle_response(response)
     end
     if data == 'NO_SETUP' then
         discord_bridge.server_config['saved_logins'] = discord_bridge.mod_storage:get_string('saved_logins')
-        http.fetch({
+        http.fetch_async({
             url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
             timeout = discord_bridge.timeout,
             method = 'POST',
             data = minetest.write_json(discord_bridge.server_config)
-        }, function() end)
+        })
         return
     end
     data = minetest.parse_json(response.data)
