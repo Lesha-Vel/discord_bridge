@@ -263,11 +263,6 @@ end)
 discord_bridge.irc_enabled = minetest.get_modpath("irc")
 discord_bridge.xban2_enabled = minetest.get_modpath("xban2")
 
-function discord_bridge.main_loop()
-minetest.log('verbose', 'discord_bridge.main_loop is invoked')
-if discord_bridge.ready then return end
-minetest.log('verbose', 'discord_bridge.main_loop is started')
-discord_bridge.ready = true
 discord_bridge.msg_queue = ''
 
 function discord_bridge.handle_response(response)
@@ -542,6 +537,12 @@ function discord_bridge.send_dm_to_discord(playername, message)
         data = minetest.write_json(data)
     })
 end
+
+function discord_bridge.main_loop()
+minetest.log('verbose', 'discord_bridge.main_loop is invoked')
+if discord_bridge.ready then return end
+minetest.log('verbose', 'discord_bridge.main_loop is started')
+discord_bridge.ready = true
 
 -- Register the chat message callback after other mods load so that anything
 -- that overrides chat will work correctly
