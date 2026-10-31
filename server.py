@@ -101,7 +101,6 @@ async def srv():
         site = web.TCPSite(runner, 'localhost', port)
     await site.start()
     await finished.wait()
-    await asyncio.sleep(.25)
     await runner.cleanup()
 
 if __name__ == '__main__':

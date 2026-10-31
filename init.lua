@@ -76,7 +76,7 @@ discord_bridge.setup_server_down_color = settings:get('discord_bridge.setup_serv
 discord_bridge.setup_not_logged_in_color = settings:get('discord_bridge.setup_not_logged_in_color') or '#46e8e8'
 discord_bridge.setup_password_leak_color = settings:get('discord_bridge.setup_password_leak_color') or '#ed9d42'
 
-discord_bridge.timeout = 10
+discord_bridge.timeout = tonumber(settings:get('dedicated_server_step') or '0.09') * 30
 
 discord_bridge.setup_channel_ids_table = {}
 
@@ -685,14 +685,11 @@ minetest.register_on_shutdown(function()
     end
 end)
 
-local setup_timer = 0
 local setup_completed = false
 local setup_ongoing = nil
 minetest.register_globalstep(function(dtime)
     if setup_completed then return end
     if not dtime then return end
-    setup_timer = setup_timer + dtime
-    if setup_timer < 0.2 then return end
 
     if not setup_ongoing then
         setup_ongoing = http.fetch_async({
@@ -708,7 +705,7 @@ minetest.register_globalstep(function(dtime)
             if res.data ~= '' and res.data ~= nil then
                 local data = minetest.parse_json(res.data)
                 if type(data) == 'table' and data.status == 'SUCCESS' then
-                    minetest.after(0.25, discord_bridge.main_loop)
+                    minetest.after(0.09, discord_bridge.main_loop)
                     setup_completed = true
                     return
                 end
@@ -721,5 +718,4 @@ minetest.register_globalstep(function(dtime)
             })
         end
     end
-    setup_timer = 0
 end)
