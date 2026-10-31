@@ -705,7 +705,11 @@ minetest.register_globalstep(function(dtime)
             if res.data ~= '' and res.data ~= nil then
                 local data = minetest.parse_json(res.data)
                 if type(data) == 'table' and data.status == 'SUCCESS' then
-                    minetest.after(0.09, discord_bridge.main_loop)
+                    if data.running then
+                        discord_bridge.main_loop()
+                    else
+                        minetest.after(0.09, discord_bridge.main_loop)
+                    end
                     setup_completed = true
                     return
                 end

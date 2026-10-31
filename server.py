@@ -268,7 +268,7 @@ async def handle(request):
     return web.Response(text=response)
 
 async def setup_already_completed(response):
-    return web.Response(text='{"status": "SUCCESS"}')
+    return web.Response(text='{"status": "SUCCESS", "running": true}')
 
 app = web.Application()
 app.add_routes([web.get('/', handle),
