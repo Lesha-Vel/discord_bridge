@@ -101,6 +101,7 @@ async def srv():
         site = web.TCPSite(runner, 'localhost', port)
     await site.start()
     await finished.wait()
+    await site.stop()
     await runner.cleanup()
 
 if __name__ == '__main__':
@@ -304,7 +305,8 @@ if send_backend_startups:
 
 @bot.event
 async def on_command_error(context, exception):
-    if not isinstance(exception, commands.MissingRequiredArgument):
+    if not isinstance(exception, (commands.MissingRequiredArgument, commands.errors.CommandNotFound)):
+        print('cunt')
         traceback.print_exception(exception)
 
 if commands_allowed:
