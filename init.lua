@@ -687,9 +687,17 @@ end)
 
 local setup_completed = false
 local setup_ongoing = nil
+local setup_timer = 0
+local setup_failed_attemps = 0
 minetest.register_globalstep(function(dtime)
     if setup_completed then return end
     if not dtime then return end
+    if setup_failed_attemps > 30 then
+        setup_timer = setup_timer + dtime
+        if setup_timer < 1 then return end
+        setup_timer = 0
+    end
+    setup_failed_attemps = setup_failed_attemps + 1
 
     if not setup_ongoing then
         setup_ongoing = http.fetch_async({
