@@ -614,7 +614,7 @@ minetest.register_globalstep(function(dtime)
             url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
             timeout = discord_bridge.timeout,
             method = 'POST',
-            data = minetest.write_json({type = 'DISCORD-STARTUP-REQUEST'})
+            data = '{"type": "DISCORD-STARTUP-REQUEST"}'
         }, discord_bridge.handle_response)
         login_request_timer = 0
     end
