@@ -1,6 +1,7 @@
 MIT License
 
-Copyright (c) 2019 archfan7411
+Copyright (c) 2019 archfan7411  
+Copyright (c) 2026 Lesha_Vel
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-with contributions from: Lesha_Vel, charcuteriesampler, LoneWolfHT, luk3yx, and ronoaldo
+with contributions from: charcuteriesampler, LoneWolfHT, luk3yx, and ronoaldo
 
 with parts from https://github.com/activivan/mt-dcwebhook
 
