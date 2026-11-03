@@ -1,17 +1,21 @@
-[bridge settings]
+[Bridge]
 discord_bridge.host (Address of server.py) string 127.0.0.1
 discord_bridge.port (Port to run the relay on.) int 9692 1 65535
-discord_bridge.send_every_3s (buffer messages for 3 seconds to avoid discord limits) bool true
-discord_bridge.text_color (Custom color for messages relayed from Discord.) string #ffffff
-discord_bridge.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool true
-discord_bridge.mirror_chats (mirror discord channels to each other) bool true
-discord_bridge.persistent_logins (save logins between python restarts) bool true
+discord_bridge.setup_token (Discord bot token) string
+discord_bridge.setup_channel_ids (Discord channel ids, comma separated list of 'id[=name]') string
+discord_bridge.setup_command_prefix (Discord prefix commands prefix) string !
 discord_bridge.auto_logout_timeout (time in seconds before discord logout, 0 to disable) int 604800 0
 discord_bridge.login_file (filename for login logging, empty to disable) string discord_logins.txt
 discord_bridge.moderators (comma separated list of user ids of moderators) string
-[Options]
-discord_bridge.clean_invites (Clean Discord invites) bool true
 discord_bridge.date (Date format string, only %[aAbBdHImMpSwyY%] are allowed, %[cxX] not recommended) string %m/%d/%Y %I:%M%p
+[Options]
+discord_bridge.escape_formatting (escape special symbols like backslash, asterisk, hash, or underscore) bool true
+discord_bridge.mirror_chats (mirror discord channels to each other) bool true
+discord_bridge.persistent_logins (save logins between python restarts) bool true
+discord_bridge.send_every_3s (buffer messages for 3 seconds to avoid discord limits) bool true
+discord_bridge.clean_invites (Clean Discord invites) bool true
+discord_bridge.setup_use_nicknames (use Discord nicknames instead of Discord usernames) bool true
+[Sent]
 discord_bridge.send_server_startup (Send server startups) bool true
 discord_bridge.send_server_shutdown (Send server shutdowns) bool true
 discord_bridge.include_server_status_on_startup (Include server status in startup notification) bool true
@@ -21,7 +25,22 @@ discord_bridge.send_last_login (Include last login in notification on player joi
 discord_bridge.send_leaves (Notification on player leave) bool true
 discord_bridge.send_welcomes (Notification on player welcome) bool true
 discord_bridge.send_deaths (Notification on player death) bool true
+discord_bridge.setup_send_backend_startups (send a message to Discord when server.py is started) bool true
+[Allow]
+discord_bridge.setup_allow_commands (allow Discord commands) bool true
+discord_bridge.setup_allow_logins (allow logging in from Discord) bool true
+discord_bridge.setup_allow_send_to_offline_players (allow sending messages from in-game to Discord) bool true
+discord_bridge.setup_allow_whereis (allow using whereis Discord command) bool true
+[Embed]
+discord_bridge.setup_use_embeds (use Discord embeds for service messages) bool true
+discord_bridge.use_embeds_on_joins_and_leaves (Use Discord embeds for notifications on player join and leave) bool true
+discord_bridge.use_embeds_on_welcomes (Use Discord embeds for notifications on player welcomes) bool true
+discord_bridge.use_embeds_on_deaths (Use Discord embeds for notifications on player death) bool true
+discord_bridge.use_embeds_on_server_updates (Use Discord embeds for server status notifications) bool true
+discord_bridge.use_embeds_on_dm_cmd (Use Discord embeds for DM command answer) bool false
+discord_bridge.use_embeds_on_svc_dms (Use Discord embeds for service DMS) bool true
 [Texts]
+discord_bridge.chat_message_format (Format of the messages from discord) string <%s@%s> %s
 discord_bridge.name_wrapper (Name wrapper, 2 spaces at the end are important) string <**%s**>  
 discord_bridge.startup_text (Text of notification on server startup) string *** Server started!
 discord_bridge.shutdown_text (Text of notification on server shut-down) string *** Server shutting down...
@@ -30,15 +49,8 @@ discord_bridge.last_login_text (Text of notification on player join including la
 discord_bridge.leave_text (Text of notification on player leave) string \\*\\*\\* **%s** left the game
 discord_bridge.welcome_text (Text of notification on player welcome) string \\*\\*\\* **%s** joined the game for the first time. Welcome!
 discord_bridge.death_text (Text of notification on player death) string \\*\\*\\* **%s** died
-discord_bridge.chat_message_format (Format of the messages from discord) string <%s@%s> %s
-[Discord embeds]
-discord_bridge.use_embeds_on_joins_and_leaves (Use Discord embeds for notifications on player join and leave) bool true
-discord_bridge.use_embeds_on_welcomes (Use Discord embeds for notifications on player welcomes) bool true
-discord_bridge.use_embeds_on_deaths (Use Discord embeds for notifications on player death) bool true
-discord_bridge.use_embeds_on_server_updates (Use Discord embeds for server status notifications) bool true
-discord_bridge.use_embeds_on_dm_cmd (Use Discord embeds for DM command answer) bool false
-discord_bridge.use_embeds_on_svc_dms (Use Discord embeds for service DMS) bool true
 [Colors]
+discord_bridge.text_color (Custom color for messages relayed from Discord.) string #ffffff
 discord_bridge.startup_color (Startup Discord embed color) string #5865f2
 discord_bridge.shutdown_color (Shut down Discord embed color) string NOT_SET
 discord_bridge.join_color (Join Discord embed color) string #57f287
@@ -53,17 +65,6 @@ discord_bridge.svc_dms_cnf_color (Command not found color) string #ed9d42
 discord_bridge.login_success_color (success login color) string #57f287
 discord_bridge.login_fail_color (failed login color) string #ed4245
 discord_bridge.coords_color (coordinates request color) string NOT_SET
-[Server]
-discord_bridge.setup_token (Discord bot token) string
-discord_bridge.setup_command_prefix (Discord prefix commands prefix) string !
-discord_bridge.setup_channel_ids (Discord channel ids, comma separated list of 'id[=name]') string
-discord_bridge.setup_allow_commands (allow Discord commands) bool true
-discord_bridge.setup_allow_logins (allow logging in from Discord) bool true
-discord_bridge.setup_allow_send_to_offline_players (allow sending messages from in-game to Discord) bool true
-discord_bridge.setup_allow_whereis (allow using whereis Discord command) bool true
-discord_bridge.setup_use_nicknames (use Discord nicknames instead of Discord usernames) bool true
-discord_bridge.setup_send_backend_startups (send a message to Discord when server.py is started) bool true
-discord_bridge.setup_use_embeds (use Discord embeds for service messages) bool true
 discord_bridge.setup_server_down_color (color of server down Discord embed) string #ede442
 discord_bridge.setup_not_logged_in_color (color of not logged in Discord embed) string #46e8e8
 discord_bridge.setup_password_leak_color (color of password leak Discord embed) string #ed9d42

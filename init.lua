@@ -8,17 +8,20 @@ discord_bridge.mod_storage = minetest.get_mod_storage()
 -- Configuration
 discord_bridge.host = settings:get('discord_bridge.host') or '127.0.0.1'
 discord_bridge.port = settings:get('discord_bridge.port') or 9692
-discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', true)
-discord_bridge.text_color = settings:get('discord_bridge.text_color') or '#ffffff'
-discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', true)
-discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', true)
-discord_bridge.persistent_logins = settings:get_bool('discord_bridge.persistent_logins', true)
+discord_bridge.setup_token = settings:get('discord_bridge.setup_token') or ''
+discord_bridge.setup_channel_ids = settings:get('discord_bridge.setup_channel_ids') or ''
+discord_bridge.setup_command_prefix = settings:get('discord_bridge.setup_command_prefix') or '!'
 discord_bridge.auto_logout_timeout = tonumber(settings:get('discord_bridge.auto_logout_timeout')) or 604800
 discord_bridge.login_file = settings:get('discord_bridge.login_file') or 'discord_logins.txt'
 discord_bridge.moderators = settings:get('discord_bridge.moderators') or ''
-
-discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
+
+discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', true)
+discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', true)
+discord_bridge.persistent_logins = settings:get_bool('discord_bridge.persistent_logins', true)
+discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', true)
+discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
+discord_bridge.setup_use_nicknames = settings:get_bool('discord_bridge.setup_use_nicknames', true)
 
 discord_bridge.send_server_startup = settings:get_bool('discord_bridge.send_server_startup', true)
 discord_bridge.send_server_shutdown = settings:get_bool('discord_bridge.send_server_shutdown', true)
@@ -29,7 +32,22 @@ discord_bridge.send_last_login = settings:get_bool('discord_bridge.send_last_log
 discord_bridge.send_leaves = settings:get_bool('discord_bridge.send_leaves', true)
 discord_bridge.send_welcomes = settings:get_bool('discord_bridge.send_welcomes', true)
 discord_bridge.send_deaths = settings:get_bool('discord_bridge.send_deaths', true)
+discord_bridge.setup_send_backend_startups = settings:get_bool('discord_bridge.setup_send_backend_startups', true)
 
+discord_bridge.setup_allow_commands = settings:get_bool('discord_bridge.setup_allow_commands', true)
+discord_bridge.setup_allow_logins = settings:get_bool('discord_bridge.setup_allow_logins', true)
+discord_bridge.setup_allow_send_to_offline_players = settings:get_bool('discord_bridge.setup_allow_send_to_offline_players', true)
+discord_bridge.setup_allow_whereis = settings:get_bool('discord_bridge.setup_allow_whereis', true)
+
+discord_bridge.setup_use_embeds = settings:get_bool('discord_bridge.setup_use_embeds', true)
+discord_bridge.use_embeds_on_joins_and_leaves = settings:get_bool('discord_bridge.use_embeds_on_joins_and_leaves', true)
+discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord_bridge.use_embeds_on_welcomes', true)
+discord_bridge.use_embeds_on_deaths = settings:get_bool('discord_bridge.use_embeds_on_deaths', true)
+discord_bridge.use_embeds_on_server_updates = settings:get_bool('discord_bridge.use_embeds_on_server_updates', true)
+discord_bridge.use_embeds_on_dm_cmd = settings:get_bool('discord_bridge.use_embeds_on_dm_cmd', false)
+discord_bridge.use_embeds_on_svc_dms = settings:get_bool('discord_bridge.use_embeds_on_svc_dms', true)
+
+discord_bridge.chat_message_format = settings:get('discord_bridge.chat_message_format') or '<%s@%s> %s'
 discord_bridge.name_wrapper = settings:get('discord_bridge.name_wrapper') or '<**%s**>  '
 discord_bridge.startup_text = settings:get('discord_bridge.startup_text') or '*** Server started!'
 discord_bridge.shutdown_text = settings:get('discord_bridge.shutdown_text') or '*** Server shutting down...'
@@ -38,15 +56,8 @@ discord_bridge.last_login_text = settings:get('discord_bridge.last_login_text') 
 discord_bridge.leave_text = settings:get('discord_bridge.leave_text') or '\\*\\*\\* **%s** left the game'
 discord_bridge.welcome_text = settings:get('discord_bridge.welcome_text') or '\\*\\*\\* **%s** joined the game for the first time. Welcome!'
 discord_bridge.death_text = settings:get('discord_bridge.death_text') or '\\*\\*\\* **%s** died'
-discord_bridge.chat_message_format = settings:get('discord_bridge.chat_message_format') or '<%s@%s> %s'
 
-discord_bridge.use_embeds_on_joins_and_leaves = settings:get_bool('discord_bridge.use_embeds_on_joins_and_leaves', true)
-discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord_bridge.use_embeds_on_welcomes', true)
-discord_bridge.use_embeds_on_deaths = settings:get_bool('discord_bridge.use_embeds_on_deaths', true)
-discord_bridge.use_embeds_on_server_updates = settings:get_bool('discord_bridge.use_embeds_on_server_updates', true)
-discord_bridge.use_embeds_on_dm_cmd = settings:get_bool('discord_bridge.use_embeds_on_dm_cmd', false)
-discord_bridge.use_embeds_on_svc_dms = settings:get_bool('discord_bridge.use_embeds_on_svc_dms', true)
-
+discord_bridge.text_color = settings:get('discord_bridge.text_color') or '#ffffff'
 discord_bridge.startup_color = settings:get('discord_bridge.startup_color') or '#5865f2'
 discord_bridge.shutdown_color = settings:get('discord_bridge.shutdown_color') or 'NOT_SET'
 discord_bridge.join_color = settings:get('discord_bridge.join_color') or '#57f287'
@@ -61,17 +72,6 @@ discord_bridge.svc_dms_cnf_color = settings:get('discord_bridge.svc_dms_cnf_colo
 discord_bridge.login_success_color = settings:get('discord_bridge.login_success_color') or '#57f287'
 discord_bridge.login_fail_color = settings:get('discord_bridge.login_fail_color') or '#ed4245'
 discord_bridge.coords_color = settings:get('discord_bridge.coords_color') or 'NOT_SET'
-
-discord_bridge.setup_token = settings:get('discord_bridge.setup_token') or ''
-discord_bridge.setup_command_prefix = settings:get('discord_bridge.setup_command_prefix') or '!'
-discord_bridge.setup_channel_ids = settings:get('discord_bridge.setup_channel_ids') or ''
-discord_bridge.setup_allow_commands = settings:get_bool('discord_bridge.setup_allow_commands', true)
-discord_bridge.setup_allow_logins = settings:get_bool('discord_bridge.setup_allow_logins', true)
-discord_bridge.setup_allow_send_to_offline_players = settings:get_bool('discord_bridge.setup_allow_send_to_offline_players', true)
-discord_bridge.setup_allow_whereis = settings:get_bool('discord_bridge.setup_allow_whereis', true)
-discord_bridge.setup_use_nicknames = settings:get_bool('discord_bridge.setup_use_nicknames', true)
-discord_bridge.setup_send_backend_startups = settings:get_bool('discord_bridge.setup_send_backend_startups', true)
-discord_bridge.setup_use_embeds = settings:get_bool('discord_bridge.setup_use_embeds', true)
 discord_bridge.setup_server_down_color = settings:get('discord_bridge.setup_server_down_color') or '#ede442'
 discord_bridge.setup_not_logged_in_color = settings:get('discord_bridge.setup_not_logged_in_color') or '#46e8e8'
 discord_bridge.setup_password_leak_color = settings:get('discord_bridge.setup_password_leak_color') or '#ed9d42'
