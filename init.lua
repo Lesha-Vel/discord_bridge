@@ -9,7 +9,7 @@ discord_bridge.mod_storage = minetest.get_mod_storage()
 discord_bridge.host = settings:get('discord_bridge.host') or '127.0.0.1'
 discord_bridge.port = settings:get('discord_bridge.port') or 9692
 discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', true)
-discord_bridge.text_colorization = settings:get('discord_bridge.text_color') or '#ffffff'
+discord_bridge.text_color = settings:get('discord_bridge.text_color') or '#ffffff'
 discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', true)
 discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', true)
 discord_bridge.persistent_logins = settings:get_bool('discord_bridge.persistent_logins', true)
@@ -286,7 +286,7 @@ function discord_bridge.handle_response(response)
                 message.content = message.content:gsub("%S*discord%.gg%S*", ""):gsub("%S*discordapp%.com/invite%S*", "")
             end
             local msg = (discord_bridge.chat_message_format):format(message.author, message.server, message.content)
-            minetest.chat_send_all(minetest.colorize(discord_bridge.text_colorization, msg))
+            minetest.chat_send_all(minetest.colorize(discord_bridge.text_color, msg))
             if discord_bridge.irc_enabled then
                 irc.say(msg)
             end
