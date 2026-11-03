@@ -247,7 +247,8 @@ async def handle(request):
             return web.Response()
         if request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
             send_user_list = True
-            logout_stales()
+            if logins_allowed:
+                logout_stales()
     except Exception:
         traceback.print_exc()
 
@@ -517,28 +518,28 @@ The login will:
                     await ctx.send(embed = discord.Embed(title = "user not logged in: " + username,
                                color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
 
-    @bot.command(help='Get ingame player name you\'re now logged in.')
-    async def whoami(ctx):
-        if not ctx.channel.id in channel_ids and ctx.guild is not None:
-            return
-        if ctx.author.id in authenticated_users:
-            name = underscore_re.sub('\\_', authenticated_users[ctx.author.id])
-            if auto_logout_timeout > 0 and persistent_logins:
-                remaining_time_str = datetime.fromtimestamp(authenticated_users_timestamps[ctx.author.id] + auto_logout_timeout).strftime(date_format)
-                if not do_use_embeds:
-                    await ctx.send('your ingame name is: ' + name + '\nwill logout at: ' + remaining_time_str)
+        @bot.command(help='Get ingame player name you\'re now logged in.')
+        async def whoami(ctx):
+            if not ctx.channel.id in channel_ids and ctx.guild is not None:
+                return
+            if ctx.author.id in authenticated_users:
+                name = underscore_re.sub('\\_', authenticated_users[ctx.author.id])
+                if auto_logout_timeout > 0 and persistent_logins:
+                    remaining_time_str = datetime.fromtimestamp(authenticated_users_timestamps[ctx.author.id] + auto_logout_timeout).strftime(date_format)
+                    if not do_use_embeds:
+                        await ctx.send('your ingame name is: ' + name + '\nwill logout at: ' + remaining_time_str)
+                    else:
+                        await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name, description='will logout at: ' + remaining_time_str))
                 else:
-                    await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name, description='will logout at: ' + remaining_time_str))
+                    if not do_use_embeds:
+                        await ctx.send('your ingame name is: ' + name)
+                    else:
+                        await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name))
             else:
                 if not do_use_embeds:
-                    await ctx.send('your ingame name is: ' + name)
+                    await ctx.send('Not logged in.')
                 else:
-                    await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name))
-        else:
-            if not do_use_embeds:
-                await ctx.send('Not logged in.')
-            else:
-                await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
+                    await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
 
     @bot.command(help='Lists connected players and server information.')
     async def status(ctx):
