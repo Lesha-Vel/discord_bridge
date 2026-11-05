@@ -121,6 +121,9 @@ assert(discord_bridge.setup_token ~= '', 'setup_token not set')
 
 function discord_bridge.escape_message(str, always)
     str = minetest.strip_escapes(str)
+    if discord_bridge.clean_invites then
+        str = str:gsub("%S*discord%.gg%S*", ""):gsub("%S*discordapp%.com/invite%S*", "")
+    end
     if not discord_bridge.escape_formatting and not always then return str end
     return (str:gsub("([_*~\\`%[%]()<>|])", "\\%1"):gsub("^#", "\\#"):gsub("\n#", "\n\\#"):gsub("(https?://)(/*[^ /])", "`%1`%2"))
 end
