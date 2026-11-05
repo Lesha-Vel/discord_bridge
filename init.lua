@@ -145,17 +145,6 @@ minetest.override_chatcommand('msg', {
 })
 end
 
-discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
-minetest.override_chatcommand('me', {
-    func = function(name, param)
-        if discord_bridge.ready then
-            local msg = name .. ' ' .. param
-            discord_bridge.send_buffered('\\* ' .. discord_bridge.escape_message(msg))
-        end
-        return discord_bridge.old_me_func(name, param)
-    end
-})
-
 minetest.register_chatcommand("dc_send", {
     params = "<message>",
     description = "sends a chatmessage, works aproximatelly as a transparent prefix, e.g. " ..
@@ -551,6 +540,15 @@ minetest.after(0, minetest.register_on_chat_message, function(name, message)
     name = name:gsub("_", "\\_")
     discord_bridge.send_buffered(discord_bridge.name_wrapper:format(name) .. discord_bridge.escape_message(message))
 end)
+
+discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
+minetest.override_chatcommand('me', {
+    func = function(name, param)
+        local msg = '\\* ' .. name:gsub("_", "\\_") .. ' ' .. discord_bridge.escape_message(param)
+        discord_bridge.send_buffered(msg)
+        return discord_bridge.old_me_func(name, param)
+    end
+})
 
 if discord_bridge.send_joins then
     minetest.after(0, minetest.register_on_joinplayer, function(player, last_login)
