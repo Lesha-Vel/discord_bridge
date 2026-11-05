@@ -214,6 +214,7 @@ end
 
 minetest.register_chatcommand('dc_count', {
     description = 'get number of players in whereis database',
+    privs = { server = true },
     func = function (name, param)
         local players_count = 0
         for _,v in ipairs(discord_bridge.mod_storage:get_keys()) do
