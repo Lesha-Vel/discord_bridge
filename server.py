@@ -499,8 +499,7 @@ Admin only commands:
             if not do_use_embeds:
                 await ctx.send("logout was invoked", delete_after=10, ephemeral=True)
             else:
-                await ctx.send(embed = discord.Embed(title = "logout was invoked",
-                           color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
+                await ctx.send(embed = discord.Embed(title = "logout was invoked"), delete_after=10, ephemeral=True)
             register_logout(ctx.author.id)
 
         @bot.command(help='kick a discord user from luanti (admin only)')
@@ -513,16 +512,14 @@ Admin only commands:
                 if not do_use_embeds:
                     await ctx.send("kick was invoked for user: " + username, delete_after=10, ephemeral=True)
                 else:
-                    await ctx.send(embed = discord.Embed(title = "kick was invoked for user: " + username,
-                               color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
+                    await ctx.send(embed = discord.Embed(title = "kick was invoked for user: " + username), delete_after=10, ephemeral=True)
                 id = authenticated_users_ids[username]
                 register_logout(id)
             else:
                 if not do_use_embeds:
                     await ctx.send("user not logged in: " + username, delete_after=10, ephemeral=True)
                 else:
-                    await ctx.send(embed = discord.Embed(title = "user not logged in: " + username,
-                               color = discord.Color.from_rgb(128, 128, 128)), delete_after=10, ephemeral=True)
+                    await ctx.send(embed = discord.Embed(title = "user not logged in: " + username), delete_after=10, ephemeral=True)
 
         @bot.command(help='Get ingame player name you\'re now logged in.')
         async def whoami(ctx):
