@@ -336,10 +336,24 @@ function discord_bridge.handle_response(response)
                 local success, ret_val = commands[v.command].func(v.name, v.params or '')
                 if ret_val then
                     ret_val = discord_bridge.escape_message(ret_val, true)
-                    if not discord_bridge.use_embeds_on_dm_cmd then
-                        discord_bridge.send(ret_val, v.context or nil)
+                    if v.type == 'status' then
+                        if not discord_bridge.use_embeds_on_svc_dms then
+                            discord_bridge.send(ret_val, v.context or nil)
+                        else
+                            discord_bridge.send(ret_val, v.context or nil, discord_bridge.cmd_ret_value_color)
+                        end
+                    elseif v.type == 'whereis' then
+                        if not discord_bridge.use_embeds_on_svc_dms then
+                            discord_bridge.send(ret_val, v.context or nil)
+                        else
+                            discord_bridge.send(ret_val, v.context or nil, discord_bridge.coords_color)
+                        end
                     else
-                        discord_bridge.send(nil, v.context or nil, discord_bridge.cmd_ret_value_color, ret_val)
+                        if not discord_bridge.use_embeds_on_dm_cmd then
+                            discord_bridge.send(ret_val, v.context or nil)
+                        else
+                            discord_bridge.send(nil, v.context or nil, discord_bridge.cmd_ret_value_color, ret_val)
+                        end
                     end
                 end
                 minetest.chat_send_player = old_chat_send_player
@@ -348,21 +362,6 @@ function discord_bridge.handle_response(response)
                     discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil)
                 else
                     discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil, discord_bridge.svc_dms_cnf_color)
-                end
-            end
-        end
-    end
-    if data.statuses then
-        local admin = minetest.settings:get('name')
-        if admin == '' or not admin then admin = 'discord_relay' end
-        for _, v in pairs(data.statuses) do
-            local success, ret_val = minetest.registered_chatcommands['status'].func(admin, '')
-            if ret_val then
-                ret_val = discord_bridge.escape_message(ret_val, true)
-                if not discord_bridge.use_embeds_on_svc_dms then
-                    discord_bridge.send(ret_val, v.context or nil)
-                else
-                    discord_bridge.send(ret_val, v.context or nil, discord_bridge.cmd_ret_value_color)
                 end
             end
         end
@@ -405,49 +404,6 @@ function discord_bridge.handle_response(response)
                     discord_bridge.send('Login failed.', nil, nil, nil, v.user_id)
                 else
                     discord_bridge.send('Login failed.', nil, discord_bridge.login_fail_color, nil, v.user_id)
-                end
-            end
-        end
-    end
-    if data.coords then
-        for _, v in pairs(data.coords) do
-            if minetest.is_valid_player_name(v.player) then
-                local player = minetest.get_player_by_name(v.player)
-                local player_escaped = v.player:gsub("_", "\\_")
-                if player then
-                    local pos = player:get_pos()
-                    local posStr = 'player ' .. player_escaped .. ' is located at: ' ..
-                    math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
-                    if not discord_bridge.use_embeds_on_svc_dms then
-                        discord_bridge.send(posStr, v.context or nil)
-                    else
-                        discord_bridge.send(posStr, v.context or nil, discord_bridge.coords_color)
-                    end
-                elseif discord_bridge.mod_storage:contains('_' .. v.player) then
-                    local pos = minetest.string_to_pos(discord_bridge.mod_storage:get_string('_' .. v.player))
-                    if pos then
-                        local posStr = 'offline player ' .. player_escaped .. ' is located at: ' ..
-                        math.round(pos.x) .. ', ' .. math.round(pos.y) .. ', ' .. math.round(pos.z)
-                        if not discord_bridge.use_embeds_on_svc_dms then
-                            discord_bridge.send(posStr, v.context or nil)
-                        else
-                            discord_bridge.send(posStr, v.context or nil, discord_bridge.coords_color)
-                        end
-                    else
-                        discord_bridge.send('it seems like something went wrong, contact server staff.', v.context or nil)
-                    end
-                else
-                    if not discord_bridge.use_embeds_on_svc_dms then
-                        discord_bridge.send('Player ' .. player_escaped .. ' is not known.', v.context or nil)
-                    else
-                        discord_bridge.send('Player ' .. player_escaped .. ' is not known.', v.context or nil, discord_bridge.coords_color)
-                    end
-                end
-            else
-                if not discord_bridge.use_embeds_on_svc_dms then
-                    discord_bridge.send('-!- illigal player name', v.context or nil)
-                else
-                    discord_bridge.send('-!- illigal player name', v.context or nil, discord_bridge.coords_color)
                 end
             end
         end

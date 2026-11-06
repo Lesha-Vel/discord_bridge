@@ -128,8 +128,6 @@ class Queue:
 outgoing_msgs = Queue()
 command_queue = Queue()
 login_queue = Queue()
-status_queue = Queue()
-coords_queue = Queue()
 
 bot = commands.Bot(
     command_prefix=prefix,
@@ -256,9 +254,7 @@ async def handle(request):
     responseObject = {
         'messages': outgoing_msgs.get_all(),
         'commands': command_queue.get_all(),
-        'logins': login_queue.get_all(),
-        'statuses': status_queue.get_all(),
-        'coords': coords_queue.get_all()
+        'logins': login_queue.get_all()
     }
     if send_user_list:
         send_user_list = False
@@ -350,34 +346,35 @@ Admin only commands:
         synced_count = await bot.tree.sync()
         await ctx.send(f'command tree is synced: {len(synced_count)}')
 
-    if logins_allowed:
-        async def run_cmd(ctx, command, *, args):
-            if (not ctx.channel.id in channel_ids and ctx.guild is not None):
-                return
-            user = bot.get_user(ctx.author.id)
-            if user is None:
-                user = await bot.fetch_user(ctx.author.id)
-            if not check_timeout():
-                if not do_use_embeds:
-                    await user.send("The server currently appears to be down.")
-                else:
-                    await user.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
-                return
-            if ctx.author.id not in authenticated_users:
-                if not do_use_embeds:
-                    await user.send('Not logged in.')
-                else:
-                    await user.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
-                return
-            command = {
-                'name': authenticated_users[ctx.author.id],
-                'command': command,
-                'params': args.replace('\n', '')
-            }
-            if ctx.guild is None:
-                command['context'] = str(ctx.channel.id)
-            command_queue.add(command)
+    async def run_cmd(ctx, command, args, auth_needed = True, request_type=''):
+        if not ctx.channel.id in channel_ids and ctx.guild is not None:
+            return
+        user = bot.get_user(ctx.author.id)
+        if user is None:
+            user = await bot.fetch_user(ctx.author.id)
+        if not check_timeout():
+            if not do_use_embeds:
+                await user.send("The server currently appears to be down.")
+            else:
+                await user.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
+            return
+        if auth_needed and ctx.author.id not in authenticated_users:
+            if not do_use_embeds:
+                await user.send('Not logged in.')
+            else:
+                await user.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
+            return
+        command = {
+            'name': authenticated_users[ctx.author.id] if auth_needed else 'discord_relay',
+            'command': command,
+            'params': args.replace('\n', ''),
+            'type': request_type
+        }
+        if ctx.guild is None:
+            command['context'] = str(ctx.channel.id)
+        command_queue.add(command)
 
+    if logins_allowed:
         @bot.command(help='Runs an ingame command from Discord.')
         async def cmd(ctx, command=commands.parameter(description='in-game command without leading /, if command is for example //help it become /help'), *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
             return await run_cmd(ctx=ctx, command=command, args=args)
@@ -546,38 +543,12 @@ Admin only commands:
 
     @bot.command(help='Lists connected players and server information.')
     async def status(ctx):
-        if not ctx.channel.id in channel_ids and ctx.guild is not None:
-            return
-        if not check_timeout():
-            if not do_use_embeds:
-                await ctx.send("The server currently appears to be down.")
-            else:
-                await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
-            return
-        data = {}
-        if ctx.guild is None:
-            data['context'] = str(ctx.channel.id)
-        status_queue.add(data)
+        return await run_cmd(ctx=ctx, command='status', args='', auth_needed=False, request_type='status')
 
     if whereis_allowed:
         @bot.command(help='Get player coordinates.')
         async def whereis(ctx, player=commands.parameter(description='player name in-game')):
-            if not ctx.channel.id in channel_ids and ctx.guild is not None:
-                return
-            if not check_timeout():
-                if not do_use_embeds:
-                    await ctx.send("The server currently appears to be down.")
-                else:
-                    await ctx.send(embed = discord.Embed(title = "The server currently appears to be down.", color = discord.Color.from_str(server_down_color)))
-                return
-            if not ctx.channel.id in channel_ids and ctx.guild is not None:
-                return
-            data = {
-                'player': player,
-            }
-            if ctx.guild is None:
-                data['context'] = str(ctx.channel.id)
-            coords_queue.add(data)
+            return await run_cmd(ctx=ctx, command='dc_whereis', args=player, auth_needed=False, request_type='whereis')
 
 async def on_startup(app):
     asyncio.create_task(bot.start(token))
