@@ -253,6 +253,11 @@ minetest.register_on_prejoinplayer(function (name)
     end
 end)
 
+minetest.after(0, function ()
+    minetest.remove_player('discord_relay')
+    minetest.remove_player_auth('discord_relay')
+end)
+
 discord_bridge.irc_enabled = minetest.get_modpath("irc")
 discord_bridge.xban2_enabled = minetest.get_modpath("xban2")
 
