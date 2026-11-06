@@ -94,8 +94,8 @@ async def srv():
     app[setup_packet_received] = False
     app[setup_finished] = finished
     app.add_routes([web.get('/', handle_setup_root),
-        web.post('/', handle_setup_root)])
-    app.add_routes([web.post('/setup', handle_setup_packet)])
+        web.post('/', handle_setup_root),
+        web.post('/setup', handle_setup_packet)])
     runner = web.AppRunner(app)
     await runner.setup()
     if remote_allowed:
@@ -104,6 +104,7 @@ async def srv():
         site = web.TCPSite(runner, 'localhost', port)
     await site.start()
     await finished.wait()
+    await asyncio.sleep(0)
     await site.stop()
     await runner.cleanup()
 
@@ -274,8 +275,8 @@ async def setup_already_completed(response):
 
 app = web.Application()
 app.add_routes([web.get('/', handle),
-                web.post('/', handle)])
-app.add_routes([web.post('/setup', setup_already_completed)])
+                web.post('/', handle),
+                web.post('/setup', setup_already_completed)])
 
 @bot.event
 async def on_message(message):
