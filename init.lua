@@ -502,9 +502,7 @@ if discord_bridge.ready then return end
 minetest.log('verbose', 'discord_bridge.main_loop is started')
 discord_bridge.ready = true
 
--- Register the chat message callback after other mods load so that anything
--- that overrides chat will work correctly
-minetest.after(0, minetest.register_on_chat_message, function(name, message)
+minetest.register_on_chat_message(function(name, message)
     name = name:gsub("_", "\\_")
     discord_bridge.send_buffered(discord_bridge.name_wrapper:format(name) .. discord_bridge.escape_message(message))
 end)
@@ -519,7 +517,7 @@ minetest.override_chatcommand('me', {
 })
 
 if discord_bridge.send_joins then
-    minetest.after(0, minetest.register_on_joinplayer, function(player, last_login)
+    minetest.register_on_joinplayer(function(player, last_login)
         local name = player:get_player_name():gsub("_", "\\_")
 
         if last_login == nil and discord_bridge.send_welcomes then
@@ -627,13 +625,16 @@ if discord_bridge.irc_enabled then
 end
 
 if discord_bridge.send_server_startup and os.time() - discord_bridge.game_startup_time < 15 then
-    if discord_bridge.use_embeds_on_server_updates then
-        discord_bridge.send(discord_bridge.startup_text, nil, discord_bridge.startup_color,
-            (discord_bridge.include_server_status_on_startup and discord_bridge.escape_message(minetest.get_server_status(), true) or nil))
-    else
-        discord_bridge.send(discord_bridge.startup_text ..
-            (discord_bridge.include_server_status_on_startup and " - " .. discord_bridge.escape_message(minetest.get_server_status(), true) or ""))
-    end
+    -- some delay to prevent startup message drop
+    minetest.after(0, function ()
+        if discord_bridge.use_embeds_on_server_updates then
+            discord_bridge.send(discord_bridge.startup_text, nil, discord_bridge.startup_color,
+                (discord_bridge.include_server_status_on_startup and discord_bridge.escape_message(minetest.get_server_status(), true) or nil))
+        else
+            discord_bridge.send(discord_bridge.startup_text ..
+                (discord_bridge.include_server_status_on_startup and " - " .. discord_bridge.escape_message(minetest.get_server_status(), true) or ""))
+        end
+    end)
 end
 end
 
@@ -682,9 +683,11 @@ minetest.register_globalstep(function(dtime)
                 local data = minetest.parse_json(res.data)
                 if type(data) == 'table' and data.status == 'SUCCESS' then
                     if data.running then
-                        discord_bridge.main_loop()
+                        -- Register the callbacks after other mods load so that anything
+                        -- that overrides chat will work correctly
+                        minetest.after(0, discord_bridge.main_loop)
                     else
-                        minetest.after(0.09, discord_bridge.main_loop)
+                        minetest.after(0.18, discord_bridge.main_loop)
                     end
                     setup_completed = true
                     return
