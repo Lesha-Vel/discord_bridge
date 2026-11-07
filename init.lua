@@ -33,6 +33,7 @@ discord_bridge.send_leaves = settings:get_bool('discord_bridge.send_leaves', tru
 discord_bridge.send_welcomes = settings:get_bool('discord_bridge.send_welcomes', true)
 discord_bridge.send_deaths = settings:get_bool('discord_bridge.send_deaths', true)
 discord_bridge.setup_send_backend_startups = settings:get_bool('discord_bridge.setup_send_backend_startups', true)
+discord_bridge.send_command_success = settings:get_bool('discord_bridge.send_command_success', true)
 
 discord_bridge.setup_allow_commands = settings:get_bool('discord_bridge.setup_allow_commands', true)
 discord_bridge.setup_allow_logins = settings:get_bool('discord_bridge.setup_allow_logins', true)
@@ -349,6 +350,9 @@ function discord_bridge.handle_response(response)
                             discord_bridge.send(ret_val, v.context or nil, discord_bridge.coords_color)
                         end
                     else
+                        if discord_bridge.send_command_success then
+                            ret_val = (success and '✔️ ' or '❌ ') .. ret_val
+                        end
                         if not discord_bridge.use_embeds_on_dm_cmd then
                             discord_bridge.send(ret_val, v.context or nil)
                         else
