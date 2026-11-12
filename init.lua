@@ -481,13 +481,11 @@ if discord_bridge.send_every_3s then
 end
 
 function discord_bridge.send_dm_to_discord(playername, message)
-    local content
     local data = {
         type = 'DISCORD-DIRECT-MESSAGE',
         playername = playername
     }
-    content = minetest.strip_colors(message)
-    data['content'] = content
+    data['content'] = minetest.strip_colors(message)
     http.fetch_async({
         url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
         timeout = discord_bridge.timeout,
@@ -640,16 +638,14 @@ end
 
 minetest.register_on_leaveplayer(function (player)
     local name = player:get_player_name()
-    local pos = player:get_pos()
-    local pos_str = minetest.pos_to_string(pos)
+    local pos_str = minetest.pos_to_string(player:get_pos())
     discord_bridge.mod_storage:set_string('_' .. name, pos_str)
 end)
 
 minetest.register_on_shutdown(function()
     for _, v in ipairs(minetest.get_connected_players()) do
         local name = v:get_player_name()
-        local pos = v:get_pos()
-        local pos_str = minetest.pos_to_string(pos)
+        local pos_str = minetest.pos_to_string(v:get_pos())
         discord_bridge.mod_storage:set_string('_' .. name, pos_str)
     end
 end)
