@@ -190,37 +190,45 @@ async def handle(request):
                     color = None
                 if 'context' in data:
                     id = int(data['context'])
-                    target_channel = bot.get_partial_messageable(id)
-                    await target_channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
-                            description=embed_description))
+                    async def send():
+                        target_channel = bot.get_partial_messageable(id)
+                        await target_channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
+                                description=embed_description))
+                    asyncio.create_task(send())
                 elif 'userid' in data:
                     userid = int(data['userid'])
-                    user = bot.get_user(userid)
-                    if user is None:
-                        user = await bot.fetch_user(userid)
-                    await user.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
-                            description=embed_description))
+                    async def send():
+                        user = bot.get_user(userid)
+                        if user is None:
+                            user = await bot.fetch_user(userid)
+                        await user.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
+                                description=embed_description))
+                    asyncio.create_task(send())
                 else:
                     for channel in channels:
-                        await channel[1].send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
-                                description=embed_description))
+                        asyncio.create_task(channel[1].send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
+                                description=embed_description)))
             else:
                 if 'context' in data:
                     id = int(data['context'])
-                    target_channel = bot.get_partial_messageable(id)
-                    for chunk in chunks:
-                        await target_channel.send(chunk)
+                    async def send():
+                        target_channel = bot.get_partial_messageable(id)
+                        for chunk in chunks:
+                            await target_channel.send(chunk)
+                    asyncio.create_task(send())
                 elif 'userid' in data:
                     userid = int(data['userid'])
-                    user = bot.get_user(userid)
-                    if user is None:
-                        user = await bot.fetch_user(userid)
-                    for chunk in chunks:
-                        await user.send(chunk)
+                    async def send():
+                        user = bot.get_user(userid)
+                        if user is None:
+                            user = await bot.fetch_user(userid)
+                        for chunk in chunks:
+                            await user.send(chunk)
+                    asyncio.create_task(send())
                 else:
                     for channel in channels:
                         for chunk in chunks:
-                            await channel[1].send(chunk)
+                            asyncio.create_task(channel[1].send(chunk))
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response()
@@ -238,10 +246,12 @@ async def handle(request):
                 msg = underscore_re.sub('\\_', msg)
                 msg = discord.utils.escape_mentions(msg)
                 id = authenticated_users_ids[data['playername']]
-                user = bot.get_user(id)
-                if user is None:
-                    user = await bot.fetch_user(id)
-                await user.send(msg)
+                async def send():
+                    user = bot.get_user(id)
+                    if user is None:
+                        user = await bot.fetch_user(id)
+                    await user.send(msg)
+                asyncio.create_task(send())
 
             # discord.send should NOT block extensively on the Lua side
             return web.Response()
@@ -282,12 +292,6 @@ app.add_routes([web.get('/', handle),
 async def on_message(message):
     if message.channel.id in channel_ids and message.author.id != bot.user.id:
         author = (message.author.display_name if do_use_nicknames else message.author.name)
-        if mirror_chats and not message.content.startswith('!login '):
-            for channel in channels:
-                if channel[0] != message.channel.id:
-                    await channel[1].send(author + '@' + (channel_names.get(message.channel.id, 'Discord')) +
-                        ': ' + message.content.replace('\n', '/'))
-
         if check_timeout():
             msg = {
                 'author': author,
@@ -296,6 +300,12 @@ async def on_message(message):
             }
             if msg['content'] != '':
                 outgoing_msgs.add(msg)
+
+        if mirror_chats and not message.content.startswith('!login '):
+            for channel in channels:
+                if channel[0] != message.channel.id:
+                    asyncio.create_task(channel[1].send(author + '@' + (channel_names.get(message.channel.id, 'Discord')) +
+                        ': ' + message.content.replace('\n', '/')))
 
     await bot.process_commands(message)
 
