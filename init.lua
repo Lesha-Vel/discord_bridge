@@ -391,7 +391,7 @@ function discord_bridge.handle_response(response)
                     data = minetest.write_json(request)
                 }, discord_bridge.handle_response)
             end
-            minetest.log('action', 'Discord login: ' .. tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. tostring(result))
+            minetest.log('action', 'Discord login: ' .. tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. (result and "success" or "failed"))
             if discord_bridge.login_file ~= '' then
                 local f = io.open(minetest.get_worldpath() .. '/' .. discord_bridge.login_file, 'a')
                 f:write(tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. tostring(result) .. '\n')
