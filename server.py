@@ -88,7 +88,7 @@ async def handle_setup_packet(request):
     return web.Response(text='{"status": "SUCCESS"}')
 
 async def srv():
-    print('='*15+'\nSetting it up.\n'+'='*15)
+    print(f"{'='*15}\nSetting it up.\n{'='*15}")
     finished = asyncio.Event()
     app = web.Application()
     app[setup_packet_received] = False
@@ -299,8 +299,7 @@ async def on_message(message):
         if mirror_chats and not message.content.startswith('!login '):
             for channel in channels:
                 if channel[0] != message.channel.id:
-                    asyncio.create_task(channel[1].send(author + '@' + (channel_names.get(message.channel.id, 'Discord')) +
-                        ': ' + message.content.replace('\n', '/')))
+                    asyncio.create_task(channel[1].send(f"{author}@{channel_names.get(message.channel.id, 'Discord')}: {message.content.replace('\n', '/')}"))
 
     await bot.process_commands(message)
 
@@ -420,7 +419,7 @@ Admin only commands:
                                    'message will be automatically deleted.*',
                                    delete_after=10, ephemeral=True)
                 else:
-                    await ctx.send(embed = discord.Embed(title = ctx.author.mention + ' You\'ve quite possibly just '
+                    await ctx.send(embed = discord.Embed(title = ' You\'ve quite possibly just '
                                    'leaked your password by using this command outside of '
                                    'DMs; it is advised that you change it at once.\n*This '
                                    'message will be automatically deleted.*', color = discord.Color.from_str(password_leak_color)),
@@ -434,7 +433,7 @@ Admin only commands:
             login_queue.add({
                 'username': username,
                 'password': password,
-                'dc_name': ctx.author.name + ':' + ctx.author.display_name,
+                'dc_name': f"{ctx.author.name}:{ctx.author.display_name}",
                 'user_id': str(ctx.author.id)
             })
             if not check_timeout():
@@ -460,7 +459,7 @@ Admin only commands:
                         'username': self.username.value,
                         'password': self.password.value,
                         'user_id': str(interaction.user.id),
-                        'dc_name': interaction.user.name + ':' + interaction.user.display_name
+                        'dc_name': f"{interaction.user.name}:{interaction.user.display_name}"
                     })
                     if not check_timeout():
                         if not do_use_embeds:
@@ -513,16 +512,16 @@ Admin only commands:
                 return
             if username in authenticated_users_ids:
                 if not do_use_embeds:
-                    await ctx.send("kick was invoked for user: " + username, delete_after=10, ephemeral=True)
+                    await ctx.send(f"kick was invoked for user: {username}", delete_after=10, ephemeral=True)
                 else:
-                    await ctx.send(embed = discord.Embed(title = "kick was invoked for user: " + username), delete_after=10, ephemeral=True)
+                    await ctx.send(embed = discord.Embed(title = f"kick was invoked for user: {username}"), delete_after=10, ephemeral=True)
                 id = authenticated_users_ids[username]
                 register_logout(id)
             else:
                 if not do_use_embeds:
-                    await ctx.send("user not logged in: " + username, delete_after=10, ephemeral=True)
+                    await ctx.send(f"user not logged in: {username}", delete_after=10, ephemeral=True)
                 else:
-                    await ctx.send(embed = discord.Embed(title = "user not logged in: " + username), delete_after=10, ephemeral=True)
+                    await ctx.send(embed = discord.Embed(title = f"user not logged in: {username}"), delete_after=10, ephemeral=True)
 
         @bot.command(help='Get ingame player name you\'re now logged in.')
         async def whoami(ctx):
@@ -533,14 +532,14 @@ Admin only commands:
                 if auto_logout_timeout > 0 and persistent_logins:
                     remaining_time_str = datetime.fromtimestamp(authenticated_users_timestamps[ctx.author.id] + auto_logout_timeout).strftime(date_format)
                     if not do_use_embeds:
-                        await ctx.send('your ingame name is: ' + name + '\nwill logout at: ' + remaining_time_str)
+                        await ctx.send(f"your ingame name is: {name}\nwill logout at: {remaining_time_str}")
                     else:
-                        await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name, description='will logout at: ' + remaining_time_str))
+                        await ctx.send(embed = discord.Embed(title = f"your ingame name is: {name}", description=f"will logout at: {remaining_time_str}"))
                 else:
                     if not do_use_embeds:
-                        await ctx.send('your ingame name is: ' + name)
+                        await ctx.send(f"your ingame name is: {name}")
                     else:
-                        await ctx.send(embed = discord.Embed(title = 'your ingame name is: ' + name))
+                        await ctx.send(embed = discord.Embed(title = f"your ingame name is: {name}"))
             else:
                 if not do_use_embeds:
                     await ctx.send('Not logged in.')
@@ -563,7 +562,7 @@ app.on_startup.append(on_startup)
 
 if __name__ == '__main__':
     try:
-        print('Starting relay.\n'+'='*15)
+        print(f"Starting relay.\n{'='*15}")
         if remote_allowed:
             web.run_app(app, host='0.0.0.0', port=port)
         else:
