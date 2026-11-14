@@ -230,8 +230,6 @@ async def handle(request):
                         for chunk in chunks:
                             asyncio.create_task(channel[1].send(chunk))
 
-            # discord.send should NOT block extensively on the Lua side
-            return web.Response()
         if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-SUCCESS':
             user_id = int(data['user_id'])
             send_user_list = True
@@ -240,8 +238,7 @@ async def handle(request):
             authenticated_users_ids[data['username']] = user_id
             authenticated_users[user_id] = data['username']
             authenticated_users_timestamps[user_id] = time.time()
-        if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
-            if data['playername'] in authenticated_users_ids:
+        if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE' and data['playername'] in authenticated_users_ids:
                 msg = translation_re.sub('', data['content'])
                 msg = underscore_re.sub('\\_', msg)
                 msg = discord.utils.escape_mentions(msg)
@@ -253,8 +250,6 @@ async def handle(request):
                     await user.send(msg)
                 asyncio.create_task(send())
 
-            # discord.send should NOT block extensively on the Lua side
-            return web.Response()
         if request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
             send_user_list = True
             if logins_allowed:

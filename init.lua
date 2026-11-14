@@ -446,12 +446,12 @@ function discord_bridge.send(message, id, embed_color, embed_description, userid
     if userid then
         data['userid'] = userid
     end
-    http.fetch_async({
+    http.fetch({
         url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
         timeout = discord_bridge.timeout,
         method = 'POST',
         data = minetest.write_json(data)
-    })
+    }, discord_bridge.handle_response)
 end
 
 function discord_bridge.send_buffered(message)
@@ -486,12 +486,12 @@ function discord_bridge.send_dm_to_discord(playername, message)
         playername = playername
     }
     data['content'] = minetest.strip_colors(message)
-    http.fetch_async({
+    http.fetch({
         url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
         timeout = discord_bridge.timeout,
         method = 'POST',
         data = minetest.write_json(data)
-    })
+    }, discord_bridge.handle_response)
 end
 
 function discord_bridge.main_loop()
