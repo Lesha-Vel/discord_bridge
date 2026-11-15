@@ -343,7 +343,7 @@ Admin only commands:
 * some commands can be disabled by a server admin
 '''), ephemeral=True)
 
-    @bot.command(help='sync command tree globally (makes slash commands work) (admin only)')
+    @bot.command()
     @commands.is_owner()
     async def sync(ctx):
         if not ctx.channel.id in channel_ids and ctx.guild is not None:
@@ -380,15 +380,15 @@ Admin only commands:
         command_queue.add(command)
 
     if logins_allowed:
-        @bot.command(help='Runs an ingame command from Discord.')
+        @bot.command()
         async def cmd(ctx, command=commands.parameter(description='in-game command without leading /, if command is for example //help it become /help'), *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`', default='')):
             return await run_cmd(ctx=ctx, command=command, args=args)
 
-        @bot.command(help='an alias for `!cmd dc_send`')
+        @bot.command()
         async def say(ctx, *, args=commands.parameter(description='arguments, like `player text` in `/msg player text`')):
             return await run_cmd(ctx=ctx, command='dc_send', args=args)
 
-        @bot.command(help='list logged in discord users')
+        @bot.command()
         async def logins(ctx):
             if not ctx.channel.id in channel_ids and ctx.guild is not None:
                 return
@@ -405,9 +405,7 @@ Admin only commands:
             else:
                 await ctx.send(embed = discord.Embed(title = msg))
 
-        @bot.command(name='login', help='Logs into your ingame account from Discord so you can run '
-                          'commands and receive direct messages if allowed. You '
-                          'should only run this command in DMs with the bot.')
+        @bot.command(name='login')
         async def login_prefix(ctx, username=commands.parameter(description='in-game player name'), password=commands.parameter(description='in-game password', default='')):
             if not ctx.channel.id in channel_ids and ctx.guild is not None:
                 return
@@ -504,7 +502,7 @@ Admin only commands:
                 await ctx.send(embed = discord.Embed(title = "logout was invoked"), delete_after=10, ephemeral=True)
             register_logout(ctx.author.id)
 
-        @bot.command(help='kick a discord user from luanti (admin only)')
+        @bot.command()
         async def kick(ctx, username=commands.parameter(description='in-game name to kick')):
             if not await bot.is_owner(ctx.author) and not str(ctx.author.id) in moderators_table:
                 return
@@ -523,7 +521,7 @@ Admin only commands:
                 else:
                     await ctx.send(embed = discord.Embed(title = f"user not logged in: {username}"), delete_after=10, ephemeral=True)
 
-        @bot.command(help='Get ingame player name you\'re now logged in.')
+        @bot.command()
         async def whoami(ctx):
             if not ctx.channel.id in channel_ids and ctx.guild is not None:
                 return
@@ -546,12 +544,12 @@ Admin only commands:
                 else:
                     await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
 
-    @bot.command(help='Lists connected players and server information.')
+    @bot.command()
     async def status(ctx):
         return await run_cmd(ctx=ctx, command='status', args='', auth_needed=False, request_type='status')
 
     if whereis_allowed:
-        @bot.command(help='Get player coordinates.')
+        @bot.command()
         async def whereis(ctx, player=commands.parameter(description='player name in-game')):
             return await run_cmd(ctx=ctx, command='dc_whereis', args=player, auth_needed=False, request_type='whereis')
 
