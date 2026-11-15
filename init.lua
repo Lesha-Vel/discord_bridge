@@ -683,7 +683,17 @@ minetest.register_globalstep(function(dtime)
                         -- that overrides chat will work correctly
                         minetest.after(0, discord_bridge.main_loop)
                     else
-                        minetest.after(0.18, discord_bridge.main_loop)
+                        local function start_main_loop()
+                            discord_bridge.http.fetch({
+                                url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
+                                timeout = discord_bridge.timeout
+                            }, function (response)
+                                if response.succeeded then
+                                    discord_bridge.main_loop()
+                                end
+                            end)
+                        end
+                        minetest.after(0.18, start_main_loop)
                     end
                     discord_bridge.setup_completed = true
                     return
