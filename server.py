@@ -7,7 +7,6 @@ import sys
 import time
 import traceback
 import warnings
-from datetime import datetime
 
 import discord
 from aiohttp import web
@@ -129,6 +128,7 @@ class Queue:
 outgoing_msgs = Queue()
 command_queue = Queue()
 login_queue = Queue()
+service_command_queue = Queue()
 
 bot = commands.Bot(
     command_prefix=prefix,
@@ -238,15 +238,14 @@ async def handle(request):
             authenticated_users_ids[data['username']] = user_id
             authenticated_users[user_id] = data['username']
             authenticated_users_timestamps[user_id] = time.time()
-        if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE' and data['playername'] in authenticated_users_ids:
+        if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
                 msg = translation_re.sub('', data['content'])
                 msg = underscore_re.sub('\\_', msg)
                 msg = discord.utils.escape_mentions(msg)
-                id = authenticated_users_ids[data['playername']]
                 async def send():
-                    user = bot.get_user(id)
+                    user = bot.get_user(data['id'])
                     if user is None:
-                        user = await bot.fetch_user(id)
+                        user = await bot.fetch_user(data['id'])
                     await user.send(msg)
                 asyncio.create_task(send())
 
@@ -260,7 +259,8 @@ async def handle(request):
     responseObject = {
         'messages': outgoing_msgs.get_all(),
         'commands': command_queue.get_all(),
-        'logins': login_queue.get_all()
+        'logins': login_queue.get_all(),
+        'service_commands': service_command_queue.get_all()
     }
     if send_user_list:
         send_user_list = False
@@ -351,7 +351,7 @@ Admin only commands:
         synced_count = await bot.tree.sync()
         await ctx.send(f'command tree is synced: {len(synced_count)}')
 
-    async def run_cmd(ctx, command, args, auth_needed = True, request_type=''):
+    async def run_cmd(ctx, command, args, bypass_auth = False, request_type=''):
         if not ctx.channel.id in channel_ids and ctx.guild is not None:
             return
         user = bot.get_user(ctx.author.id)
@@ -363,17 +363,12 @@ Admin only commands:
             else:
                 await user.send(embed = discord.Embed(title = 'The server currently appears to be down.', color = discord.Color.from_str(server_down_color)))
             return
-        if auth_needed and ctx.author.id not in authenticated_users:
-            if not do_use_embeds:
-                await user.send('Not logged in.')
-            else:
-                await user.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
-            return
         command = {
-            'name': authenticated_users[ctx.author.id] if auth_needed else 'discord_relay',
+            'id': str(ctx.author.id),
             'command': command,
             'params': args.replace('\n', ''),
-            'type': request_type
+            'type': request_type,
+            'bypass_auth': bypass_auth
         }
         if ctx.guild is None:
             command['context'] = str(ctx.channel.id)
@@ -525,33 +520,20 @@ Admin only commands:
         async def whoami(ctx):
             if not ctx.channel.id in channel_ids and ctx.guild is not None:
                 return
-            if ctx.author.id in authenticated_users:
-                name = underscore_re.sub('\\_', authenticated_users[ctx.author.id])
-                if auto_logout_timeout > 0 and persistent_logins:
-                    remaining_time_str = datetime.fromtimestamp(authenticated_users_timestamps[ctx.author.id] + auto_logout_timeout).strftime(date_format)
-                    if not do_use_embeds:
-                        await ctx.send(f"your ingame name is: {name}\nwill logout at: {remaining_time_str}")
-                    else:
-                        await ctx.send(embed = discord.Embed(title = f"your ingame name is: {name}", description=f"will logout at: {remaining_time_str}"))
-                else:
-                    if not do_use_embeds:
-                        await ctx.send(f"your ingame name is: {name}")
-                    else:
-                        await ctx.send(embed = discord.Embed(title = f"your ingame name is: {name}"))
-            else:
-                if not do_use_embeds:
-                    await ctx.send('Not logged in.')
-                else:
-                    await ctx.send(embed = discord.Embed(title = 'Not logged in.', color = discord.Color.from_str(not_logged_in_color)))
+            service_command_queue.add({
+                "cmd": "whoami",
+                "author_id": str(ctx.author.id),
+                "context": str(ctx.channel.id) if ctx.guild is None else None
+            })
 
     @bot.command()
     async def status(ctx):
-        return await run_cmd(ctx=ctx, command='status', args='', auth_needed=False, request_type='status')
+        return await run_cmd(ctx=ctx, command='status', args='', bypass_auth=True, request_type='status')
 
     if whereis_allowed:
         @bot.command()
         async def whereis(ctx, player=commands.parameter(description='player name in-game')):
-            return await run_cmd(ctx=ctx, command='dc_whereis', args=player, auth_needed=False, request_type='whereis')
+            return await run_cmd(ctx=ctx, command='dc_whereis', args=player, bypass_auth=True, request_type='whereis')
 
 async def on_startup(app):
     asyncio.create_task(bot.start(token))

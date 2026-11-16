@@ -114,7 +114,12 @@ discord_bridge.server_config = {
     saved_logins = discord_bridge.mod_storage:get_string('saved_logins')
 }
 
+-- user id -> playername
 discord_bridge.authenticated_users = {}
+-- playername -> user id
+discord_bridge.authenticated_users_ids = {}
+-- user id -> timestamp
+discord_bridge.authenticated_users_timestamps = {}
 
 discord_bridge.ready = false
 
@@ -134,7 +139,7 @@ discord_bridge.old_msg_func = minetest.registered_chatcommands['msg'].func
 minetest.override_chatcommand('msg', {
     func = function(name, param)
         local target_player, message = param:match('^(%S+)%s(.+)$')
-        if discord_bridge.authenticated_users[target_player] then
+        if discord_bridge.authenticated_users_ids[target_player] then
             minetest.log('action', 'DM from ' .. name .. ' to a discord user ' .. target_player .. ': ' .. message)
             if not target_player then
                 return false, "Invalid usage, see /help msg."
@@ -231,7 +236,7 @@ minetest.get_server_status = function (name, joined)
     local match = string.find(original_status, '\n')
 
     local first = true
-    for k in pairs(discord_bridge.authenticated_users) do
+    for k in pairs(discord_bridge.authenticated_users_ids) do
         if first then
             users_list = users_list .. ' | discord: '
         end
@@ -295,12 +300,21 @@ function discord_bridge.handle_response(response)
     if data.commands then
         local commands = minetest.registered_chatcommands
         for _, v in pairs(data.commands) do
+            local actor_name = v.bypass_auth and 'discord_relay' or discord_bridge.authenticated_users[v.id]
+            if not v.bypass_auth and not discord_bridge.authenticated_users[v.id] then
+                if not discord_bridge.setup_use_embeds then
+                    discord_bridge.send('Not logged in.', nil, nil, nil, v.id)
+                else
+                    discord_bridge.send('Not logged in.', nil, discord_bridge.setup_not_logged_in_color, nil, v.id)
+                end
+                return
+            end
             local xban2_banned = false
             if discord_bridge.xban2_enabled then
-                local names, banned, record = xban.get_info(v.name)
+                local names, banned, record = xban.get_info(actor_name)
                 xban2_banned = (banned and record) or false
             end
-            if minetest.get_ban_description(v.name) ~= '' or xban2_banned then
+            if minetest.get_ban_description(actor_name) ~= '' or xban2_banned then
                 if not discord_bridge.use_embeds_on_svc_dms then
                     discord_bridge.send('You cannot run commands because you are banned.', v.context or nil)
                 else
@@ -311,7 +325,7 @@ function discord_bridge.handle_response(response)
             if commands[v.command] then
                 -- Check player privileges
                 local required_privs = commands[v.command].privs or {}
-                local player_privs = minetest.get_player_privs(v.name)
+                local player_privs = minetest.get_player_privs(actor_name)
                 for priv, value in pairs(required_privs) do
                     if player_privs[priv] ~= value then
                         if not discord_bridge.use_embeds_on_svc_dms then
@@ -325,7 +339,7 @@ function discord_bridge.handle_response(response)
                 local old_chat_send_player = minetest.chat_send_player
                 minetest.chat_send_player = function(name, message)
                     old_chat_send_player(name, message)
-                    if name == v.name then
+                    if name == actor_name then
                         message = discord_bridge.escape_message(message, true)
                         if not discord_bridge.use_embeds_on_dm_cmd then
                             discord_bridge.send(message, v.context or nil)
@@ -334,7 +348,7 @@ function discord_bridge.handle_response(response)
                         end
                     end
                 end
-                local success, ret_val = commands[v.command].func(v.name, v.params or '')
+                local success, ret_val = commands[v.command].func(actor_name, v.params or '')
                 if ret_val then
                     ret_val = discord_bridge.escape_message(ret_val, true)
                     if v.type == 'status' then
@@ -416,9 +430,42 @@ function discord_bridge.handle_response(response)
             if json == 'null' then json = '[]' end
             discord_bridge.mod_storage:set_string('saved_logins', json)
         end
+        discord_bridge.authenticated_users_ids = {}
         discord_bridge.authenticated_users = {}
+        discord_bridge.authenticated_users_timestamps = {}
         for _, v in ipairs(data.logged_in_users) do
-            discord_bridge.authenticated_users[v.name] = true
+            discord_bridge.authenticated_users_ids[v.name] = v.id
+            discord_bridge.authenticated_users[v.id] = v.name
+            discord_bridge.authenticated_users_timestamps[v.id] = v.timestamp
+        end
+    end
+    if data.service_commands then
+        for _, v in pairs(data.service_commands) do
+            if v.cmd == 'whoami' then
+                if discord_bridge.authenticated_users[v.author_id] then
+                    local name = discord_bridge.authenticated_users[v.author_id]:gsub('_', '\\_')
+                    if discord_bridge.auto_logout_timeout > 0 and discord_bridge.persistent_logins then
+                        local remaining_time_str = os.date(discord_bridge.date, discord_bridge.authenticated_users_timestamps[v.author_id] + discord_bridge.auto_logout_timeout)
+                        if not discord_bridge.setup_use_embeds then
+                            discord_bridge.send("your ingame name is: " .. name .. "\nwill logout at: " .. remaining_time_str, v.context or nil)
+                        else
+                            discord_bridge.send("your ingame name is: " .. name, v.context or nil, "NOT_SET", "will logout at: " .. remaining_time_str)
+                        end
+                    else
+                        if not discord_bridge.setup_use_embeds then
+                            discord_bridge.send("your ingame name is: " .. name, v.context or nil)
+                        else
+                            discord_bridge.send("your ingame name is: " .. name, v.context or nil, "NOT_SET")
+                        end
+                    end
+                else
+                    if not discord_bridge.setup_use_embeds then
+                        discord_bridge.send('Not logged in.', v.context or nil)
+                    else
+                        discord_bridge.send('Not logged in.', v.context or nil, discord_bridge.setup_not_logged_in_color)
+                    end
+                end
+            end
         end
     end
 end
@@ -481,7 +528,8 @@ end
 function discord_bridge.send_dm_to_discord(playername, message)
     local data = {
         type = 'DISCORD-DIRECT-MESSAGE',
-        playername = playername
+        playername = playername,
+        id = discord_bridge.authenticated_users_ids[playername]
     }
     data['content'] = minetest.strip_colors(message)
     discord_bridge.http.fetch({
