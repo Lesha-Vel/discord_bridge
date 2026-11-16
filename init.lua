@@ -390,14 +390,6 @@ function discord_bridge.handle_response(response)
                     method = 'POST',
                     data = minetest.write_json(request)
                 }, discord_bridge.handle_response)
-            end
-            minetest.log('action', 'Discord login: ' .. tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. (result and "success" or "failed"))
-            if discord_bridge.login_file ~= '' then
-                local f = io.open(minetest.get_worldpath() .. '/' .. discord_bridge.login_file, 'a')
-                f:write(tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. tostring(result) .. '\n')
-                f:close()
-            end
-            if result then
                 if not discord_bridge.use_embeds_on_svc_dms then
                     discord_bridge.send('Login successful.', nil, nil, nil, v.user_id)
                 else
@@ -409,6 +401,12 @@ function discord_bridge.handle_response(response)
                 else
                     discord_bridge.send('Login failed.', nil, discord_bridge.login_fail_color, nil, v.user_id)
                 end
+            end
+            minetest.log('action', 'Discord login: ' .. tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. (result and "success" or "failed"))
+            if discord_bridge.login_file ~= '' then
+                local f = io.open(minetest.get_worldpath() .. '/' .. discord_bridge.login_file, 'a')
+                f:write(tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. os.date('!%Y-%m-%dT%H:%M:%SZ') .. ':' .. tostring(result) .. '\n')
+                f:close()
             end
         end
     end
