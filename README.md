@@ -2,6 +2,8 @@
 
 # THIS README FILE IS WORK IN PROGRESS, will be fixed soon
 
+## before release, `discord_bridge_version` has to be updated in both `init.lua` and `server.py`
+
 A feature-filled Discord relay for Luanti, supporting:
 
 - Relaying server chat to Discord, and Discord chat to the server

@@ -12,6 +12,9 @@ from aiohttp import web
 from discord import ui
 from discord.ext import commands
 
+protocol_version = '0.0.16-dev'
+version_mismatch = False
+
 warnings.filterwarnings('ignore', 'Changing state of started or joined application is deprecated', DeprecationWarning)
 
 parser = argparse.ArgumentParser(usage = '%(prog)s [-h|--help] [-p,--port PORT] [--allow-remote]')
@@ -47,13 +50,18 @@ async def handle_setup_root(request):
 
 async def handle_setup_packet(request):
     global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
-    global whereis_allowed, mirror_chats, moderators_table, server_down_color, password_leak_color
+    global whereis_allowed, mirror_chats, moderators_table, server_down_color, password_leak_color, version_mismatch
     if request.app[setup_packet_received]:
         print('setup packet already received')
         return web.Response()
     request.app[setup_packet_received] = True
     response = await request.json()
 
+    if response['protocol_version'] != protocol_version:
+        version_mismatch = True
+        print(f"ERROR: VERSION MISMATCH! expected {protocol_version} got {response['protocol_version']}")
+        request.app[setup_finished].set()
+        return web.Response(text='{"status": "VERSION_MISMATCH", "ver": "' + protocol_version + '"}')
     token = response['token']
     prefix = response['command_prefix']
     channel_ids_str = response['channel_ids']
@@ -101,6 +109,9 @@ if __name__ == '__main__':
         asyncio.run(srv())
     except KeyboardInterrupt:
         sys.exit()
+
+if version_mismatch:
+    sys.exit(1)
 
 class Queue:
     def __init__(self):

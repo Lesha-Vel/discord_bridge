@@ -1,4 +1,5 @@
 local discord_bridge = {}
+discord_bridge.protocol_version = '0.0.16-dev'
 discord_bridge.http = minetest.request_http_api()
 local settings = minetest.settings
 
@@ -94,6 +95,7 @@ if not discord_bridge.persistent_logins or not discord_bridge.mod_storage:contai
 end
 
 discord_bridge.server_config = {
+    protocol_version = discord_bridge.protocol_version,
     token = discord_bridge.setup_token,
     command_prefix = discord_bridge.setup_command_prefix,
     channel_ids = discord_bridge.setup_channel_ids_table,
@@ -790,6 +792,8 @@ minetest.register_globalstep(function(dtime)
                     end
                     discord_bridge.setup_completed = true
                     return
+                elseif type(data) == 'table' and data.status == 'VERSION_MISMATCH' then
+                    error("discord_bridge VERSION MISMATCH! expected " .. discord_bridge.protocol_version .. " got " .. data.ver)
                 end
             end
             discord_bridge.setup_ongoing = discord_bridge.http.fetch_async({
