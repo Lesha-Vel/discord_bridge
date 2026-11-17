@@ -146,7 +146,19 @@ minetest.override_chatcommand('msg', {
             if not target_player then
                 return false, "Invalid usage, see /help msg."
             end
-            discord_bridge.send_dm_to_discord(target_player, minetest.format_chat_message(name:gsub('_', '\\_'), message))
+            message = minetest.format_chat_message(name:gsub('_', '\\_'), message)
+            local data = {
+                type = 'DISCORD-DIRECT-MESSAGE',
+                playername = target_player,
+                id = discord_bridge.authenticated_users_ids[target_player],
+                content = minetest.strip_escapes(message)
+            }
+            discord_bridge.http.fetch({
+                url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
+                timeout = discord_bridge.timeout,
+                method = 'POST',
+                data = minetest.write_json(data)
+            }, discord_bridge.handle_response)
             if not minetest.get_player_by_name(target_player) then
                 return true, 'DM sent to a discord user ' .. target_player .. ': ' .. message
             end
@@ -566,21 +578,6 @@ if discord_bridge.send_every_3s then
         discord_bridge.msg_queue = ''
         discord_bridge.send_timer = 0
     end)
-end
-
-function discord_bridge.send_dm_to_discord(playername, message)
-    local data = {
-        type = 'DISCORD-DIRECT-MESSAGE',
-        playername = playername,
-        id = discord_bridge.authenticated_users_ids[playername]
-    }
-    data['content'] = minetest.strip_escapes(message)
-    discord_bridge.http.fetch({
-        url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
-        timeout = discord_bridge.timeout,
-        method = 'POST',
-        data = minetest.write_json(data)
-    }, discord_bridge.handle_response)
 end
 
 function discord_bridge.main_loop()
