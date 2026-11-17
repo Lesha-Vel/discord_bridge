@@ -104,14 +104,9 @@ discord_bridge.server_config = {
     send_backend_startups = discord_bridge.setup_send_backend_startups,
     use_embeds = discord_bridge.setup_use_embeds,
     server_down_color = discord_bridge.setup_server_down_color,
-    not_logged_in_color = discord_bridge.setup_not_logged_in_color,
     password_leak_color = discord_bridge.setup_password_leak_color,
     mirror_chats = discord_bridge.mirror_chats,
-    auto_logout_timeout = discord_bridge.auto_logout_timeout,
-    date_format = discord_bridge.date,
-    persistent_logins = discord_bridge.persistent_logins,
-    moderators_table = discord_bridge.moderators_table,
-    saved_logins = discord_bridge.mod_storage:get_string('saved_logins')
+    moderators_table = discord_bridge.moderators_table
 }
 
 -- user id -> playername
@@ -120,6 +115,13 @@ discord_bridge.authenticated_users = {}
 discord_bridge.authenticated_users_ids = {}
 -- user id -> timestamp
 discord_bridge.authenticated_users_timestamps = {}
+
+-- load saved logins here
+for _, v in ipairs(minetest.parse_json(discord_bridge.mod_storage:get_string('saved_logins'))) do
+    discord_bridge.authenticated_users_ids[v.name] = v.id
+    discord_bridge.authenticated_users[v.id] = v.name
+    discord_bridge.authenticated_users_timestamps[v.id] = v.timestamp
+end
 
 discord_bridge.ready = false
 
@@ -269,6 +271,31 @@ discord_bridge.xban2_enabled = minetest.get_modpath("xban2")
 
 discord_bridge.msg_queue = ''
 
+function discord_bridge.save_logins()
+    if discord_bridge.persistent_logins then
+        local logged_in_users = {}
+        for i, v in pairs(discord_bridge.authenticated_users) do
+            table.insert(logged_in_users, {
+                id = i,
+                name = v,
+                timestamp = discord_bridge.authenticated_users_timestamps[i]
+            })
+        end
+        local json = minetest.write_json(logged_in_users)
+        if json == 'null' then json = '[]' end
+        discord_bridge.mod_storage:set_string('saved_logins', json)
+    end
+end
+
+function discord_bridge.register_logout(id)
+    if discord_bridge.authenticated_users[id] then
+        discord_bridge.authenticated_users_ids[discord_bridge.authenticated_users[id]] = nil
+    end
+    discord_bridge.authenticated_users[id] = nil
+    discord_bridge.authenticated_users_timestamps[id] = nil
+    discord_bridge.save_logins()
+end
+
 function discord_bridge.handle_response(response)
     local data = response.data
     if data == '' or data == nil then return end
@@ -393,17 +420,13 @@ function discord_bridge.handle_response(response)
                 result = minetest.check_password_entry(v.username, authdata.password, v.password)
             end
             if result then
-                local request = {
-                    type = 'DISCORD-LOGIN-SUCCESS',
-                    user_id = v.user_id,
-                    username = v.username
-                }
-                discord_bridge.http.fetch({
-                    url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
-                    timeout = discord_bridge.timeout,
-                    method = 'POST',
-                    data = minetest.write_json(request)
-                }, discord_bridge.handle_response)
+                if discord_bridge.authenticated_users[v.user_id] then
+                    discord_bridge.authenticated_users_ids[discord_bridge.authenticated_users[v.user_id]] = nil
+                end
+                discord_bridge.authenticated_users_ids[v.username] = v.user_id
+                discord_bridge.authenticated_users[v.user_id] = v.username
+                discord_bridge.authenticated_users_timestamps[v.user_id] = os.time()
+                discord_bridge.save_logins()
                 if not discord_bridge.use_embeds_on_svc_dms then
                     discord_bridge.send('Login successful.', nil, nil, nil, v.user_id)
                 else
@@ -424,27 +447,12 @@ function discord_bridge.handle_response(response)
             end
         end
     end
-    if data.logged_in_users then
-        if discord_bridge.persistent_logins then
-            local json = minetest.write_json(data.logged_in_users)
-            if json == 'null' then json = '[]' end
-            discord_bridge.mod_storage:set_string('saved_logins', json)
-        end
-        discord_bridge.authenticated_users_ids = {}
-        discord_bridge.authenticated_users = {}
-        discord_bridge.authenticated_users_timestamps = {}
-        for _, v in ipairs(data.logged_in_users) do
-            discord_bridge.authenticated_users_ids[v.name] = v.id
-            discord_bridge.authenticated_users[v.id] = v.name
-            discord_bridge.authenticated_users_timestamps[v.id] = v.timestamp
-        end
-    end
     if data.service_commands then
         for _, v in pairs(data.service_commands) do
             if v.cmd == 'whoami' then
                 if discord_bridge.authenticated_users[v.author_id] then
                     local name = discord_bridge.authenticated_users[v.author_id]:gsub('_', '\\_')
-                    if discord_bridge.auto_logout_timeout > 0 and discord_bridge.persistent_logins then
+                    if discord_bridge.auto_logout_timeout > 0 then
                         local remaining_time_str = os.date(discord_bridge.date, discord_bridge.authenticated_users_timestamps[v.author_id] + discord_bridge.auto_logout_timeout)
                         if not discord_bridge.setup_use_embeds then
                             discord_bridge.send("your ingame name is: " .. name .. "\nwill logout at: " .. remaining_time_str, v.context or nil)
@@ -465,6 +473,41 @@ function discord_bridge.handle_response(response)
                         discord_bridge.send('Not logged in.', v.context or nil, discord_bridge.setup_not_logged_in_color)
                     end
                 end
+            end
+            if v.cmd == 'logins' then
+                local msg = 'logged in users: '
+                local first = true
+                for _, j in pairs(discord_bridge.authenticated_users) do
+                    msg = msg .. (first and '' or ', ') .. j
+                    first = false
+                end
+                if first then
+                    msg = 'there\'re no users currently logged in'
+                end
+                if not discord_bridge.setup_use_embeds then
+                    discord_bridge.send(msg, v.context or nil)
+                else
+                    discord_bridge.send(msg, v.context or nil, 'NOT_SET')
+                end
+            end
+            if v.cmd == 'kick' then
+                if discord_bridge.authenticated_users_ids[v.username] then
+                    if not discord_bridge.setup_use_embeds then
+                        discord_bridge.send("kick was invoked for user: " .. v.username, v.context or nil)
+                    else
+                        discord_bridge.send("kick was invoked for user: " .. v.username, v.context or nil, 'NOT_SET')
+                    end
+                    discord_bridge.register_logout(discord_bridge.authenticated_users_ids[v.username])
+                else
+                    if not discord_bridge.setup_use_embeds then
+                        discord_bridge.send("user not logged in: " .. v.username, v.context or nil)
+                    else
+                        discord_bridge.send("user not logged in: " .. v.username, v.context or nil, 'NOT_SET')
+                    end
+                end
+            end
+            if v.cmd == 'logout' then
+                discord_bridge.register_logout(v.author_id)
             end
         end
     end
@@ -613,20 +656,23 @@ if discord_bridge.send_deaths then
 end
 
 discord_bridge.timer = 0
-discord_bridge.login_request_timer = 20
+discord_bridge.stale_logout_timer = 20
 discord_bridge.ongoing = nil
 minetest.register_globalstep(function(dtime)
     if not dtime then return end
     discord_bridge.timer = discord_bridge.timer + dtime
-    discord_bridge.login_request_timer = discord_bridge.login_request_timer + dtime
-    if discord_bridge.login_request_timer > 15 then
-        discord_bridge.http.fetch({
-            url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
-            timeout = discord_bridge.timeout,
-            method = 'POST',
-            data = '{"type": "DISCORD-STARTUP-REQUEST"}'
-        }, discord_bridge.handle_response)
-        discord_bridge.login_request_timer = 0
+    discord_bridge.stale_logout_timer = discord_bridge.stale_logout_timer + dtime
+    if discord_bridge.setup_allow_logins and discord_bridge.auto_logout_timeout > 0 and discord_bridge.stale_logout_timer > 15 then
+        local logout_ids = {}
+        for i, v in pairs(discord_bridge.authenticated_users_timestamps) do
+            if os.time() - v > discord_bridge.auto_logout_timeout then
+                table.insert(logout_ids, i)
+            end
+        end
+        for _, v in ipairs(logout_ids) do
+            discord_bridge.register_logout(v)
+        end
+        discord_bridge.stale_logout_timer = 0
     end
     if discord_bridge.timer > 0.2 then
         if not discord_bridge.ongoing then

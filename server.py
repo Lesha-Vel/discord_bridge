@@ -35,14 +35,9 @@ send_backend_startups = True
 do_use_embeds = True
 whereis_allowed = True
 mirror_chats = True
-persistent_logins = True
-date_format = ''
 moderators_table = []
-saved_logins = '[]'
-auto_logout_timeout = 0
 
 server_down_color = '#ede442'
-not_logged_in_color = '#46e8e8'
 password_leak_color = '#ed9d42'
 
 setup_packet_received = web.AppKey('setup_packet_received', bool)
@@ -52,8 +47,8 @@ async def handle_setup_root(request):
     return web.Response(text='NO_SETUP')
 
 async def handle_setup_packet(request):
-    global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds, date_format, persistent_logins
-    global whereis_allowed, mirror_chats, server_down_color, not_logged_in_color, password_leak_color, saved_logins, auto_logout_timeout, moderators_table
+    global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
+    global whereis_allowed, mirror_chats, server_down_color, password_leak_color, moderators_table
     if request.app[setup_packet_received]:
         print('setup packet already received')
         return web.Response()
@@ -74,13 +69,8 @@ async def handle_setup_packet(request):
     do_use_embeds = response['use_embeds']
     whereis_allowed = response['allow_whereis']
     mirror_chats = response['mirror_chats']
-    persistent_logins = response['persistent_logins']
-    date_format = response['date_format']
     moderators_table = response['moderators_table']
-    saved_logins = response['saved_logins']
-    auto_logout_timeout = response['auto_logout_timeout']
     server_down_color = response['server_down_color']
-    not_logged_in_color = response['not_logged_in_color']
     password_leak_color = response['password_leak_color']
 
     request.app[setup_finished].set()
@@ -142,21 +132,6 @@ channels = []
 for i in channel_ids:
     channels.append([i, bot.get_partial_messageable(i)])
 
-# user id -> playername
-authenticated_users = {}
-# playername -> user id
-authenticated_users_ids = {}
-# user id -> timestamp
-authenticated_users_timestamps = {}
-
-# load saved logins here
-for i in json.loads(saved_logins):
-    authenticated_users_ids[i['name']] = int(i['id'])
-    authenticated_users[int(i['id'])] = i['name']
-    authenticated_users_timestamps[int(i['id'])] = i['timestamp']
-
-send_user_list = True
-
 def check_timeout():
     return time.time() - last_request <= 1
 
@@ -164,7 +139,7 @@ translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
 underscore_re = re.compile(r'_')
 
 async def handle(request):
-    global last_request, send_user_list
+    global last_request
     last_request = time.time()
     try:
         data = {}
@@ -229,15 +204,6 @@ async def handle(request):
                     for channel in channels:
                         for chunk in chunks:
                             asyncio.create_task(channel[1].send(chunk))
-
-        if request.method == 'POST' and data['type'] == 'DISCORD-LOGIN-SUCCESS':
-            user_id = int(data['user_id'])
-            send_user_list = True
-            if user_id in authenticated_users:
-                del authenticated_users_ids[authenticated_users[user_id]]
-            authenticated_users_ids[data['username']] = user_id
-            authenticated_users[user_id] = data['username']
-            authenticated_users_timestamps[user_id] = time.time()
         if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
                 msg = translation_re.sub('', data['content'])
                 msg = underscore_re.sub('\\_', msg)
@@ -248,11 +214,6 @@ async def handle(request):
                         user = await bot.fetch_user(data['id'])
                     await user.send(msg)
                 asyncio.create_task(send())
-
-        if request.method == 'POST' and data['type'] == 'DISCORD-STARTUP-REQUEST':
-            send_user_list = True
-            if logins_allowed:
-                logout_stales()
     except Exception:
         traceback.print_exc()
 
@@ -262,16 +223,6 @@ async def handle(request):
         'logins': login_queue.get_all(),
         'service_commands': service_command_queue.get_all()
     }
-    if send_user_list:
-        send_user_list = False
-        logged_in_users = []
-        for i, j in authenticated_users.items():
-            logged_in_users.append({
-            "id": str(i),
-            "name": j,
-            "timestamp": authenticated_users_timestamps[i]
-        })
-        responseObject['logged_in_users'] = logged_in_users
     response = json.dumps(responseObject)
     return web.Response(text=response)
 
@@ -387,18 +338,10 @@ Admin only commands:
         async def logins(ctx):
             if not ctx.channel.id in channel_ids and ctx.guild is not None:
                 return
-            msg = 'logged in users: '
-            first = True
-            for i in authenticated_users.values():
-                msg += (', ' if not first else '') + i
-                first = False
-
-            if first:
-                msg = 'there\'re no users currently logged in'
-            if not do_use_embeds:
-                await ctx.send(msg)
-            else:
-                await ctx.send(embed = discord.Embed(title = msg))
+            service_command_queue.add({
+                "cmd": "logins",
+                "context": str(ctx.channel.id) if ctx.guild is None else None
+            })
 
         @bot.command(name='login')
         async def login_prefix(ctx, username=commands.parameter(description='in-game player name'), password=commands.parameter(description='in-game password', default='')):
@@ -468,25 +411,6 @@ Admin only commands:
                         await interaction.response.defer()
             await interaction.response.send_modal(password_modal())
 
-        def register_logout(id):
-            global send_user_list
-            send_user_list = True
-            if id in authenticated_users and authenticated_users[id] in authenticated_users_ids:
-                del authenticated_users_ids[authenticated_users[id]]
-            authenticated_users.pop(id, None)
-            authenticated_users_timestamps.pop(id, None)
-
-        def logout_stales():
-            if auto_logout_timeout == 0:
-                return
-            logout_ids = []
-            for i, j in authenticated_users_timestamps.items():
-                if time.time() - j > auto_logout_timeout:
-                    logout_ids.append(i)
-            for i in logout_ids:
-                register_logout(i)
-        logout_stales()
-
         @bot.hybrid_command(help='Logs out your ingame account')
         async def logout(ctx):
             if not ctx.channel.id in channel_ids and ctx.guild is not None and not ctx.interaction:
@@ -495,7 +419,11 @@ Admin only commands:
                 await ctx.send("logout was invoked", delete_after=10, ephemeral=True)
             else:
                 await ctx.send(embed = discord.Embed(title = "logout was invoked"), delete_after=10, ephemeral=True)
-            register_logout(ctx.author.id)
+            service_command_queue.add({
+                "cmd": "logout",
+                "author_id": str(ctx.author.id),
+                "context": str(ctx.channel.id) if ctx.guild is None else None
+            })
 
         @bot.command()
         async def kick(ctx, username=commands.parameter(description='in-game name to kick')):
@@ -503,18 +431,11 @@ Admin only commands:
                 return
             if not ctx.channel.id in channel_ids and ctx.guild is not None:
                 return
-            if username in authenticated_users_ids:
-                if not do_use_embeds:
-                    await ctx.send(f"kick was invoked for user: {username}", delete_after=10, ephemeral=True)
-                else:
-                    await ctx.send(embed = discord.Embed(title = f"kick was invoked for user: {username}"), delete_after=10, ephemeral=True)
-                id = authenticated_users_ids[username]
-                register_logout(id)
-            else:
-                if not do_use_embeds:
-                    await ctx.send(f"user not logged in: {username}", delete_after=10, ephemeral=True)
-                else:
-                    await ctx.send(embed = discord.Embed(title = f"user not logged in: {username}"), delete_after=10, ephemeral=True)
+            service_command_queue.add({
+                "cmd": "kick",
+                "username": username,
+                "context": str(ctx.channel.id) if ctx.guild is None else None
+            })
 
         @bot.command()
         async def whoami(ctx):
