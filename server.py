@@ -2,7 +2,6 @@
 import argparse
 import asyncio
 import json
-import re
 import sys
 import time
 import traceback
@@ -135,9 +134,6 @@ for i in channel_ids:
 def check_timeout():
     return time.time() - last_request <= 1
 
-translation_re = re.compile(r'\x1b(T|F|E|\(T@[^\)]*\))')
-underscore_re = re.compile(r'_')
-
 async def handle(request):
     global last_request
     last_request = time.time()
@@ -147,15 +143,13 @@ async def handle(request):
             data = await request.json()
         if request.method == 'POST' and data['type'] == 'DISCORD-RELAY-MESSAGE':
             if 'content' in data:
-                msg = translation_re.sub('', data['content'])
-                msg = discord.utils.escape_mentions(msg)
+                msg = discord.utils.escape_mentions(data['content'])
                 chunks = [msg[i:i+2000] for i in range(0, len(msg), 2000)]
             else:
                 msg = None
                 chunks = []
             if 'embed_description' in data:
-                embed_description = translation_re.sub('', data['embed_description'])
-                embed_description = discord.utils.escape_mentions(embed_description)
+                embed_description = discord.utils.escape_mentions(data['embed_description'])
             else:
                 embed_description = None
             if 'embed_color' in data:
@@ -205,9 +199,7 @@ async def handle(request):
                         for chunk in chunks:
                             asyncio.create_task(channel[1].send(chunk))
         if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
-                msg = translation_re.sub('', data['content'])
-                msg = underscore_re.sub('\\_', msg)
-                msg = discord.utils.escape_mentions(msg)
+                msg = discord.utils.escape_mentions(data['content'])
                 async def send():
                     user = bot.get_user(data['id'])
                     if user is None:

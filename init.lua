@@ -146,7 +146,7 @@ minetest.override_chatcommand('msg', {
             if not target_player then
                 return false, "Invalid usage, see /help msg."
             end
-            discord_bridge.send_dm_to_discord(target_player, minetest.format_chat_message(name, message))
+            discord_bridge.send_dm_to_discord(target_player, minetest.format_chat_message(name:gsub('_', '\\_'), message))
             if not minetest.get_player_by_name(target_player) then
                 return true, 'DM sent to a discord user ' .. target_player .. ': ' .. message
             end
@@ -574,7 +574,7 @@ function discord_bridge.send_dm_to_discord(playername, message)
         playername = playername,
         id = discord_bridge.authenticated_users_ids[playername]
     }
-    data['content'] = minetest.strip_colors(message)
+    data['content'] = minetest.strip_escapes(message)
     discord_bridge.http.fetch({
         url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
         timeout = discord_bridge.timeout,
