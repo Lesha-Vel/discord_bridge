@@ -339,6 +339,7 @@ function discord_bridge.handle_response(response)
     if data.commands then
         local commands = minetest.registered_chatcommands
         for _, v in pairs(data.commands) do
+            repeat
             local actor_name = v.bypass_auth and 'discord_relay' or discord_bridge.authenticated_users[v.id]
             if not v.bypass_auth and not discord_bridge.authenticated_users[v.id] then
                 if not discord_bridge.setup_use_embeds then
@@ -346,7 +347,7 @@ function discord_bridge.handle_response(response)
                 else
                     discord_bridge.send('Not logged in.', nil, discord_bridge.setup_not_logged_in_color, nil, v.id)
                 end
-                return
+                break
             end
             local xban2_banned = false
             if discord_bridge.xban2_enabled then
@@ -359,12 +360,13 @@ function discord_bridge.handle_response(response)
                 else
                     discord_bridge.send('You cannot run commands because you are banned.', v.context or nil, discord_bridge.svc_dms_banned_color)
                 end
-                return
+                break
             end
             if commands[v.command] then
                 -- Check player privileges
                 local required_privs = commands[v.command].privs or {}
                 local player_privs = minetest.get_player_privs(actor_name)
+                local do_break
                 for priv, value in pairs(required_privs) do
                     if player_privs[priv] ~= value then
                         if not discord_bridge.use_embeds_on_svc_dms then
@@ -372,9 +374,10 @@ function discord_bridge.handle_response(response)
                         else
                             discord_bridge.send('Insufficient privileges.', v.context or nil, discord_bridge.svc_dms_privs_color)
                         end
-                        return
+                        do_break = true
                     end
                 end
+                if do_break then break end
                 local old_chat_send_player = minetest.chat_send_player
                 minetest.chat_send_player = function(name, message)
                     old_chat_send_player(name, message)
@@ -421,6 +424,7 @@ function discord_bridge.handle_response(response)
                     discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil, discord_bridge.svc_dms_cnf_color)
                 end
             end
+            until true
         end
     end
     if data.logins then
