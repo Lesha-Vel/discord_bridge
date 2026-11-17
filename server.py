@@ -47,7 +47,7 @@ async def handle_setup_root(request):
 
 async def handle_setup_packet(request):
     global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
-    global whereis_allowed, mirror_chats, server_down_color, password_leak_color, moderators_table
+    global whereis_allowed, mirror_chats, moderators_table, server_down_color, password_leak_color
     if request.app[setup_packet_received]:
         print('setup packet already received')
         return web.Response()
