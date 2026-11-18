@@ -14,7 +14,6 @@ discord_bridge.setup_channel_ids = settings:get('discord_bridge.setup_channel_id
 discord_bridge.setup_command_prefix = settings:get('discord_bridge.setup_command_prefix') or '!'
 discord_bridge.auto_logout_timeout = tonumber(settings:get('discord_bridge.auto_logout_timeout')) or 604800
 discord_bridge.login_file = settings:get('discord_bridge.login_file') or 'discord_logins.txt'
-discord_bridge.moderators = settings:get('discord_bridge.moderators') or ''
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
 
 discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', true)
@@ -86,8 +85,6 @@ for _,v in ipairs(string.split(discord_bridge.setup_channel_ids, ',%s?', false, 
     table.insert(discord_bridge.setup_channel_ids_table, string.split(v, '%s*=%s*', false, 2, true))
 end
 
-discord_bridge.moderators_table = string.split(discord_bridge.moderators, ',%s?', false, -1, true)
-
 assert(#discord_bridge.setup_channel_ids_table ~= 0, 'discord_bridge.setup_channel_ids is invalid')
 
 if not discord_bridge.persistent_logins or not discord_bridge.mod_storage:contains('saved_logins') then
@@ -107,8 +104,7 @@ discord_bridge.server_config = {
     use_embeds = discord_bridge.setup_use_embeds,
     server_down_color = discord_bridge.setup_server_down_color,
     password_leak_color = discord_bridge.setup_password_leak_color,
-    mirror_chats = discord_bridge.mirror_chats,
-    moderators_table = discord_bridge.moderators_table
+    mirror_chats = discord_bridge.mirror_chats
 }
 
 -- user id -> playername
@@ -237,6 +233,24 @@ minetest.register_chatcommand('dc_count', {
             end
         end
         return true, 'players in database: ' .. players_count
+    end
+})
+
+minetest.register_chatcommand("dc_kick", {
+    params = "<message>",
+    privs = { kick = true },
+    description = "kick a user from discord",
+    func = function(name, param)
+        if discord_bridge.ready then
+            if discord_bridge.authenticated_users_ids[param] then
+                discord_bridge.register_logout(discord_bridge.authenticated_users_ids[param])
+                return true, "kick was invoked for user: " .. param
+            else
+                return false, "user is not logged in: " .. param
+            end
+        else
+            return false, "bridge isn't ready"
+        end
     end
 })
 
@@ -506,22 +520,6 @@ function discord_bridge.handle_response(response)
                     discord_bridge.send(msg, v.context or nil)
                 else
                     discord_bridge.send(msg, v.context or nil, 'NOT_SET')
-                end
-            end
-            if v.cmd == 'kick' then
-                if discord_bridge.authenticated_users_ids[v.username] then
-                    if not discord_bridge.setup_use_embeds then
-                        discord_bridge.send("kick was invoked for user: " .. v.username, v.context or nil)
-                    else
-                        discord_bridge.send("kick was invoked for user: " .. v.username, v.context or nil, 'NOT_SET')
-                    end
-                    discord_bridge.register_logout(discord_bridge.authenticated_users_ids[v.username])
-                else
-                    if not discord_bridge.setup_use_embeds then
-                        discord_bridge.send("user not logged in: " .. v.username, v.context or nil)
-                    else
-                        discord_bridge.send("user not logged in: " .. v.username, v.context or nil, 'NOT_SET')
-                    end
                 end
             end
             if v.cmd == 'logout' then

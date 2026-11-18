@@ -37,7 +37,6 @@ send_backend_startups = True
 do_use_embeds = True
 whereis_allowed = True
 mirror_chats = True
-moderators_table = []
 
 server_down_color = '#ede442'
 password_leak_color = '#ed9d42'
@@ -50,7 +49,7 @@ async def handle_setup_root(request):
 
 async def handle_setup_packet(request):
     global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
-    global whereis_allowed, mirror_chats, moderators_table, server_down_color, password_leak_color, version_mismatch
+    global whereis_allowed, mirror_chats, server_down_color, password_leak_color, version_mismatch
     if request.app[setup_packet_received]:
         print('setup packet already received')
         return web.Response()
@@ -76,7 +75,6 @@ async def handle_setup_packet(request):
     do_use_embeds = response['use_embeds']
     whereis_allowed = response['allow_whereis']
     mirror_chats = response['mirror_chats']
-    moderators_table = response['moderators_table']
     server_down_color = response['server_down_color']
     password_leak_color = response['password_leak_color']
 
@@ -292,7 +290,6 @@ The login will:
 
 Admin only commands:
 1. `{prefix}sync`:    Sync command tree globally (makes slash commands work)
-2. `{prefix}kick`:    Kicks player
 
 * some commands can be disabled by a server admin
 '''), ephemeral=True)
@@ -425,18 +422,6 @@ Admin only commands:
             service_command_queue.add({
                 "cmd": "logout",
                 "author_id": str(ctx.author.id),
-                "context": str(ctx.channel.id) if ctx.guild is None else None
-            })
-
-        @bot.command()
-        async def kick(ctx, username=commands.parameter(description='in-game name to kick')):
-            if not await bot.is_owner(ctx.author) and not str(ctx.author.id) in moderators_table:
-                return
-            if not ctx.channel.id in channel_ids and ctx.guild is not None:
-                return
-            service_command_queue.add({
-                "cmd": "kick",
-                "username": username,
                 "context": str(ctx.channel.id) if ctx.guild is None else None
             })
 
