@@ -52,8 +52,8 @@ discord_bridge.use_embeds_on_dm_cmd (Use embeds for command answer) bool false
 [Texts]
 # this has to have 3 of %s format specifiers, first is user, second is server, third is the message itself
 discord_bridge.chat_message_format (Format of the messages from Discord) string <%s@%s> %s
-# this is used for messages coming from luanti, this has to have a %s format specifier for username
-discord_bridge.name_wrapper (luanti message prefix, 2 spaces at the end are important) string <**%s**>  
+# this is used for messages coming from luanti, this has to have 2 of %s format specifiers, first is for username, second is for the message itself
+discord_bridge.outgoing_message_format (Luanti outgoing message format) string <**%s**>  %s
 discord_bridge.startup_text (Text of notification on server startup) string *** Server started!
 discord_bridge.shutdown_text (Text of notification on server shut-down) string *** Server shutting down...
 # this has to have a %s format specifier for playername

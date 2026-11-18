@@ -48,7 +48,7 @@ discord_bridge.use_embeds_on_server_updates = settings:get_bool('discord_bridge.
 discord_bridge.use_embeds_on_dm_cmd = settings:get_bool('discord_bridge.use_embeds_on_dm_cmd', false)
 
 discord_bridge.chat_message_format = settings:get('discord_bridge.chat_message_format') or '<%s@%s> %s'
-discord_bridge.name_wrapper = settings:get('discord_bridge.name_wrapper') or '<**%s**>  '
+discord_bridge.outgoing_message_format = settings:get('discord_bridge.outgoing_message_format') or '<**%s**>  %s'
 discord_bridge.startup_text = settings:get('discord_bridge.startup_text') or '*** Server started!'
 discord_bridge.shutdown_text = settings:get('discord_bridge.shutdown_text') or '*** Server shutting down...'
 discord_bridge.join_text = settings:get('discord_bridge.join_text') or '\\*\\*\\* **%s** joined the game'
@@ -591,7 +591,7 @@ discord_bridge.ready = true
 
 minetest.register_on_chat_message(function(name, message)
     name = name:gsub("_", "\\_")
-    discord_bridge.send_buffered(discord_bridge.name_wrapper:format(name) .. discord_bridge.escape_message(message))
+    discord_bridge.send_buffered(discord_bridge.outgoing_message_format:format(name, discord_bridge.escape_message(message)))
 end)
 
 discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
