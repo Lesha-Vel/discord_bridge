@@ -49,7 +49,6 @@ discord_bridge.use_embeds_on_welcomes (Use embeds for notifications on player we
 discord_bridge.use_embeds_on_deaths (Use embeds for notifications on player death) bool true
 discord_bridge.use_embeds_on_server_updates (Use embeds for server status notifications) bool true
 discord_bridge.use_embeds_on_dm_cmd (Use embeds for command answer) bool false
-discord_bridge.use_embeds_on_svc_dms (Use Discord embeds for service DMS) bool true
 [Texts]
 # this has to have 3 of %s format specifiers, first is user, second is server, third is the message itself
 discord_bridge.chat_message_format (Format of the messages from Discord) string <%s@%s> %s

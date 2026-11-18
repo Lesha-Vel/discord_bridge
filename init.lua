@@ -46,7 +46,6 @@ discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord_bridge.use_em
 discord_bridge.use_embeds_on_deaths = settings:get_bool('discord_bridge.use_embeds_on_deaths', true)
 discord_bridge.use_embeds_on_server_updates = settings:get_bool('discord_bridge.use_embeds_on_server_updates', true)
 discord_bridge.use_embeds_on_dm_cmd = settings:get_bool('discord_bridge.use_embeds_on_dm_cmd', false)
-discord_bridge.use_embeds_on_svc_dms = settings:get_bool('discord_bridge.use_embeds_on_svc_dms', true)
 
 discord_bridge.chat_message_format = settings:get('discord_bridge.chat_message_format') or '<%s@%s> %s'
 discord_bridge.name_wrapper = settings:get('discord_bridge.name_wrapper') or '<**%s**>  '
@@ -371,7 +370,7 @@ function discord_bridge.handle_response(response)
                 xban2_banned = (banned and record) or false
             end
             if minetest.get_ban_description(actor_name) ~= '' or xban2_banned then
-                if not discord_bridge.use_embeds_on_svc_dms then
+                if not discord_bridge.setup_use_embeds then
                     discord_bridge.send('You cannot run commands because you are banned.', v.context or nil)
                 else
                     discord_bridge.send('You cannot run commands because you are banned.', v.context or nil, discord_bridge.svc_dms_banned_color)
@@ -385,7 +384,7 @@ function discord_bridge.handle_response(response)
                 local do_break
                 for priv, value in pairs(required_privs) do
                     if player_privs[priv] ~= value then
-                        if not discord_bridge.use_embeds_on_svc_dms then
+                        if not discord_bridge.setup_use_embeds then
                             discord_bridge.send('Insufficient privileges.', v.context or nil)
                         else
                             discord_bridge.send('Insufficient privileges.', v.context or nil, discord_bridge.svc_dms_privs_color)
@@ -410,13 +409,13 @@ function discord_bridge.handle_response(response)
                 if ret_val then
                     ret_val = discord_bridge.escape_message(ret_val, true)
                     if v.type == 'status' then
-                        if not discord_bridge.use_embeds_on_svc_dms then
+                        if not discord_bridge.setup_use_embeds then
                             discord_bridge.send(ret_val, v.context or nil)
                         else
                             discord_bridge.send(ret_val, v.context or nil, discord_bridge.cmd_ret_value_color)
                         end
                     elseif v.type == 'whereis' then
-                        if not discord_bridge.use_embeds_on_svc_dms then
+                        if not discord_bridge.setup_use_embeds then
                             discord_bridge.send(ret_val, v.context or nil)
                         else
                             discord_bridge.send(ret_val, v.context or nil, discord_bridge.coords_color)
@@ -434,7 +433,7 @@ function discord_bridge.handle_response(response)
                 end
                 minetest.chat_send_player = old_chat_send_player
             else
-                if not discord_bridge.use_embeds_on_svc_dms then
+                if not discord_bridge.setup_use_embeds then
                     discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil)
                 else
                     discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil, discord_bridge.svc_dms_cnf_color)
@@ -459,13 +458,13 @@ function discord_bridge.handle_response(response)
                 discord_bridge.authenticated_users[v.user_id] = v.username
                 discord_bridge.authenticated_users_timestamps[v.user_id] = os.time()
                 discord_bridge.save_logins()
-                if not discord_bridge.use_embeds_on_svc_dms then
+                if not discord_bridge.setup_use_embeds then
                     discord_bridge.send('Login successful.', nil, nil, nil, v.user_id)
                 else
                     discord_bridge.send('Login successful.', nil, discord_bridge.login_success_color, nil, v.user_id)
                 end
             else
-                if not discord_bridge.use_embeds_on_svc_dms then
+                if not discord_bridge.setup_use_embeds then
                     discord_bridge.send('Login failed.', nil, nil, nil, v.user_id)
                 else
                     discord_bridge.send('Login failed.', nil, discord_bridge.login_fail_color, nil, v.user_id)
