@@ -9,9 +9,9 @@ discord_bridge.mod_storage = minetest.get_mod_storage()
 -- Configuration
 discord_bridge.host = settings:get('discord_bridge.host') or '127.0.0.1'
 discord_bridge.port = settings:get('discord_bridge.port') or 9692
-discord_bridge.setup_token = settings:get('discord_bridge.setup_token') or ''
-discord_bridge.setup_channel_ids = settings:get('discord_bridge.setup_channel_ids') or ''
-discord_bridge.setup_command_prefix = settings:get('discord_bridge.setup_command_prefix') or '!'
+discord_bridge.token = settings:get('discord_bridge.token') or ''
+discord_bridge.channel_id_list = settings:get('discord_bridge.channel_id_list') or ''
+discord_bridge.command_prefix = settings:get('discord_bridge.command_prefix') or '!'
 discord_bridge.auto_logout_timeout = tonumber(settings:get('discord_bridge.auto_logout_timeout')) or 604800
 discord_bridge.login_file = settings:get('discord_bridge.login_file') or 'discord_logins.txt'
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
@@ -21,7 +21,7 @@ discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', t
 discord_bridge.persistent_logins = settings:get_bool('discord_bridge.persistent_logins', true)
 discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', true)
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
-discord_bridge.setup_use_nicknames = settings:get_bool('discord_bridge.setup_use_nicknames', true)
+discord_bridge.use_nicknames = settings:get_bool('discord_bridge.use_nicknames', true)
 
 discord_bridge.send_server_startup = settings:get_bool('discord_bridge.send_server_startup', true)
 discord_bridge.send_server_shutdown = settings:get_bool('discord_bridge.send_server_shutdown', true)
@@ -32,15 +32,15 @@ discord_bridge.send_last_login = settings:get_bool('discord_bridge.send_last_log
 discord_bridge.send_leaves = settings:get_bool('discord_bridge.send_leaves', true)
 discord_bridge.send_welcomes = settings:get_bool('discord_bridge.send_welcomes', true)
 discord_bridge.send_deaths = settings:get_bool('discord_bridge.send_deaths', true)
-discord_bridge.setup_send_backend_startups = settings:get_bool('discord_bridge.setup_send_backend_startups', true)
+discord_bridge.send_backend_startups = settings:get_bool('discord_bridge.send_backend_startups', true)
 discord_bridge.send_command_success = settings:get_bool('discord_bridge.send_command_success', true)
 
-discord_bridge.setup_allow_commands = settings:get_bool('discord_bridge.setup_allow_commands', true)
-discord_bridge.setup_allow_logins = settings:get_bool('discord_bridge.setup_allow_logins', true)
-discord_bridge.setup_allow_send_to_offline_players = settings:get_bool('discord_bridge.setup_allow_send_to_offline_players', true)
-discord_bridge.setup_allow_whereis = settings:get_bool('discord_bridge.setup_allow_whereis', true)
+discord_bridge.allow_commands = settings:get_bool('discord_bridge.allow_commands', true)
+discord_bridge.allow_logins = settings:get_bool('discord_bridge.allow_logins', true)
+discord_bridge.allow_send_to_offline_players = settings:get_bool('discord_bridge.allow_send_to_offline_players', true)
+discord_bridge.allow_whereis = settings:get_bool('discord_bridge.allow_whereis', true)
 
-discord_bridge.setup_use_embeds = settings:get_bool('discord_bridge.setup_use_embeds', true)
+discord_bridge.use_embeds = settings:get_bool('discord_bridge.use_embeds', true)
 discord_bridge.use_embeds_on_joins_and_leaves = settings:get_bool('discord_bridge.use_embeds_on_joins_and_leaves', true)
 discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord_bridge.use_embeds_on_welcomes', true)
 discord_bridge.use_embeds_on_deaths = settings:get_bool('discord_bridge.use_embeds_on_deaths', true)
@@ -72,19 +72,19 @@ discord_bridge.svc_dms_cnf_color = settings:get('discord_bridge.svc_dms_cnf_colo
 discord_bridge.login_success_color = settings:get('discord_bridge.login_success_color') or '#57f287'
 discord_bridge.login_fail_color = settings:get('discord_bridge.login_fail_color') or '#ed4245'
 discord_bridge.coords_color = settings:get('discord_bridge.coords_color') or 'NOT_SET'
-discord_bridge.setup_server_down_color = settings:get('discord_bridge.setup_server_down_color') or '#ede442'
-discord_bridge.setup_not_logged_in_color = settings:get('discord_bridge.setup_not_logged_in_color') or '#46e8e8'
-discord_bridge.setup_password_leak_color = settings:get('discord_bridge.setup_password_leak_color') or '#ed9d42'
+discord_bridge.server_down_color = settings:get('discord_bridge.server_down_color') or '#ede442'
+discord_bridge.not_logged_in_color = settings:get('discord_bridge.not_logged_in_color') or '#46e8e8'
+discord_bridge.password_leak_color = settings:get('discord_bridge.password_leak_color') or '#ed9d42'
 
 discord_bridge.timeout = tonumber(settings:get('dedicated_server_step') or '0.09') * 30
 
-discord_bridge.setup_channel_ids_table = {}
+discord_bridge.channel_id_list_table = {}
 
-for _,v in ipairs(string.split(discord_bridge.setup_channel_ids, ',%s?', false, -1, true)) do
-    table.insert(discord_bridge.setup_channel_ids_table, string.split(v, '%s*=%s*', false, 2, true))
+for _,v in ipairs(string.split(discord_bridge.channel_id_list, ',%s?', false, -1, true)) do
+    table.insert(discord_bridge.channel_id_list_table, string.split(v, '%s*=%s*', false, 2, true))
 end
 
-assert(#discord_bridge.setup_channel_ids_table ~= 0, 'discord_bridge.setup_channel_ids is invalid')
+assert(#discord_bridge.channel_id_list_table ~= 0, 'discord_bridge.channel_id_list is invalid')
 
 if not discord_bridge.persistent_logins or not discord_bridge.mod_storage:contains('saved_logins') then
     discord_bridge.mod_storage:set_string('saved_logins', '[]')
@@ -92,17 +92,17 @@ end
 
 discord_bridge.server_config = {
     protocol_version = discord_bridge.protocol_version,
-    token = discord_bridge.setup_token,
-    command_prefix = discord_bridge.setup_command_prefix,
-    channel_ids = discord_bridge.setup_channel_ids_table,
-    allow_commands = discord_bridge.setup_allow_commands,
-    allow_logins = discord_bridge.setup_allow_logins,
-    allow_whereis = discord_bridge.setup_allow_whereis,
-    use_nicknames = discord_bridge.setup_use_nicknames,
-    send_backend_startups = discord_bridge.setup_send_backend_startups,
-    use_embeds = discord_bridge.setup_use_embeds,
-    server_down_color = discord_bridge.setup_server_down_color,
-    password_leak_color = discord_bridge.setup_password_leak_color,
+    token = discord_bridge.token,
+    command_prefix = discord_bridge.command_prefix,
+    channel_id_list = discord_bridge.channel_id_list_table,
+    allow_commands = discord_bridge.allow_commands,
+    allow_logins = discord_bridge.allow_logins,
+    allow_whereis = discord_bridge.allow_whereis,
+    use_nicknames = discord_bridge.use_nicknames,
+    send_backend_startups = discord_bridge.send_backend_startups,
+    use_embeds = discord_bridge.use_embeds,
+    server_down_color = discord_bridge.server_down_color,
+    password_leak_color = discord_bridge.password_leak_color,
     mirror_chats = discord_bridge.mirror_chats
 }
 
@@ -122,7 +122,7 @@ end
 
 discord_bridge.ready = false
 
-assert(discord_bridge.setup_token ~= '', 'setup_token not set')
+assert(discord_bridge.token ~= '', 'token not set')
 
 function discord_bridge.escape_message(str, always)
     str = minetest.strip_escapes(str)
@@ -133,7 +133,7 @@ function discord_bridge.escape_message(str, always)
     return (str:gsub("([_*~\\`%[%]()<>|])", "\\%1"):gsub("^#", "\\#"):gsub("\n#", "\n\\#"):gsub("(https?://)(/*[^ /])", "`%1`%2"))
 end
 
-if discord_bridge.setup_allow_send_to_offline_players then
+if discord_bridge.allow_send_to_offline_players then
 discord_bridge.old_msg_func = minetest.registered_chatcommands['msg'].func
 minetest.override_chatcommand('msg', {
     func = function(name, param)
@@ -190,7 +190,7 @@ minetest.register_chatcommand("dc_send", {
     end
 })
 
-if discord_bridge.setup_allow_whereis then
+if discord_bridge.allow_whereis then
     minetest.register_chatcommand('dc_whereis', {
         params = '<player>',
         description = 'get player coordinates',
@@ -253,7 +253,7 @@ minetest.register_chatcommand("dc_kick", {
     end
 })
 
-if discord_bridge.setup_allow_send_to_offline_players then
+if discord_bridge.allow_send_to_offline_players then
 discord_bridge.old_get_server_status = minetest.get_server_status
 
 minetest.get_server_status = function (name, joined)
@@ -357,10 +357,10 @@ function discord_bridge.handle_response(response)
             repeat
             local actor_name = v.bypass_auth and 'discord_relay' or discord_bridge.authenticated_users[v.id]
             if not v.bypass_auth and not discord_bridge.authenticated_users[v.id] then
-                if not discord_bridge.setup_use_embeds then
+                if not discord_bridge.use_embeds then
                     discord_bridge.send('Not logged in.', nil, nil, nil, v.id)
                 else
-                    discord_bridge.send('Not logged in.', nil, discord_bridge.setup_not_logged_in_color, nil, v.id)
+                    discord_bridge.send('Not logged in.', nil, discord_bridge.not_logged_in_color, nil, v.id)
                 end
                 break
             end
@@ -370,7 +370,7 @@ function discord_bridge.handle_response(response)
                 xban2_banned = (banned and record) or false
             end
             if minetest.get_ban_description(actor_name) ~= '' or xban2_banned then
-                if not discord_bridge.setup_use_embeds then
+                if not discord_bridge.use_embeds then
                     discord_bridge.send('You cannot run commands because you are banned.', v.context or nil)
                 else
                     discord_bridge.send('You cannot run commands because you are banned.', v.context or nil, discord_bridge.svc_dms_banned_color)
@@ -384,7 +384,7 @@ function discord_bridge.handle_response(response)
                 local do_break
                 for priv, value in pairs(required_privs) do
                     if player_privs[priv] ~= value then
-                        if not discord_bridge.setup_use_embeds then
+                        if not discord_bridge.use_embeds then
                             discord_bridge.send('Insufficient privileges.', v.context or nil)
                         else
                             discord_bridge.send('Insufficient privileges.', v.context or nil, discord_bridge.svc_dms_privs_color)
@@ -409,13 +409,13 @@ function discord_bridge.handle_response(response)
                 if ret_val then
                     ret_val = discord_bridge.escape_message(ret_val, true)
                     if v.type == 'status' then
-                        if not discord_bridge.setup_use_embeds then
+                        if not discord_bridge.use_embeds then
                             discord_bridge.send(ret_val, v.context or nil)
                         else
                             discord_bridge.send(ret_val, v.context or nil, discord_bridge.cmd_ret_value_color)
                         end
                     elseif v.type == 'whereis' then
-                        if not discord_bridge.setup_use_embeds then
+                        if not discord_bridge.use_embeds then
                             discord_bridge.send(ret_val, v.context or nil)
                         else
                             discord_bridge.send(ret_val, v.context or nil, discord_bridge.coords_color)
@@ -433,7 +433,7 @@ function discord_bridge.handle_response(response)
                 end
                 minetest.chat_send_player = old_chat_send_player
             else
-                if not discord_bridge.setup_use_embeds then
+                if not discord_bridge.use_embeds then
                     discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil)
                 else
                     discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil, discord_bridge.svc_dms_cnf_color)
@@ -458,13 +458,13 @@ function discord_bridge.handle_response(response)
                 discord_bridge.authenticated_users[v.user_id] = v.username
                 discord_bridge.authenticated_users_timestamps[v.user_id] = os.time()
                 discord_bridge.save_logins()
-                if not discord_bridge.setup_use_embeds then
+                if not discord_bridge.use_embeds then
                     discord_bridge.send('Login successful.', nil, nil, nil, v.user_id)
                 else
                     discord_bridge.send('Login successful.', nil, discord_bridge.login_success_color, nil, v.user_id)
                 end
             else
-                if not discord_bridge.setup_use_embeds then
+                if not discord_bridge.use_embeds then
                     discord_bridge.send('Login failed.', nil, nil, nil, v.user_id)
                 else
                     discord_bridge.send('Login failed.', nil, discord_bridge.login_fail_color, nil, v.user_id)
@@ -485,23 +485,23 @@ function discord_bridge.handle_response(response)
                     local name = discord_bridge.authenticated_users[v.author_id]:gsub('_', '\\_')
                     if discord_bridge.auto_logout_timeout > 0 then
                         local remaining_time_str = os.date(discord_bridge.date, discord_bridge.authenticated_users_timestamps[v.author_id] + discord_bridge.auto_logout_timeout)
-                        if not discord_bridge.setup_use_embeds then
+                        if not discord_bridge.use_embeds then
                             discord_bridge.send("your ingame name is: " .. name .. "\nwill logout at: " .. remaining_time_str, v.context or nil)
                         else
                             discord_bridge.send("your ingame name is: " .. name, v.context or nil, "NOT_SET", "will logout at: " .. remaining_time_str)
                         end
                     else
-                        if not discord_bridge.setup_use_embeds then
+                        if not discord_bridge.use_embeds then
                             discord_bridge.send("your ingame name is: " .. name, v.context or nil)
                         else
                             discord_bridge.send("your ingame name is: " .. name, v.context or nil, "NOT_SET")
                         end
                     end
                 else
-                    if not discord_bridge.setup_use_embeds then
+                    if not discord_bridge.use_embeds then
                         discord_bridge.send('Not logged in.', v.context or nil)
                     else
-                        discord_bridge.send('Not logged in.', v.context or nil, discord_bridge.setup_not_logged_in_color)
+                        discord_bridge.send('Not logged in.', v.context or nil, discord_bridge.not_logged_in_color)
                     end
                 end
             end
@@ -515,7 +515,7 @@ function discord_bridge.handle_response(response)
                 if first then
                     msg = 'there\'re no users currently logged in'
                 end
-                if not discord_bridge.setup_use_embeds then
+                if not discord_bridge.use_embeds then
                     discord_bridge.send(msg, v.context or nil)
                 else
                     discord_bridge.send(msg, v.context or nil, 'NOT_SET')
@@ -662,7 +662,7 @@ minetest.register_globalstep(function(dtime)
     if not dtime then return end
     discord_bridge.timer = discord_bridge.timer + dtime
     discord_bridge.stale_logout_timer = discord_bridge.stale_logout_timer + dtime
-    if discord_bridge.setup_allow_logins and discord_bridge.auto_logout_timeout > 0 and discord_bridge.stale_logout_timer > 15 then
+    if discord_bridge.allow_logins and discord_bridge.auto_logout_timeout > 0 and discord_bridge.stale_logout_timer > 15 then
         local logout_ids = {}
         for i, v in pairs(discord_bridge.authenticated_users_timestamps) do
             if os.time() - v > discord_bridge.auto_logout_timeout then

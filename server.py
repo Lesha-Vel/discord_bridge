@@ -27,7 +27,7 @@ remote_allowed = args.allow_remote
 
 token = ''
 prefix = ''
-channel_ids = []
+channel_id_list = []
 channel_names = {}
 
 commands_allowed = True
@@ -63,9 +63,9 @@ async def handle_setup_packet(request):
         return web.Response(text='{"status": "VERSION_MISMATCH", "ver": "' + protocol_version + '"}')
     token = response['token']
     prefix = response['command_prefix']
-    channel_ids_str = response['channel_ids']
-    for i in channel_ids_str:
-        channel_ids.append(int(i[0]))
+    channel_id_list_str = response['channel_id_list']
+    for i in channel_id_list_str:
+        channel_id_list.append(int(i[0]))
         if len(i) == 2:
             channel_names[int(i[0])] = i[1]
     commands_allowed = response['allow_commands']
@@ -137,7 +137,7 @@ bot = commands.Bot(
 last_request = 0
 
 channels = []
-for i in channel_ids:
+for i in channel_id_list:
     channels.append([i, bot.get_partial_messageable(i)])
 
 def check_timeout():
@@ -237,7 +237,7 @@ app.add_routes([web.get('/', handle),
 
 @bot.event
 async def on_message(message):
-    if message.channel.id in channel_ids and message.author.id != bot.user.id:
+    if message.channel.id in channel_id_list and message.author.id != bot.user.id:
         author = (message.author.display_name if do_use_nicknames else message.author.name)
         if check_timeout():
             msg = {
@@ -297,13 +297,13 @@ Admin only commands:
     @bot.command()
     @commands.is_owner()
     async def sync(ctx):
-        if not ctx.channel.id in channel_ids and ctx.guild is not None:
+        if not ctx.channel.id in channel_id_list and ctx.guild is not None:
             return
         synced_count = await bot.tree.sync()
         await ctx.send(f'command tree is synced: {len(synced_count)}')
 
     async def run_cmd(ctx, command, args, bypass_auth = False, request_type=''):
-        if not ctx.channel.id in channel_ids and ctx.guild is not None:
+        if not ctx.channel.id in channel_id_list and ctx.guild is not None:
             return
         user = bot.get_user(ctx.author.id)
         if user is None:
@@ -336,7 +336,7 @@ Admin only commands:
 
         @bot.command()
         async def logins(ctx):
-            if not ctx.channel.id in channel_ids and ctx.guild is not None:
+            if not ctx.channel.id in channel_id_list and ctx.guild is not None:
                 return
             service_command_queue.add({
                 "cmd": "logins",
@@ -345,7 +345,7 @@ Admin only commands:
 
         @bot.command(name='login')
         async def login_prefix(ctx, username=commands.parameter(description='in-game player name'), password=commands.parameter(description='in-game password', default='')):
-            if not ctx.channel.id in channel_ids and ctx.guild is not None:
+            if not ctx.channel.id in channel_id_list and ctx.guild is not None:
                 return
             if ctx.guild is not None:
                 if not do_use_embeds:
@@ -413,7 +413,7 @@ Admin only commands:
 
         @bot.hybrid_command(help='Logs out your ingame account')
         async def logout(ctx):
-            if not ctx.channel.id in channel_ids and ctx.guild is not None and not ctx.interaction:
+            if not ctx.channel.id in channel_id_list and ctx.guild is not None and not ctx.interaction:
                 return
             if not do_use_embeds:
                 await ctx.send("logout was invoked", delete_after=10, ephemeral=True)
@@ -427,7 +427,7 @@ Admin only commands:
 
         @bot.command()
         async def whoami(ctx):
-            if not ctx.channel.id in channel_ids and ctx.guild is not None:
+            if not ctx.channel.id in channel_id_list and ctx.guild is not None:
                 return
             service_command_queue.add({
                 "cmd": "whoami",

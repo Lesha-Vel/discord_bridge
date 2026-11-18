@@ -3,11 +3,11 @@
 discord_bridge.host (Server address) string 127.0.0.1
 # if not set to default then server has to be ran with --port argument matching this setting
 discord_bridge.port (Server port) int 9692 1 65535
-discord_bridge.setup_token (Discord bot token) string
+discord_bridge.token (Discord bot token) string
 # comma separated list of channel ids and corresponding name to be used for that channel in format 'id[=name],id[=name]...', e.g. "123 = abc, 456", if name is not present then it defaults to "Discord"
-discord_bridge.setup_channel_ids (Discord channel id list) string
+discord_bridge.channel_id_list (Discord channel id list) string
 # e.g. if it's set to ! and someone types !cmd to Discord chat then it will be threated as cmd command for example
-discord_bridge.setup_command_prefix (Prefix for Discord prefix commands) string !
+discord_bridge.command_prefix (Prefix for Discord prefix commands) string !
 # time in seconds before player logged in through Discord will logout, 0 to disable
 discord_bridge.auto_logout_timeout (Auto logout timeout) int 604800 0
 # filename for login logging, empty disables this, this is relative to the world directory
@@ -24,7 +24,7 @@ discord_bridge.persistent_logins (Save logins between server restarts) bool true
 discord_bridge.send_every_3s (Buffer messages for 3 seconds) bool true
 # clears invites from messages sent from luanti
 discord_bridge.clean_invites (Clean Discord invites) bool true
-discord_bridge.setup_use_nicknames (Use Discord nicknames instead of Discord usernames) bool true
+discord_bridge.use_nicknames (Use Discord nicknames instead of Discord usernames) bool true
 [Sent]
 discord_bridge.send_server_startup (Send server startups) bool true
 discord_bridge.send_server_shutdown (Send server shutdowns) bool true
@@ -35,15 +35,15 @@ discord_bridge.send_last_login (Include last login in notification on player joi
 discord_bridge.send_leaves (Notification on player leave) bool true
 discord_bridge.send_welcomes (Notification on player welcome) bool true
 discord_bridge.send_deaths (Notification on player death) bool true
-discord_bridge.setup_send_backend_startups (Send a message to Discord when server.py is started) bool true
+discord_bridge.send_backend_startups (Send a message to Discord when server.py is started) bool true
 discord_bridge.send_command_success (Include a success mark in front of cmd result) bool true
 [Allow]
-discord_bridge.setup_allow_commands (Allow Discord commands) bool true
-discord_bridge.setup_allow_logins (Allow logging in from Discord) bool true
-discord_bridge.setup_allow_send_to_offline_players (Allow sending direct messages from in-game to Discord) bool true
-discord_bridge.setup_allow_whereis (Allow using whereis Discord command) bool true
+discord_bridge.allow_commands (Allow Discord commands) bool true
+discord_bridge.allow_logins (Allow logging in from Discord) bool true
+discord_bridge.allow_send_to_offline_players (Allow sending direct messages from in-game to Discord) bool true
+discord_bridge.allow_whereis (Allow using whereis Discord command) bool true
 [Embed]
-discord_bridge.setup_use_embeds (Use embeds for service messages) bool true
+discord_bridge.use_embeds (Use embeds for service messages) bool true
 discord_bridge.use_embeds_on_joins_and_leaves (Use embeds for notifications on player join and leave) bool true
 discord_bridge.use_embeds_on_welcomes (Use embeds for notifications on player welcomes) bool true
 discord_bridge.use_embeds_on_deaths (Use embeds for notifications on player death) bool true
@@ -85,6 +85,6 @@ discord_bridge.svc_dms_cnf_color (Command not found Discord embed color) string 
 discord_bridge.login_success_color (Successful login Discord embed color) string #57f287
 discord_bridge.login_fail_color (Failed login Discord embed color) string #ed4245
 discord_bridge.coords_color (Whereis response Discord embed color) string NOT_SET
-discord_bridge.setup_not_logged_in_color (Not logged in Discord embed color) string #46e8e8
-discord_bridge.setup_server_down_color (Server down Discord embed color) string #ede442
-discord_bridge.setup_password_leak_color (Password leak Discord embed color) string #ed9d42
+discord_bridge.not_logged_in_color (Not logged in Discord embed color) string #46e8e8
+discord_bridge.server_down_color (Server down Discord embed color) string #ede442
+discord_bridge.password_leak_color (Password leak Discord embed color) string #ed9d42
