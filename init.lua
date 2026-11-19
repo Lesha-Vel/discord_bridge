@@ -104,7 +104,6 @@ discord_bridge.server_config = {
     use_nicknames = discord_bridge.use_nicknames,
     send_backend_startups = discord_bridge.send_backend_startups,
     use_embeds = discord_bridge.use_embeds_on_pwd_leak_srv_down,
-    login_embeds = discord_bridge.use_embeds_on_login,
     server_down_color = discord_bridge.server_down_color,
     password_leak_color = discord_bridge.password_leak_color,
     mirror_chats = discord_bridge.mirror_chats
@@ -526,6 +525,13 @@ function discord_bridge.handle_response(response)
                 end
             end
             if v.cmd == 'logout' then
+                if v.send_dm then
+                    if not discord_bridge.use_embeds_on_login then
+                        discord_bridge.send('logout was invoked', v.context, nil, nil, v.author_id)
+                    else
+                        discord_bridge.send('logout was invoked', v.context, 'NOT_SET', nil, v.author_id)
+                    end
+                end
                 discord_bridge.register_logout(v.author_id)
             end
         end
