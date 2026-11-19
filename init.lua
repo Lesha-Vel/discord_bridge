@@ -371,9 +371,9 @@ function discord_bridge.handle_response(response)
             end
             if minetest.get_ban_description(actor_name) ~= '' or xban2_banned then
                 if not discord_bridge.use_embeds then
-                    discord_bridge.send('You cannot run commands because you are banned.', v.context or nil)
+                    discord_bridge.send('You cannot run commands because you are banned.', v.context)
                 else
-                    discord_bridge.send('You cannot run commands because you are banned.', v.context or nil, discord_bridge.svc_dms_banned_color)
+                    discord_bridge.send('You cannot run commands because you are banned.', v.context, discord_bridge.svc_dms_banned_color)
                 end
                 break
             end
@@ -385,9 +385,9 @@ function discord_bridge.handle_response(response)
                 for priv, value in pairs(required_privs) do
                     if player_privs[priv] ~= value then
                         if not discord_bridge.use_embeds then
-                            discord_bridge.send('Insufficient privileges.', v.context or nil)
+                            discord_bridge.send('Insufficient privileges.', v.context)
                         else
-                            discord_bridge.send('Insufficient privileges.', v.context or nil, discord_bridge.svc_dms_privs_color)
+                            discord_bridge.send('Insufficient privileges.', v.context, discord_bridge.svc_dms_privs_color)
                         end
                         do_break = true
                     end
@@ -399,9 +399,9 @@ function discord_bridge.handle_response(response)
                     if name == actor_name then
                         message = discord_bridge.escape_message(message, true)
                         if not discord_bridge.use_embeds_on_dm_cmd then
-                            discord_bridge.send(message, v.context or nil)
+                            discord_bridge.send(message, v.context)
                         else
-                            discord_bridge.send(nil, v.context or nil, discord_bridge.cmd_chat_send_player_color, message)
+                            discord_bridge.send(nil, v.context, discord_bridge.cmd_chat_send_player_color, message)
                         end
                     end
                 end
@@ -410,33 +410,33 @@ function discord_bridge.handle_response(response)
                     ret_val = discord_bridge.escape_message(ret_val, true)
                     if v.type == 'status' then
                         if not discord_bridge.use_embeds then
-                            discord_bridge.send(ret_val, v.context or nil)
+                            discord_bridge.send(ret_val, v.context)
                         else
-                            discord_bridge.send(ret_val, v.context or nil, discord_bridge.cmd_ret_value_color)
+                            discord_bridge.send(ret_val, v.context, discord_bridge.cmd_ret_value_color)
                         end
                     elseif v.type == 'whereis' then
                         if not discord_bridge.use_embeds then
-                            discord_bridge.send(ret_val, v.context or nil)
+                            discord_bridge.send(ret_val, v.context)
                         else
-                            discord_bridge.send(ret_val, v.context or nil, discord_bridge.coords_color)
+                            discord_bridge.send(ret_val, v.context, discord_bridge.coords_color)
                         end
                     else
                         if discord_bridge.send_command_success then
                             ret_val = (success and '✔️ ' or '❌ ') .. ret_val
                         end
                         if not discord_bridge.use_embeds_on_dm_cmd then
-                            discord_bridge.send(ret_val, v.context or nil)
+                            discord_bridge.send(ret_val, v.context)
                         else
-                            discord_bridge.send(nil, v.context or nil, discord_bridge.cmd_ret_value_color, ret_val)
+                            discord_bridge.send(nil, v.context, discord_bridge.cmd_ret_value_color, ret_val)
                         end
                     end
                 end
                 minetest.chat_send_player = old_chat_send_player
             else
                 if not discord_bridge.use_embeds then
-                    discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil)
+                    discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context)
                 else
-                    discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context or nil, discord_bridge.svc_dms_cnf_color)
+                    discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context, discord_bridge.svc_dms_cnf_color)
                 end
             end
             until true
@@ -486,22 +486,22 @@ function discord_bridge.handle_response(response)
                     if discord_bridge.auto_logout_timeout > 0 then
                         local remaining_time_str = os.date(discord_bridge.date, discord_bridge.authenticated_users_timestamps[v.author_id] + discord_bridge.auto_logout_timeout)
                         if not discord_bridge.use_embeds then
-                            discord_bridge.send("your ingame name is: " .. name .. "\nwill logout at: " .. remaining_time_str, v.context or nil)
+                            discord_bridge.send("your ingame name is: " .. name .. "\nwill logout at: " .. remaining_time_str, v.context)
                         else
-                            discord_bridge.send("your ingame name is: " .. name, v.context or nil, "NOT_SET", "will logout at: " .. remaining_time_str)
+                            discord_bridge.send("your ingame name is: " .. name, v.context, "NOT_SET", "will logout at: " .. remaining_time_str)
                         end
                     else
                         if not discord_bridge.use_embeds then
-                            discord_bridge.send("your ingame name is: " .. name, v.context or nil)
+                            discord_bridge.send("your ingame name is: " .. name, v.context)
                         else
-                            discord_bridge.send("your ingame name is: " .. name, v.context or nil, "NOT_SET")
+                            discord_bridge.send("your ingame name is: " .. name, v.context, "NOT_SET")
                         end
                     end
                 else
                     if not discord_bridge.use_embeds then
-                        discord_bridge.send('Not logged in.', v.context or nil)
+                        discord_bridge.send('Not logged in.', v.context)
                     else
-                        discord_bridge.send('Not logged in.', v.context or nil, discord_bridge.not_logged_in_color)
+                        discord_bridge.send('Not logged in.', v.context, discord_bridge.not_logged_in_color)
                     end
                 end
             end
@@ -516,9 +516,9 @@ function discord_bridge.handle_response(response)
                     msg = 'there\'re no users currently logged in'
                 end
                 if not discord_bridge.use_embeds then
-                    discord_bridge.send(msg, v.context or nil)
+                    discord_bridge.send(msg, v.context)
                 else
-                    discord_bridge.send(msg, v.context or nil, 'NOT_SET')
+                    discord_bridge.send(msg, v.context, 'NOT_SET')
                 end
             end
             if v.cmd == 'logout' then
