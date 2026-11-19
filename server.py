@@ -20,10 +20,12 @@ warnings.filterwarnings('ignore', 'Changing state of started or joined applicati
 parser = argparse.ArgumentParser(usage = '%(prog)s [-h|--help] [-p,--port PORT] [--allow-remote]')
 parser.add_argument('-p', '--port', type=int, default=9692, help='Port server.py listens on, default: 9692')
 parser.add_argument('--allow-remote', action='store_true', help='Allow clients not running locally to connect, e.g. not from localhost')
+parser.add_argument('--benchmark', action='store_true', help='enable debug output')
 args = parser.parse_args()
 
 port = int(args.port)
 remote_allowed = args.allow_remote
+benchmark = args.benchmark
 
 token = ''
 prefix = ''
@@ -144,6 +146,7 @@ def check_timeout():
     return time.time() - last_request <= 1
 
 async def handle(request):
+    begin_time = time.time()
     global last_request
     last_request = time.time()
     try:
@@ -225,6 +228,8 @@ async def handle(request):
         'service_commands': service_command_queue.get_all()
     }
     response = json.dumps(responseObject)
+    if benchmark:
+        print(f"{begin_time:.7f},{time.time():.7f}={(time.time()-begin_time)*1000:.4f}")
     return web.Response(text=response)
 
 async def setup_already_completed(response):
