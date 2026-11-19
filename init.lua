@@ -369,7 +369,7 @@ function discord_bridge.handle_response(response)
             end
             local xban2_banned = false
             if discord_bridge.xban2_enabled then
-                local names, banned, record = xban.get_info(actor_name)
+                local _, banned, record = xban.get_info(actor_name)
                 xban2_banned = (banned and record) or false
             end
             if minetest.get_ban_description(actor_name) ~= '' or xban2_banned then
