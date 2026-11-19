@@ -148,7 +148,7 @@ minetest.override_chatcommand('msg', {
             end
             message = minetest.format_chat_message(name:gsub('_', '\\_'), message)
             local data = {
-                type = 'DISCORD-DIRECT-MESSAGE',
+                type = 'DISCORD_DIRECT_MESSAGE',
                 playername = target_player,
                 id = discord_bridge.authenticated_users_ids[target_player],
                 content = minetest.strip_escapes(message)
@@ -540,7 +540,7 @@ end
 
 function discord_bridge.send(message, id, embed_color, embed_description, userid)
     local data = {
-        type = 'DISCORD-RELAY-MESSAGE'
+        type = 'DISCORD_RELAY_MESSAGE'
     }
     if message then
         data['content'] = message

@@ -150,7 +150,7 @@ async def handle(request):
         data = {}
         if request.method == 'POST':
             data = await request.json()
-        if request.method == 'POST' and data['type'] == 'DISCORD-RELAY-MESSAGE':
+        if request.method == 'POST' and data['type'] == 'DISCORD_RELAY_MESSAGE':
             if 'content' in data:
                 msg = discord.utils.escape_mentions(data['content'])
                 chunks = [msg[i:i+2000] for i in range(0, len(msg), 2000)]
@@ -207,7 +207,7 @@ async def handle(request):
                     for channel in channels:
                         for chunk in chunks:
                             asyncio.create_task(channel[1].send(chunk))
-        if request.method == 'POST' and data['type'] == 'DISCORD-DIRECT-MESSAGE':
+        if request.method == 'POST' and data['type'] == 'DISCORD_DIRECT_MESSAGE':
                 msg = discord.utils.escape_mentions(data['content'])
                 async def send():
                     user = bot.get_user(data['id'])
