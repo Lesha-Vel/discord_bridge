@@ -36,6 +36,7 @@ do_use_nicknames = True
 send_backend_startups = True
 do_use_embeds = True
 whereis_allowed = True
+login_embeds = True
 mirror_chats = True
 
 server_down_color = '#ede442'
@@ -49,7 +50,7 @@ async def handle_setup_root(request):
 
 async def handle_setup_packet(request):
     global token, prefix, commands_allowed, logins_allowed, do_use_nicknames, send_backend_startups, do_use_embeds
-    global whereis_allowed, mirror_chats, server_down_color, password_leak_color, version_mismatch
+    global login_embeds, whereis_allowed, mirror_chats, server_down_color, password_leak_color, version_mismatch
     if request.app[setup_packet_received]:
         print('setup packet already received')
         return web.Response()
@@ -73,6 +74,7 @@ async def handle_setup_packet(request):
     do_use_nicknames = response['use_nicknames']
     send_backend_startups = response['send_backend_startups']
     do_use_embeds = response['use_embeds']
+    login_embeds = response['login_embeds']
     whereis_allowed = response['allow_whereis']
     mirror_chats = response['mirror_chats']
     server_down_color = response['server_down_color']
@@ -415,7 +417,7 @@ Admin only commands:
         async def logout(ctx):
             if not ctx.channel.id in channel_id_list and ctx.guild is not None and not ctx.interaction:
                 return
-            if not do_use_embeds:
+            if not login_embeds:
                 await ctx.send("logout was invoked", delete_after=10, ephemeral=True)
             else:
                 await ctx.send(embed = discord.Embed(title = "logout was invoked"), delete_after=10, ephemeral=True)

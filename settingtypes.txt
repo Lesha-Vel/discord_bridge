@@ -43,7 +43,14 @@ discord_bridge.allow_logins (Allow logging in from Discord) bool true
 discord_bridge.allow_send_to_offline_players (Allow sending direct messages from in-game to Discord) bool true
 discord_bridge.allow_whereis (Allow using whereis Discord command) bool true
 [Embed]
-discord_bridge.use_embeds (Use embeds for service messages) bool true
+# used for not logged in, banned, insufficient privs and command not found situations
+discord_bridge.use_embeds_on_cmd_fail (Use embeds for command fails) bool false
+# used for status, whereis, whoami and logins
+discord_bridge.use_embeds_on_svc_cmd (Use embeds for service commands responses) bool true
+# used for login success/failed and logout
+discord_bridge.use_embeds_on_login (Use embeds for login direct messages) bool true
+# used when luanti is down or !login was called in a public channel
+discord_bridge.use_embeds_on_pwd_leak_srv_down (Use embeds for server messages) bool true
 discord_bridge.use_embeds_on_joins_and_leaves (Use embeds for notifications on player join and leave) bool true
 discord_bridge.use_embeds_on_welcomes (Use embeds for notifications on player welcomes) bool true
 discord_bridge.use_embeds_on_deaths (Use embeds for notifications on player death) bool true
