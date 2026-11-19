@@ -358,7 +358,7 @@ function discord_bridge.handle_response(response)
             local actor_name = v.bypass_auth and 'discord_relay' or discord_bridge.authenticated_users[v.id]
             if not v.bypass_auth and not discord_bridge.authenticated_users[v.id] then
                 if not discord_bridge.use_embeds then
-                    discord_bridge.send('Not logged in.', nil, nil, nil, v.id)
+                    discord_bridge.send('⚠️ Not logged in.', nil, nil, nil, v.id)
                 else
                     discord_bridge.send('Not logged in.', nil, discord_bridge.not_logged_in_color, nil, v.id)
                 end
@@ -371,7 +371,7 @@ function discord_bridge.handle_response(response)
             end
             if minetest.get_ban_description(actor_name) ~= '' or xban2_banned then
                 if not discord_bridge.use_embeds then
-                    discord_bridge.send('You cannot run commands because you are banned.', v.context)
+                    discord_bridge.send('⚠️ You cannot run commands because you are banned.', v.context)
                 else
                     discord_bridge.send('You cannot run commands because you are banned.', v.context, discord_bridge.svc_dms_banned_color)
                 end
@@ -385,7 +385,7 @@ function discord_bridge.handle_response(response)
                 for priv, value in pairs(required_privs) do
                     if player_privs[priv] ~= value then
                         if not discord_bridge.use_embeds then
-                            discord_bridge.send('Insufficient privileges.', v.context)
+                            discord_bridge.send('⚠️ Insufficient privileges.', v.context)
                         else
                             discord_bridge.send('Insufficient privileges.', v.context, discord_bridge.svc_dms_privs_color)
                         end
@@ -434,7 +434,7 @@ function discord_bridge.handle_response(response)
                 minetest.chat_send_player = old_chat_send_player
             else
                 if not discord_bridge.use_embeds then
-                    discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context)
+                    discord_bridge.send(('⚠️ Command not found: `%s`'):format(v.command), v.context)
                 else
                     discord_bridge.send(('Command not found: `%s`'):format(v.command), v.context, discord_bridge.svc_dms_cnf_color)
                 end
@@ -459,13 +459,13 @@ function discord_bridge.handle_response(response)
                 discord_bridge.authenticated_users_timestamps[v.user_id] = os.time()
                 discord_bridge.save_logins()
                 if not discord_bridge.use_embeds then
-                    discord_bridge.send('Login successful.', nil, nil, nil, v.user_id)
+                    discord_bridge.send('🟢 Login successful.', nil, nil, nil, v.user_id)
                 else
                     discord_bridge.send('Login successful.', nil, discord_bridge.login_success_color, nil, v.user_id)
                 end
             else
                 if not discord_bridge.use_embeds then
-                    discord_bridge.send('Login failed.', nil, nil, nil, v.user_id)
+                    discord_bridge.send('🔴 Login failed.', nil, nil, nil, v.user_id)
                 else
                     discord_bridge.send('Login failed.', nil, discord_bridge.login_fail_color, nil, v.user_id)
                 end
