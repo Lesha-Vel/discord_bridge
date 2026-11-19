@@ -197,7 +197,7 @@ if discord_bridge.allow_whereis then
     minetest.register_chatcommand('dc_whereis', {
         params = '<player>',
         description = 'get player coordinates',
-        func = function (name, param)
+        func = function (_, param)
             if not minetest.is_valid_player_name(param) then
                 return false, '-!- illigal player name'
             end
@@ -227,7 +227,7 @@ end
 minetest.register_chatcommand('dc_count', {
     description = 'get number of players in whereis database',
     privs = { server = true },
-    func = function (name, param)
+    func = function ()
         local players_count = 0
         for _,v in ipairs(discord_bridge.mod_storage:get_keys()) do
             if string.sub(v, 1, 1) == '_' then
@@ -242,7 +242,7 @@ minetest.register_chatcommand("dc_kick", {
     params = "<message>",
     privs = { kick = true },
     description = "kick a user from discord",
-    func = function(name, param)
+    func = function(_, param)
         if discord_bridge.ready then
             if discord_bridge.authenticated_users_ids[param] then
                 discord_bridge.register_logout(discord_bridge.authenticated_users_ids[param])
@@ -312,7 +312,9 @@ function discord_bridge.save_logins()
             })
         end
         local json = minetest.write_json(logged_in_users)
-        if json == 'null' then json = '[]' end
+        if json == 'null' then
+            json = '[]'
+        end
         discord_bridge.mod_storage:set_string('saved_logins', json)
     end
 end
