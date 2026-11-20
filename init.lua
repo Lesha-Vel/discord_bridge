@@ -75,8 +75,8 @@ discord_bridge.svc_dms_cnf_color = settings:get('discord_bridge.svc_dms_cnf_colo
 discord_bridge.login_success_color = settings:get('discord_bridge.login_success_color') or '#57f287'
 discord_bridge.login_fail_color = settings:get('discord_bridge.login_fail_color') or '#ed4245'
 discord_bridge.coords_color = settings:get('discord_bridge.coords_color') or 'NOT_SET'
-discord_bridge.server_down_color = settings:get('discord_bridge.server_down_color') or '#ede442'
 discord_bridge.not_logged_in_color = settings:get('discord_bridge.not_logged_in_color') or '#46e8e8'
+discord_bridge.server_down_color = settings:get('discord_bridge.server_down_color') or '#ede442'
 discord_bridge.password_leak_color = settings:get('discord_bridge.password_leak_color') or '#ed9d42'
 
 discord_bridge.timeout = tonumber(settings:get('dedicated_server_step') or '0.09') * 30
