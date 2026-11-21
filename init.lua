@@ -7,6 +7,7 @@ discord_bridge.game_startup_time = os.time()
 discord_bridge.mod_storage = minetest.get_mod_storage()
 
 -- Configuration
+-- Bridge
 discord_bridge.host = settings:get('discord_bridge.host') or '127.0.0.1'
 discord_bridge.port = settings:get('discord_bridge.port') or 9692
 discord_bridge.token = settings:get('discord_bridge.token') or ''
@@ -15,14 +16,14 @@ discord_bridge.command_prefix = settings:get('discord_bridge.command_prefix') or
 discord_bridge.auto_logout_timeout = tonumber(settings:get('discord_bridge.auto_logout_timeout')) or 604800
 discord_bridge.login_file = settings:get('discord_bridge.login_file') or 'discord_logins.txt'
 discord_bridge.date = settings:get('discord_bridge.date') or '%m/%d/%Y %I:%M%p'
-
+-- Options
 discord_bridge.escape_formatting = settings:get_bool('discord_bridge.escape_formatting', true)
 discord_bridge.mirror_chats = settings:get_bool('discord_bridge.mirror_chats', true)
 discord_bridge.persistent_logins = settings:get_bool('discord_bridge.persistent_logins', true)
 discord_bridge.send_every_3s = settings:get_bool('discord_bridge.send_every_3s', true)
 discord_bridge.clean_invites = settings:get_bool('discord_bridge.clean_invites', true)
 discord_bridge.use_nicknames = settings:get_bool('discord_bridge.use_nicknames', true)
-
+-- Sent
 discord_bridge.send_server_startup = settings:get_bool('discord_bridge.send_server_startup', true)
 discord_bridge.send_server_shutdown = settings:get_bool('discord_bridge.send_server_shutdown', true)
 discord_bridge.include_server_status_on_startup = settings:get_bool('discord_bridge.include_server_status_on_startup', true)
@@ -34,12 +35,12 @@ discord_bridge.send_welcomes = settings:get_bool('discord_bridge.send_welcomes',
 discord_bridge.send_deaths = settings:get_bool('discord_bridge.send_deaths', true)
 discord_bridge.send_backend_startups = settings:get_bool('discord_bridge.send_backend_startups', true)
 discord_bridge.send_command_success = settings:get_bool('discord_bridge.send_command_success', true)
-
+-- Allow
 discord_bridge.allow_commands = settings:get_bool('discord_bridge.allow_commands', true)
 discord_bridge.allow_logins = settings:get_bool('discord_bridge.allow_logins', true)
 discord_bridge.allow_send_to_offline_players = settings:get_bool('discord_bridge.allow_send_to_offline_players', true)
 discord_bridge.allow_whereis = settings:get_bool('discord_bridge.allow_whereis', true)
-
+-- Embed
 discord_bridge.use_embeds_on_cmd_fail = settings:get_bool('discord_bridge.use_embeds_on_cmd_fail', false)
 discord_bridge.use_embeds_on_svc_cmd = settings:get_bool('discord_bridge.use_embeds_on_svc_cmd', true)
 discord_bridge.use_embeds_on_login = settings:get_bool('discord_bridge.use_embeds_on_login', true)
@@ -49,7 +50,7 @@ discord_bridge.use_embeds_on_welcomes = settings:get_bool('discord_bridge.use_em
 discord_bridge.use_embeds_on_deaths = settings:get_bool('discord_bridge.use_embeds_on_deaths', true)
 discord_bridge.use_embeds_on_server_updates = settings:get_bool('discord_bridge.use_embeds_on_server_updates', true)
 discord_bridge.use_embeds_on_dm_cmd = settings:get_bool('discord_bridge.use_embeds_on_dm_cmd', false)
-
+-- Texts
 discord_bridge.chat_message_format = settings:get('discord_bridge.chat_message_format') or '<%s@%s> %s'
 discord_bridge.outgoing_message_format = settings:get('discord_bridge.outgoing_message_format') or '<**%s**>  %s'
 discord_bridge.startup_text = settings:get('discord_bridge.startup_text') or '*** Server started!'
@@ -59,7 +60,7 @@ discord_bridge.last_login_text = settings:get('discord_bridge.last_login_text') 
 discord_bridge.leave_text = settings:get('discord_bridge.leave_text') or '\\*\\*\\* **%s** left the game'
 discord_bridge.welcome_text = settings:get('discord_bridge.welcome_text') or '\\*\\*\\* **%s** joined the game for the first time. Welcome!'
 discord_bridge.death_text = settings:get('discord_bridge.death_text') or '\\*\\*\\* **%s** died'
-
+-- Colors
 discord_bridge.text_color = settings:get('discord_bridge.text_color') or '#ffffff'
 discord_bridge.startup_color = settings:get('discord_bridge.startup_color') or '#5865f2'
 discord_bridge.shutdown_color = settings:get('discord_bridge.shutdown_color') or 'NOT_SET'
