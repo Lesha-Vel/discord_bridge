@@ -144,10 +144,7 @@ minetest.override_chatcommand('msg', {
         local target_player, message = param:match('^(%S+)%s(.+)$')
         if discord_bridge.authenticated_users_ids[target_player] then
             minetest.log('action', 'DM from ' .. name .. ' to a discord user ' .. target_player .. ': ' .. message)
-            if not target_player then
-                return false, "Invalid usage, see /help msg."
-            end
-            message = minetest.format_chat_message(name:gsub('_', '\\_'), message)
+            message = minetest.format_chat_message(name:gsub('_', '\\_'), discord_bridge.escape_message(message))
             local data = {
                 type = 'DISCORD_DIRECT_MESSAGE',
                 playername = target_player,
@@ -155,7 +152,7 @@ minetest.override_chatcommand('msg', {
                 content = minetest.strip_escapes(message)
             }
             discord_bridge.http.fetch({
-                url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
+                url = discord_bridge.host .. ':' .. discord_bridge.port,
                 timeout = discord_bridge.timeout,
                 method = 'POST',
                 data = minetest.write_json(data)
@@ -171,7 +168,7 @@ end
 
 minetest.register_chatcommand("dc_send", {
     params = "<message>",
-    description = "sends a chatmessage, works aproximatelly as a transparent prefix, e.g. " ..
+    description = "sends a chatmessage, works approximately as a transparent prefix, e.g. " ..
         "'/dc_send /me hello' or even '/dc_send /dc_send /dc_send /me hello' = '/me hello'",
     func = function(name, param)
         if not minetest.check_player_privs(name, 'shout') and param:sub(1,1) ~= "/" then
@@ -180,16 +177,12 @@ minetest.register_chatcommand("dc_send", {
         if not param:find("[^%s]") then
             return true
         end
-        local handled = false
         for _, v in ipairs(minetest.registered_on_chat_messages) do
             if v(name, param) then
-                handled = true
-                break
+                return true
             end
         end
-        if not handled then
-            minetest.chat_send_all(minetest.format_chat_message(name, param))
-        end
+        minetest.chat_send_all(minetest.format_chat_message(name, param))
         return true
     end
 })
@@ -252,7 +245,7 @@ minetest.register_chatcommand("dc_kick", {
                 return false, "user is not logged in: " .. param
             end
         else
-            return false, "bridge isn't ready"
+            return false, "bridge isn't ready yet"
         end
     end
 })
@@ -264,7 +257,6 @@ minetest.get_server_status = function (name, joined)
     local original_status = discord_bridge.old_get_server_status(name, joined)
     if original_status == nil then return nil end
 
-    local new_status = ''
     local users_list = ''
     local match = string.find(original_status, '\n')
 
@@ -278,11 +270,10 @@ minetest.get_server_status = function (name, joined)
     end
 
     if match == nil then
-        new_status = original_status .. users_list
+        return original_status .. users_list
     else
-        new_status = original_status:sub(1, match - 1) .. users_list .. original_status:sub(match)
+        return original_status:sub(1, match - 1) .. users_list .. original_status:sub(match)
     end
-    return new_status
 end
 end
 
@@ -335,7 +326,7 @@ function discord_bridge.handle_response(response)
     if data == 'NO_SETUP' then
         discord_bridge.server_config['saved_logins'] = discord_bridge.mod_storage:get_string('saved_logins')
         discord_bridge.http.fetch_async({
-            url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
+            url = discord_bridge.host .. ':' .. discord_bridge.port .. '/setup',
             timeout = discord_bridge.timeout,
             method = 'POST',
             data = minetest.write_json(discord_bridge.server_config)
@@ -476,10 +467,10 @@ function discord_bridge.handle_response(response)
                     discord_bridge.send('Login failed.', nil, discord_bridge.login_fail_color, nil, v.user_id)
                 end
             end
-            minetest.log('action', 'Discord login: ' .. tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. (result and "success" or "failed"))
+            minetest.log('action', 'Discord login: ' .. v.user_id .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. (result and "success" or "failed"))
             if discord_bridge.login_file ~= '' then
                 local f = io.open(minetest.get_worldpath() .. '/' .. discord_bridge.login_file, 'a')
-                f:write(tostring(v.user_id) .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. os.date('!%Y-%m-%dT%H:%M:%SZ') .. ':' .. tostring(result) .. '\n')
+                f:write(v.user_id .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. os.date('!%Y-%m-%dT%H:%M:%SZ') .. ':' .. tostring(result) .. '\n')
                 f:close()
             end
         end
@@ -563,7 +554,7 @@ function discord_bridge.send(message, id, embed_color, embed_description, userid
         data['userid'] = userid
     end
     discord_bridge.http.fetch({
-        url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+        url = discord_bridge.host .. ':' .. discord_bridge.port,
         timeout = discord_bridge.timeout,
         method = 'POST',
         data = minetest.write_json(data)
@@ -603,15 +594,13 @@ minetest.log('verbose', 'discord_bridge.main_loop is started')
 discord_bridge.ready = true
 
 minetest.register_on_chat_message(function(name, message)
-    name = name:gsub("_", "\\_")
-    discord_bridge.send_buffered(discord_bridge.outgoing_message_format:format(name, discord_bridge.escape_message(message)))
+    discord_bridge.send_buffered(discord_bridge.outgoing_message_format:format(name:gsub("_", "\\_"), discord_bridge.escape_message(message)))
 end)
 
 discord_bridge.old_me_func = minetest.registered_chatcommands['me'].func
 minetest.override_chatcommand('me', {
     func = function(name, param)
-        local msg = '\\* ' .. name:gsub("_", "\\_") .. ' ' .. discord_bridge.escape_message(param)
-        discord_bridge.send_buffered(msg)
+        discord_bridge.send_buffered('\\* ' .. name:gsub("_", "\\_") .. ' ' .. discord_bridge.escape_message(param))
         return discord_bridge.old_me_func(name, param)
     end
 })
@@ -690,7 +679,7 @@ minetest.register_globalstep(function(dtime)
     if discord_bridge.timer > 0.2 then
         if not discord_bridge.ongoing then
             discord_bridge.ongoing = discord_bridge.http.fetch_async({
-                url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+                url = discord_bridge.host .. ':' .. discord_bridge.port,
                 timeout = discord_bridge.timeout,
             })
         else
@@ -698,7 +687,7 @@ minetest.register_globalstep(function(dtime)
             if res.completed == true then
                 discord_bridge.handle_response(res)
                 discord_bridge.ongoing = discord_bridge.http.fetch_async({
-                    url = tostring(discord_bridge.host)..':'..tostring(discord_bridge.port),
+                    url = discord_bridge.host .. ':' .. discord_bridge.port,
                     timeout = discord_bridge.timeout,
                 })
             end
@@ -742,16 +731,14 @@ end
 end
 
 minetest.register_on_leaveplayer(function (player)
-    local name = player:get_player_name()
     local pos_str = minetest.pos_to_string(player:get_pos())
-    discord_bridge.mod_storage:set_string('_' .. name, pos_str)
+    discord_bridge.mod_storage:set_string('_' .. player:get_player_name(), pos_str)
 end)
 
 minetest.register_on_shutdown(function()
     for _, v in ipairs(minetest.get_connected_players()) do
-        local name = v:get_player_name()
         local pos_str = minetest.pos_to_string(v:get_pos())
-        discord_bridge.mod_storage:set_string('_' .. name, pos_str)
+        discord_bridge.mod_storage:set_string('_' .. v:get_player_name(), pos_str)
     end
 end)
 
@@ -771,7 +758,7 @@ minetest.register_globalstep(function(dtime)
 
     if not discord_bridge.setup_ongoing then
         discord_bridge.setup_ongoing = discord_bridge.http.fetch_async({
-            url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
+            url = discord_bridge.host .. ':' .. discord_bridge.port .. '/setup',
             timeout = discord_bridge.timeout,
             method = 'POST',
             data = minetest.write_json(discord_bridge.server_config)
@@ -790,7 +777,7 @@ minetest.register_globalstep(function(dtime)
                     else
                         local function start_main_loop()
                             discord_bridge.http.fetch({
-                                url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port),
+                                url = discord_bridge.host .. ':' .. discord_bridge.port,
                                 timeout = discord_bridge.timeout
                             }, function (response)
                                 if response.succeeded then
@@ -807,7 +794,7 @@ minetest.register_globalstep(function(dtime)
                 end
             end
             discord_bridge.setup_ongoing = discord_bridge.http.fetch_async({
-                url = tostring(discord_bridge.host) .. ':' .. tostring(discord_bridge.port) .. '/setup',
+                url = discord_bridge.host .. ':' .. discord_bridge.port .. '/setup',
                 timeout = discord_bridge.timeout,
                 method = 'POST',
                 data = minetest.write_json(discord_bridge.server_config)
