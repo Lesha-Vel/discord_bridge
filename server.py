@@ -354,7 +354,8 @@ Admin only commands:
             login_queue.add({
                 'username': username,
                 'password': password,
-                'dc_name': f"{ctx.author.name}:{ctx.author.display_name}",
+                'dc_name': ctx.author.name,
+                'dc_nick': ctx.author.display_name,
                 'user_id': str(ctx.author.id)
             })
             if not check_timeout():
@@ -380,7 +381,8 @@ Admin only commands:
                         'username': self.username.value,
                         'password': self.password.value,
                         'user_id': str(interaction.user.id),
-                        'dc_name': f"{interaction.user.name}:{interaction.user.display_name}"
+                        'dc_name': interaction.user.name,
+                        'dc_nick': interaction.user.display_name,
                     })
                     if not check_timeout():
                         if not do_use_embeds:

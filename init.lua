@@ -116,12 +116,15 @@ discord_bridge.authenticated_users = {}
 discord_bridge.authenticated_users_ids = {}
 -- user id -> timestamp
 discord_bridge.authenticated_users_timestamps = {}
+-- user id -> {name, nick}
+discord_bridge.authenticated_users_names = {}
 
 -- load saved logins here
 for _, v in ipairs(minetest.parse_json(discord_bridge.mod_storage:get_string('saved_logins'))) do
     discord_bridge.authenticated_users_ids[v.name] = v.id
     discord_bridge.authenticated_users[v.id] = v.name
     discord_bridge.authenticated_users_timestamps[v.id] = v.timestamp
+    discord_bridge.authenticated_users_names[v.id] = v.names
 end
 
 discord_bridge.ready = false
@@ -257,6 +260,7 @@ minetest.register_chatcommand("dc_logout_all", {
         discord_bridge.authenticated_users = {}
         discord_bridge.authenticated_users_ids = {}
         discord_bridge.authenticated_users_timestamps = {}
+        discord_bridge.authenticated_users_names = {}
         discord_bridge.mod_storage:set_string("saved_logins", "[]")
         return true, "kicked everyone from Discord"
     end
@@ -267,8 +271,9 @@ minetest.register_chatcommand("dc_logins", {
     func = function ()
         local msg = 'logged in users: '
         local first = true
-        for _, j in pairs(discord_bridge.authenticated_users) do
-            msg = msg .. (first and '' or ', ') .. j
+        for i, j in pairs(discord_bridge.authenticated_users) do
+            local discord_name = discord_bridge.authenticated_users_names[i][discord_bridge.use_nicknames and "nick" or "name"]
+            msg = msg .. (first and '' or ', ') .. j .. ' = ' .. discord_name
             first = false
         end
         if first then
@@ -328,7 +333,8 @@ function discord_bridge.save_logins()
             table.insert(logged_in_users, {
                 id = i,
                 name = v,
-                timestamp = discord_bridge.authenticated_users_timestamps[i]
+                timestamp = discord_bridge.authenticated_users_timestamps[i],
+                names = discord_bridge.authenticated_users_names[i]
             })
         end
         local json = minetest.write_json(logged_in_users)
@@ -345,6 +351,7 @@ function discord_bridge.register_logout(id)
     end
     discord_bridge.authenticated_users[id] = nil
     discord_bridge.authenticated_users_timestamps[id] = nil
+    discord_bridge.authenticated_users_names[id] = nil
     discord_bridge.save_logins()
 end
 
@@ -488,6 +495,7 @@ function discord_bridge.handle_response(response)
                 discord_bridge.authenticated_users_ids[v.username] = v.user_id
                 discord_bridge.authenticated_users[v.user_id] = v.username
                 discord_bridge.authenticated_users_timestamps[v.user_id] = os.time()
+                discord_bridge.authenticated_users_names[v.user_id] = {name = v.dc_name, nick = v.dc_nick}
                 discord_bridge.save_logins()
                 if not discord_bridge.use_embeds_on_login then
                     discord_bridge.send('🟢 Login successful.', nil, nil, nil, v.user_id)
@@ -501,10 +509,10 @@ function discord_bridge.handle_response(response)
                     discord_bridge.send('Login failed.', nil, discord_bridge.login_fail_color, nil, v.user_id)
                 end
             end
-            minetest.log('action', 'Discord login: ' .. v.user_id .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. (result and "success" or "failed"))
+            minetest.log('action', 'Discord login: ' .. v.user_id .. ':' .. v.dc_name .. ':' .. v.dc_nick .. ':' .. v.username .. ':' .. (result and "success" or "failed"))
             if discord_bridge.login_file ~= '' then
                 local f = io.open(minetest.get_worldpath() .. '/' .. discord_bridge.login_file, 'a')
-                f:write(v.user_id .. ':' .. v.dc_name .. ':' .. v.username .. ':' .. os.date('!%Y-%m-%dT%H:%M:%SZ') .. ':' .. tostring(result) .. '\n')
+                f:write(v.user_id .. ':' .. v.dc_name .. ':' .. v.dc_nick .. ':' .. v.username .. ':' .. os.date('!%Y-%m-%dT%H:%M:%SZ') .. ':' .. tostring(result) .. '\n')
                 f:close()
             end
         end
