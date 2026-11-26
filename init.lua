@@ -250,6 +250,18 @@ minetest.register_chatcommand("dc_kick", {
     end
 })
 
+minetest.register_chatcommand("dc_logout_all", {
+    privs = { kick = true },
+    description = "log everyone out and clean the logins database",
+    func = function ()
+        discord_bridge.authenticated_users = {}
+        discord_bridge.authenticated_users_ids = {}
+        discord_bridge.authenticated_users_timestamps = {}
+        discord_bridge.mod_storage:set_string("saved_logins", "[]")
+        return true, "kicked everyone from Discord"
+    end
+})
+
 minetest.register_chatcommand("dc_logins", {
     description = "lists users logged in from discord",
     func = function ()
