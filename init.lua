@@ -250,6 +250,22 @@ minetest.register_chatcommand("dc_kick", {
     end
 })
 
+minetest.register_chatcommand("dc_logins", {
+    description = "lists users logged in from discord",
+    func = function ()
+        local msg = 'logged in users: '
+        local first = true
+        for _, j in pairs(discord_bridge.authenticated_users) do
+            msg = msg .. (first and '' or ', ') .. j
+            first = false
+        end
+        if first then
+            msg = 'there\'re no users currently logged in'
+        end
+        return true, msg
+    end
+})
+
 if discord_bridge.allow_send_to_offline_players then
 discord_bridge.old_get_server_status = minetest.get_server_status
 
@@ -417,6 +433,12 @@ function discord_bridge.handle_response(response)
                         else
                             discord_bridge.send(ret_val, v.context, discord_bridge.coords_color)
                         end
+                    elseif v.type == "logins" then
+                        if not discord_bridge.use_embeds_on_svc_cmd then
+                            discord_bridge.send(ret_val, v.context)
+                        else
+                            discord_bridge.send(ret_val, v.context, 'NOT_SET')
+                        end
                     else
                         if discord_bridge.send_command_success then
                             ret_val = (success and '✔️ ' or '❌ ') .. ret_val
@@ -500,22 +522,6 @@ function discord_bridge.handle_response(response)
                     else
                         discord_bridge.send('Not logged in.', v.context, discord_bridge.not_logged_in_color)
                     end
-                end
-            end
-            if v.cmd == 'logins' then
-                local msg = 'logged in users: '
-                local first = true
-                for _, j in pairs(discord_bridge.authenticated_users) do
-                    msg = msg .. (first and '' or ', ') .. j
-                    first = false
-                end
-                if first then
-                    msg = 'there\'re no users currently logged in'
-                end
-                if not discord_bridge.use_embeds_on_svc_cmd then
-                    discord_bridge.send(msg, v.context)
-                else
-                    discord_bridge.send(msg, v.context, 'NOT_SET')
                 end
             end
             if v.cmd == 'logout' then

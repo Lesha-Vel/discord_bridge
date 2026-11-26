@@ -326,12 +326,7 @@ Admin only commands:
 
         @bot.command()
         async def logins(ctx):
-            if not ctx.channel.id in channel_id_list and ctx.guild is not None:
-                return
-            service_command_queue.add({
-                "cmd": "logins",
-                "context": str(ctx.channel.id) if ctx.guild is None else None
-            })
+            return await run_cmd(ctx=ctx, command='dc_logins', args='', bypass_auth=True, request_type='logins')
 
         @bot.command(name='login')
         async def login_prefix(ctx, username=commands.parameter(description='in-game player name'), password=commands.parameter(description='in-game password', default='')):
