@@ -161,50 +161,40 @@ async def handle(request):
                 embed_description = discord.utils.escape_mentions(data['embed_description'])
             else:
                 embed_description = None
+            embed = None
             if 'embed_color' in data:
                 if data['embed_color'] != 'NOT_SET':
                     color = discord.Color.from_str(data['embed_color'])
                 else:
                     color = None
-                if 'context' in data:
-                    id = int(data['context'])
-                    async def send():
-                        target_channel = bot.get_partial_messageable(id)
-                        await target_channel.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
-                                description=embed_description))
-                    asyncio.create_task(send())
-                elif 'userid' in data:
-                    userid = int(data['userid'])
-                    async def send():
-                        user = bot.get_user(userid)
-                        if user is None:
-                            user = await bot.fetch_user(userid)
-                        await user.send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
-                                description=embed_description))
-                    asyncio.create_task(send())
-                else:
-                    for channel in channels:
-                        asyncio.create_task(channel[1].send(embed=discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color,
-                                description=embed_description)))
-            else:
-                if 'context' in data:
-                    id = int(data['context'])
-                    async def send():
-                        target_channel = bot.get_partial_messageable(id)
+                embed = discord.Embed(title=chunks[0] if len(chunks) > 0 else None, color=color, description=embed_description)
+            if 'context' in data:
+                id = int(data['context'])
+                async def send():
+                    target_channel = bot.get_partial_messageable(id)
+                    if embed:
+                        await target_channel.send(embed=embed)
+                    else:
                         for chunk in chunks:
                             await target_channel.send(chunk)
-                    asyncio.create_task(send())
-                elif 'userid' in data:
-                    userid = int(data['userid'])
-                    async def send():
-                        user = bot.get_user(userid)
-                        if user is None:
-                            user = await bot.fetch_user(userid)
+                asyncio.create_task(send())
+            elif 'userid' in data:
+                userid = int(data['userid'])
+                async def send():
+                    user = bot.get_user(userid)
+                    if user is None:
+                        user = await bot.fetch_user(userid)
+                    if embed:
+                        await user.send(embed=embed)
+                    else:
                         for chunk in chunks:
                             await user.send(chunk)
-                    asyncio.create_task(send())
-                else:
-                    for channel in channels:
+                asyncio.create_task(send())
+            else:
+                for channel in channels:
+                    if embed:
+                        asyncio.create_task(channel[1].send(embed=embed))
+                    else:
                         for chunk in chunks:
                             asyncio.create_task(channel[1].send(chunk))
         if request.method == 'POST' and data['type'] == 'DISCORD_DIRECT_MESSAGE':
