@@ -371,7 +371,7 @@ function discord_bridge.handle_response(response)
     data = minetest.parse_json(response.data)
     if not data then return end
     if data.messages then
-        for _, message in pairs(data.messages) do
+        for _, message in ipairs(data.messages) do
             if discord_bridge.clean_invites then
                 message.content = message.content:gsub("%S*discord%.gg%S*", ""):gsub("%S*discordapp%.com/invite%S*", "")
             end
@@ -385,7 +385,7 @@ function discord_bridge.handle_response(response)
     end
     if data.commands then
         local commands = minetest.registered_chatcommands
-        for _, v in pairs(data.commands) do
+        for _, v in ipairs(data.commands) do
             repeat
             local actor_name = v.bypass_auth and 'discord_relay' or discord_bridge.authenticated_users[v.id]
             if not v.bypass_auth and not discord_bridge.authenticated_users[v.id] then
@@ -482,7 +482,7 @@ function discord_bridge.handle_response(response)
     end
     if data.logins then
         local auth = minetest.get_auth_handler()
-        for _, v in pairs(data.logins) do
+        for _, v in ipairs(data.logins) do
             local authdata = auth.get_auth(v.username)
             local result = false
             if authdata then
@@ -522,7 +522,7 @@ function discord_bridge.handle_response(response)
         end
     end
     if data.service_commands then
-        for _, v in pairs(data.service_commands) do
+        for _, v in ipairs(data.service_commands) do
             if v.cmd == 'whoami' then
                 if discord_bridge.authenticated_users[v.author_id] then
                     local name = discord_bridge.authenticated_users[v.author_id]:gsub('_', '\\_')
