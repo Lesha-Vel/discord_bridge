@@ -53,7 +53,6 @@ async def handle_setup_packet(request):
     if request.app[setup_packet_received]:
         print('setup packet already received')
         return web.Response()
-    request.app[setup_packet_received] = True
     response = await request.json()
 
     if response['protocol_version'] != protocol_version:
@@ -79,6 +78,7 @@ async def handle_setup_packet(request):
     password_leak_color = response['password_leak_color']
 
     request.app[setup_finished].set()
+    request.app[setup_packet_received] = True
     return web.Response(text='{"status": "SUCCESS"}')
 
 async def srv():
