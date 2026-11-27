@@ -241,7 +241,7 @@ async def on_message(message):
         if mirror_chats and not message.content.startswith('!login '):
             for channel in channels:
                 if channel[0] != message.channel.id:
-                    asyncio.create_task(channel[1].send(f"{author}@{channel_names.get(message.channel.id, 'Discord')}: {message.content.replace('\n', '/')}"))
+                    asyncio.create_task(channel[1].send(f"{author}@{channel_names.get(message.channel.id, 'Discord')}: {discord.utils.escape_mentions(message.content.replace('\n', '/'))}"))
 
     await bot.process_commands(message)
 
